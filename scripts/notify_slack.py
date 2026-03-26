@@ -1,6 +1,9 @@
 """
 Post E2E test results to Slack via the Expertly automation chain API.
 
+Uses Playwright headless to login and extract JWT token, then calls
+the automation chain endpoint to post a Slack message.
+
 Environment variables:
   EXPERTLY_USERNAME, EXPERTLY_PASSWORD  - Expertly login credentials
   SLACK_BOT_TOKEN                       - Slack bot token
@@ -19,46 +22,72 @@ EXPERTLY_BASE = "https://demo.expertly.cloud"
 CHAIN_ID = "46b4336ff4bd42574c3083babd9cd903"
 CHAIN_URL = f"{EXPERTLY_BASE}/rest/api/automation/chain/test/execute/{CHAIN_ID}?outputMode=ALL"
 SLACK_CHANNEL = "test_dashboard"
+LOGIN_URL = f"{EXPERTLY_BASE}/pages/admin-ai/accounts/list"
 
 
-def expertly_login(username: str, password: str) -> str:
-    """Authenticate with Expertly (FusionAuth) and return JWT token."""
-    login_urls = [
-        f"{EXPERTLY_BASE}/api/login",
-        f"{EXPERTLY_BASE}/rest/api/auth/login",
-        f"{EXPERTLY_BASE}/rest/api/user/login",
-    ]
+def expertly_login_via_browser(username: str, password: str) -> str:
+    """Login to Expertly via headless browser and extract JWT from localStorage."""
+    from playwright.sync_api import sync_playwright
 
-    payload = json.dumps({
-        "loginId": username,
-        "password": password,
-    }).encode("utf-8")
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context()
+        page = context.new_page()
 
-    for url in login_urls:
-        try:
-            req = urllib.request.Request(
-                url,
-                data=payload,
-                headers={"Content-Type": "application/json"},
-                method="POST",
-            )
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                data = json.loads(resp.read())
-                token = (
-                    data.get("token")
-                    or data.get("accessToken")
-                    or data.get("data", {}).get("token")
-                )
-                if token:
-                    print(f"[expertly] Login succeeded via {url}")
-                    return token
-        except urllib.error.HTTPError as e:
-            print(f"[expertly] {url} returned {e.code}, trying next...")
-        except Exception as e:
-            print(f"[expertly] {url} failed: {e}, trying next...")
+        print(f"[expertly] Navigating to login page...")
+        page.goto(LOGIN_URL, timeout=60_000)
+        page.wait_for_load_state("networkidle")
 
-    print("[expertly] ERROR: All login endpoints failed", file=sys.stderr)
-    sys.exit(1)
+        # Fill login form
+        print(f"[expertly] Filling login credentials...")
+        email_input = page.locator('input#loginId')
+        email_input.wait_for(state="visible", timeout=15_000)
+        email_input.fill(username)
+
+        password_input = page.locator('input#password-box-id')
+        password_input.fill(password)
+
+        # Click login button
+        login_button = page.locator('button:has-text("Log In")').first
+        login_button.click()
+
+        # Wait for redirect after login
+        page.wait_for_load_state("networkidle", timeout=30_000)
+        page.wait_for_timeout(3000)
+
+        # Extract token from localStorage or cookies
+        token = page.evaluate("""() => {
+            // Try common localStorage keys for auth tokens
+            const keys = ['authToken', 'access_token', 'token', 'jwt', 'auth_token'];
+            for (const key of keys) {
+                const val = localStorage.getItem(key);
+                if (val) return val;
+            }
+            // Try all keys that look like tokens
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const val = localStorage.getItem(key);
+                if (val && val.startsWith('eyJ')) return val;
+            }
+            return null;
+        }""")
+
+        if not token:
+            # Try extracting from cookies
+            cookies = context.cookies()
+            for cookie in cookies:
+                if cookie["value"].startswith("eyJ"):
+                    token = cookie["value"]
+                    break
+
+        browser.close()
+
+        if not token:
+            print("[expertly] ERROR: Could not extract auth token after login", file=sys.stderr)
+            sys.exit(1)
+
+        print(f"[expertly] Login succeeded, token extracted")
+        return token
 
 
 def post_slack_message(token: str, message: str):
@@ -101,8 +130,8 @@ def post_slack_message(token: str, message: str):
             print(f"[slack] Notification sent successfully")
             print(f"[slack] Response: {json.dumps(result, indent=2)[:500]}")
     except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="replace")
-        print(f"[slack] ERROR: {e.code} - {body[:500]}", file=sys.stderr)
+        err_body = e.read().decode("utf-8", errors="replace")
+        print(f"[slack] ERROR: {e.code} - {err_body[:500]}", file=sys.stderr)
         sys.exit(1)
 
 
@@ -128,8 +157,8 @@ def main():
         f":- {report_url}"
     )
 
-    print(f"[notify] Logging into Expertly...")
-    token = expertly_login(username, password)
+    print(f"[notify] Logging into Expertly via browser...")
+    token = expertly_login_via_browser(username, password)
 
     print(f"[notify] Posting to Slack #{SLACK_CHANNEL}...")
     post_slack_message(token, message)
