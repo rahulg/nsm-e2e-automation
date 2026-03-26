@@ -1,1094 +1,361 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8"/>
-    <title id="head-title">report.html</title>
-      <style type="text/css">body {
-  font-family: Helvetica, Arial, sans-serif;
-  font-size: 12px;
-  /* do not increase min-width as some may use split screens */
-  min-width: 800px;
-  color: #999;
-}
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NSM E2E Test Report — QA</title>
+<style>
+  :root {
+    --green: #16a34a; --green-bg: #f0fdf4; --green-border: #bbf7d0;
+    --red: #dc2626; --red-bg: #fef2f2; --red-border: #fecaca;
+    --orange: #d97706; --orange-bg: #fffbeb;
+    --blue: #2563eb; --blue-bg: #eff6ff;
+    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+    --gray-300: #d1d5db; --gray-500: #6b7280; --gray-700: #374151; --gray-900: #111827;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--gray-900); background: var(--gray-50); line-height: 1.6; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
 
-h1 {
-  font-size: 24px;
-  color: black;
-}
+  .header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 40px 32px; border-radius: 16px; margin-bottom: 32px; }
+  .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .header .subtitle { font-size: 15px; color: #94a3b8; margin-bottom: 24px; }
+  .header-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .meta-item { font-size: 13px; }
+  .meta-item .label { color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px; font-weight: 600; }
+  .meta-item .value { color: white; font-weight: 500; margin-top: 2px; }
 
-h2 {
-  font-size: 16px;
-  color: black;
-}
+  .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+  .summary-card { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--gray-200); }
+  .summary-card .number { font-size: 36px; font-weight: 700; line-height: 1; }
+  .summary-card .label { font-size: 13px; color: var(--gray-500); margin-top: 4px; font-weight: 500; }
+  .summary-card.pass { border-top: 4px solid var(--green); } .summary-card.pass .number { color: var(--green); }
+  .summary-card.fail { border-top: 4px solid var(--red); } .summary-card.fail .number { color: var(--red); }
+  .summary-card.warn { border-top: 4px solid var(--orange); } .summary-card.warn .number { color: var(--orange); }
+  .summary-card.total { border-top: 4px solid var(--gray-700); } .summary-card.total .number { color: var(--gray-700); }
 
-p {
-  color: black;
-}
+  .result-banner { border-radius: 12px; padding: 16px 24px; margin-bottom: 32px; display: flex; align-items: center; gap: 12px; }
+  .result-banner.pass { background: var(--green-bg); border: 1px solid var(--green-border); }
+  .result-banner.pass .text { color: var(--green); }
+  .result-banner.fail { background: var(--red-bg); border: 1px solid var(--red-border); }
+  .result-banner.fail .text { color: var(--red); }
+  .result-banner .icon { font-size: 28px; }
+  .result-banner .text { font-size: 16px; font-weight: 600; }
+  .result-banner .subtext { font-size: 13px; color: var(--gray-500); font-weight: 400; }
 
-a {
-  color: #999;
-}
+  .section { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--gray-200); overflow: hidden; margin-bottom: 32px; }
+  .section-title { padding: 20px 24px 16px; font-size: 18px; font-weight: 600; border-bottom: 1px solid var(--gray-200); }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--gray-50); }
+  th { text-align: left; padding: 10px 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); font-weight: 600; }
+  td { padding: 12px 16px; font-size: 14px; border-top: 1px solid var(--gray-100); }
+  tr:hover td { background: var(--gray-50); }
+  .red-row td { background: var(--red-bg); }
+  td.num { text-align: center; color: var(--gray-500); font-size: 13px; }
+  code { font-size: 12px; background: var(--gray-100); padding: 2px 6px; border-radius: 4px; word-break: break-all; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+  .badge.pass { background: var(--green-bg); color: var(--green); }
+  .badge.fail { background: var(--red-bg); color: var(--red); }
+  .badge.warn { background: var(--orange-bg); color: var(--orange); }
 
-table {
-  border-collapse: collapse;
-}
+  .error-box { background: var(--red-bg); border: 1px solid var(--red-border); border-radius: 8px; padding: 12px 16px; margin-top: 8px; font-size: 12px; color: var(--red); overflow-x: auto; }
+  .error-box pre { white-space: pre-wrap; word-break: break-word; font-family: monospace; margin: 0; }
+  .error-toggle { margin-top: 6px; }
+  .toggle-btn { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; color: var(--gray-700); background: var(--gray-100); border: 1px solid var(--gray-200); }
+  .toggle-btn:hover { background: var(--gray-200); }
+  .toggle-btn.has-issues { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
 
-/******************************
- * SUMMARY INFORMATION
- ******************************/
-#environment td {
-  padding: 5px;
-  border: 1px solid #e6e6e6;
-  vertical-align: top;
-}
-#environment tr:nth-child(odd) {
-  background-color: #f6f6f6;
-}
-#environment ul {
-  margin: 0;
-  padding: 0 20px;
-}
+  .footer { text-align: center; padding: 24px; font-size: 12px; color: var(--gray-500); }
+  @media (max-width: 640px) { .summary-row { grid-template-columns: repeat(2, 1fr); } .header-meta { grid-template-columns: 1fr; } .container { padding: 16px; } }
+</style>
+</head>
+<body>
+<div class="container">
 
-/******************************
- * TEST RESULT COLORS
- ******************************/
-span.passed,
-.passed .col-result {
-  color: green;
-}
-
-span.skipped,
-span.xfailed,
-span.rerun,
-.skipped .col-result,
-.xfailed .col-result,
-.rerun .col-result {
-  color: orange;
-}
-
-span.error,
-span.failed,
-span.xpassed,
-.error .col-result,
-.failed .col-result,
-.xpassed .col-result {
-  color: red;
-}
-
-.col-links__extra {
-  margin-right: 3px;
-}
-
-/******************************
- * RESULTS TABLE
- *
- * 1. Table Layout
- * 2. Extra
- * 3. Sorting items
- *
- ******************************/
-/*------------------
- * 1. Table Layout
- *------------------*/
-#results-table {
-  border: 1px solid #e6e6e6;
-  color: #999;
-  font-size: 12px;
-  width: 100%;
-}
-#results-table th,
-#results-table td {
-  padding: 5px;
-  border: 1px solid #e6e6e6;
-  text-align: left;
-}
-#results-table th {
-  font-weight: bold;
-}
-
-/*------------------
- * 2. Extra
- *------------------*/
-.logwrapper {
-  max-height: 230px;
-  overflow-y: scroll;
-  background-color: #e6e6e6;
-}
-.logwrapper.expanded {
-  max-height: none;
-}
-.logwrapper.expanded .logexpander:after {
-  content: "collapse [-]";
-}
-.logwrapper .logexpander {
-  z-index: 1;
-  position: sticky;
-  top: 10px;
-  width: max-content;
-  border: 1px solid;
-  border-radius: 3px;
-  padding: 5px 7px;
-  margin: 10px 0 10px calc(100% - 80px);
-  cursor: pointer;
-  background-color: #e6e6e6;
-}
-.logwrapper .logexpander:after {
-  content: "expand [+]";
-}
-.logwrapper .logexpander:hover {
-  color: #000;
-  border-color: #000;
-}
-.logwrapper .log {
-  min-height: 40px;
-  position: relative;
-  top: -50px;
-  height: calc(100% + 50px);
-  border: 1px solid #e6e6e6;
-  color: black;
-  display: block;
-  font-family: "Courier New", Courier, monospace;
-  padding: 5px;
-  padding-right: 80px;
-  white-space: pre-wrap;
-}
-
-div.media {
-  border: 1px solid #e6e6e6;
-  float: right;
-  height: 240px;
-  margin: 0 5px;
-  overflow: hidden;
-  width: 320px;
-}
-
-.media-container {
-  display: grid;
-  grid-template-columns: 25px auto 25px;
-  align-items: center;
-  flex: 1 1;
-  overflow: hidden;
-  height: 200px;
-}
-
-.media-container--fullscreen {
-  grid-template-columns: 0px auto 0px;
-}
-
-.media-container__nav--right,
-.media-container__nav--left {
-  text-align: center;
-  cursor: pointer;
-}
-
-.media-container__viewport {
-  cursor: pointer;
-  text-align: center;
-  height: inherit;
-}
-.media-container__viewport img,
-.media-container__viewport video {
-  object-fit: cover;
-  width: 100%;
-  max-height: 100%;
-}
-
-.media__name,
-.media__counter {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  flex: 0 0 25px;
-  align-items: center;
-}
-
-.collapsible td:not(.col-links) {
-  cursor: pointer;
-}
-.collapsible td:not(.col-links):hover::after {
-  color: #bbb;
-  font-style: italic;
-  cursor: pointer;
-}
-
-.col-result {
-  width: 130px;
-}
-.col-result:hover::after {
-  content: " (hide details)";
-}
-
-.col-result.collapsed:hover::after {
-  content: " (show details)";
-}
-
-#environment-header h2:hover::after {
-  content: " (hide details)";
-  color: #bbb;
-  font-style: italic;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-#environment-header.collapsed h2:hover::after {
-  content: " (show details)";
-  color: #bbb;
-  font-style: italic;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-/*------------------
- * 3. Sorting items
- *------------------*/
-.sortable {
-  cursor: pointer;
-}
-.sortable.desc:after {
-  content: " ";
-  position: relative;
-  left: 5px;
-  bottom: -12.5px;
-  border: 10px solid #4caf50;
-  border-bottom: 0;
-  border-left-color: transparent;
-  border-right-color: transparent;
-}
-.sortable.asc:after {
-  content: " ";
-  position: relative;
-  left: 5px;
-  bottom: 12.5px;
-  border: 10px solid #4caf50;
-  border-top: 0;
-  border-left-color: transparent;
-  border-right-color: transparent;
-}
-
-.hidden, .summary__reload__button.hidden {
-  display: none;
-}
-
-.summary__data {
-  flex: 0 0 550px;
-}
-.summary__reload {
-  flex: 1 1;
-  display: flex;
-  justify-content: center;
-}
-.summary__reload__button {
-  flex: 0 0 300px;
-  display: flex;
-  color: white;
-  font-weight: bold;
-  background-color: #4caf50;
-  text-align: center;
-  justify-content: center;
-  align-items: center;
-  border-radius: 3px;
-  cursor: pointer;
-}
-.summary__reload__button:hover {
-  background-color: #46a049;
-}
-.summary__spacer {
-  flex: 0 0 550px;
-}
-
-.controls {
-  display: flex;
-  justify-content: space-between;
-}
-
-.filters,
-.collapse {
-  display: flex;
-  align-items: center;
-}
-.filters button,
-.collapse button {
-  color: #999;
-  border: none;
-  background: none;
-  cursor: pointer;
-  text-decoration: underline;
-}
-.filters button:hover,
-.collapse button:hover {
-  color: #ccc;
-}
-
-.filter__label {
-  margin-right: 10px;
-}
-
-      </style>
-    
-  </head>
-  <body>
-    <h1 id="title">report.html</h1>
-    <p>Report generated on 26-Mar-2026 at 10:15:11 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a>
-        v4.2.0</p>
-    <div id="environment-header">
-      <h2>Environment</h2>
+  <div class="header">
+    <h1>NSM E2E Test Report — QA</h1>
+    <div class="subtitle">Automated end-to-end test results for NCDOT Notice & Storage Management</div>
+    <div class="header-meta">
+      <div class="meta-item"><div class="label">Run Date</div><div class="value">March 26, 2026 at 01:19 PM UTC</div></div>
+      <div class="meta-item"><div class="label">Environment</div><div class="value">QA</div></div>
+      <div class="meta-item"><div class="label">Duration</div><div class="value">0m 0s</div></div>
+      <div class="meta-item"><div class="label">Tests Collected</div><div class="value">30</div></div>
     </div>
-    <table id="environment"></table>
-    <!-- TEMPLATES -->
-      <template id="template_environment_row">
-      <tr>
-        <td></td>
-        <td></td>
-      </tr>
-    </template>
-    <template id="template_results-table__body--empty">
-      <tbody class="results-table-row">
-        <tr id="not-found-message">
-          <td colspan="4">No results found. Check the filters.</td>
-        </tr>
-      </tbody>
-    </template>
-    <template id="template_results-table__tbody">
-      <tbody class="results-table-row">
-        <tr class="collapsible">
-        </tr>
-        <tr class="extras-row">
-          <td class="extra" colspan="4">
-            <div class="extraHTML"></div>
-            <div class="media">
-              <div class="media-container">
-                  <div class="media-container__nav--left">&lt;</div>
-                  <div class="media-container__viewport">
-                    <img src="" />
-                    <video controls>
-                      <source src="" type="video/mp4">
-                    </video>
-                  </div>
-                  <div class="media-container__nav--right">&gt;</div>
-                </div>
-                <div class="media__name"></div>
-                <div class="media__counter"></div>
-            </div>
-            <div class="logwrapper">
-              <div class="logexpander"></div>
-              <div class="log"></div>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </template>
-    <!-- END TEMPLATES -->
-    <div class="summary">
-      <div class="summary__data">
-        <h2>Summary</h2>
-        <div class="additional-summary prefix">
-        </div>
-        <p class="run-count">30 tests took 00:19:15.</p>
-        <p class="filter">(Un)check the boxes to filter the results.</p>
-        <div class="summary__reload">
-          <div class="summary__reload__button hidden" onclick="location.reload()">
-            <div>There are still tests running. <br />Reload this page to get the latest results!</div>
-          </div>
-        </div>
-        <div class="summary__spacer"></div>
-        <div class="controls">
-          <div class="filters">
-            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="failed" >
-            <span class="failed">16 Failed,</span>
-            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="passed" >
-            <span class="passed">14 Passed,</span>
-            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="skipped" disabled>
-            <span class="skipped">0 Skipped,</span>
-            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="xfailed" disabled>
-            <span class="xfailed">0 Expected failures,</span>
-            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="xpassed" disabled>
-            <span class="xpassed">0 Unexpected passes,</span>
-            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="error" disabled>
-            <span class="error">0 Errors,</span>
-            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="rerun" disabled>
-            <span class="rerun">0 Reruns</span>
-            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="retried" disabled>
-            <span class="retried">0 Retried,</span>
-          </div>
-          <div class="collapse">
-            <button id="show_all_details">Show all details</button>&nbsp;/&nbsp;<button id="hide_all_details">Hide all details</button>
-          </div>
-        </div>
-      </div>
-      <div class="additional-summary summary">
-      </div>
-      <div class="additional-summary postfix">
-      </div>
+  </div>
+
+  <div class="summary-row">
+    <div class="summary-card pass"><div class="number">26</div><div class="label">Passed</div></div>
+    <div class="summary-card fail"><div class="number">4</div><div class="label">Failed</div></div>
+    <div class="summary-card warn"><div class="number">171</div><div class="label">Skipped</div></div>
+    <div class="summary-card total"><div class="number">30</div><div class="label">Total</div></div>
+  </div>
+
+  <div class="result-banner fail">
+    <div class="icon">&#x274C;</div>
+    <div>
+      <div class="text">4 TEST(S) FAILED</div>
+      <div class="subtext">26 passed, 171 skipped in 0.0s</div>
     </div>
-    <table id="results-table">
-      <thead id="results-table-head">
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Test Results</h2>
+    <table>
+      <thead><tr><th>#</th><th>Test</th><th>Class</th><th>Duration</th><th>Status</th></tr></thead>
+      <tbody>
         <tr>
-          <th class="sortable" data-column-type="result">Result</th>
-          <th class="sortable" data-column-type="testId">Test</th>
-          <th class="sortable" data-column-type="duration">Duration</th>
-          <th>Links</th>
+          <td class="num">1</td>
+          <td><strong>Phase 1 Public Portal Submit Lt260</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-      </thead>
+        <tr>
+          <td class="num">2</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260 No Owners</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">3</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">4</td>
+          <td><strong>Phase 4 Staff Portal Process Lt262 No Owners</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">5</td>
+          <td><strong>Phase 5 Staff Portal Court Hearing Favorable</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">6</td>
+          <td><strong>Phase 6 Public Portal Submit Lt263</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">7</td>
+          <td><strong>Phase 7 Staff Portal Process Lt263</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_002_no_owners_court_hearing.py:298: in test_phase_7_staff_portal_process_lt263
+    lt263_listing.expect_applications_visible()
+src/pages/staff_portal/lt263_listing_page.py:88: in expect_applications_visible
+    expect(self.application_rows.first).to_be_visible(timeout=15_000)
+E   AssertionError: Locator expected to be visible
+E   Actual value: None
+E   Error: element(s) not found 
+E   Call log:
+E     - Expect &quot;to_be_visible&quot; with timeout 15000ms
+E     - waiting for locator(&quot;table....</pre></div></details></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">8</td>
+          <td><strong>Phase 8 Public Portal Verify Sold</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">9</td>
+          <td><strong>Phase 1 Public Portal Submit Lt260</strong></td>
+          <td><code>TestE2E003MobileHomeLt262a</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">10</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260</strong></td>
+          <td><code>TestE2E003MobileHomeLt262a</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">11</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262A</strong></td>
+          <td><code>TestE2E003MobileHomeLt262a</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">12</td>
+          <td><strong>Phase 4 Staff Portal Process Lt262A</strong></td>
+          <td><code>TestE2E003MobileHomeLt262a</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">13</td>
+          <td><strong>Phase 5 Public Portal Verify Sold</strong></td>
+          <td><code>TestE2E003MobileHomeLt262a</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">14</td>
+          <td><strong>Phase 1 Staff Portal Submit Lt261</strong></td>
+          <td><code>TestE2E004SheriffInspectorLt261</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">15</td>
+          <td><strong>Phase 2 Staff Portal Issue Lt265</strong></td>
+          <td><code>TestE2E004SheriffInspectorLt261</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">16</td>
+          <td><strong>Phase 3 Staff Portal Verify Sold</strong></td>
+          <td><code>TestE2E004SheriffInspectorLt261</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">17</td>
+          <td><strong>Phase 1 Staff Portal Add Paper Lt260</strong></td>
+          <td><code>TestE2E005PaperFormE2E</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">18</td>
+          <td><strong>Phase 2 Staff Portal Record Payment</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_005_paper_form_e2e.py:125: in test_phase_2_staff_portal_record_payment
+    payments.record_mailed_payment(
+src/pages/staff_portal/payments_page.py:71: in record_mailed_payment
+    self.save_payment()
+src/pages/staff_portal/payments_page.py:63: in save_payment
+    self.save_button.click()
+/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15631: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-p...</pre></div></details></td>
+          <td><code>TestE2E005PaperFormE2E</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">19</td>
+          <td><strong>Phase 3 Staff Portal Process Lt260</strong></td>
+          <td><code>TestE2E005PaperFormE2E</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">20</td>
+          <td><strong>Phase 4 Staff Portal Add Paper Lt262</strong></td>
+          <td><code>TestE2E005PaperFormE2E</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">21</td>
+          <td><strong>Phase 5 Staff Portal Add Paper Lt263</strong></td>
+          <td><code>TestE2E005PaperFormE2E</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">22</td>
+          <td><strong>Phase 6 Staff Portal Issue Lt265</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_005_paper_form_e2e.py:233: in test_phase_6_staff_portal_issue_lt265
+    lt263_listing.expect_applications_visible()
+src/pages/staff_portal/lt263_listing_page.py:88: in expect_applications_visible
+    expect(self.application_rows.first).to_be_visible(timeout=15_000)
+E   AssertionError: Locator expected to be visible
+E   Actual value: None
+E   Error: element(s) not found 
+E   Call log:
+E     - Expect &quot;to_be_visible&quot; with timeout 15000ms
+E     - waiting for locator(&quot;table.mat-table t...</pre></div></details></td>
+          <td><code>TestE2E005PaperFormE2E</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">23</td>
+          <td><strong>Phase 1 Public Portal Login</strong></td>
+          <td><code>TestE2E006IndividualUserPayIt</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">24</td>
+          <td><strong>Phase 2 Public Portal Create Lt260</strong></td>
+          <td><code>TestE2E006IndividualUserPayIt</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">25</td>
+          <td><strong>Phase 3 Staff Portal Process Lt260</strong></td>
+          <td><code>TestE2E006IndividualUserPayIt</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">26</td>
+          <td><strong>Phase 4 Public Portal Submit Lt262 Payit</strong></td>
+          <td><code>TestE2E006IndividualUserPayIt</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">27</td>
+          <td><strong>Phase 5 Staff Portal Process Lt262</strong></td>
+          <td><code>TestE2E006IndividualUserPayIt</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">28</td>
+          <td><strong>Phase 6 Public Portal Submit Lt263</strong></td>
+          <td><code>TestE2E006IndividualUserPayIt</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">29</td>
+          <td><strong>Phase 7 Staff Portal Issue Lt265</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_006_individual_user_payit.py:266: in test_phase_7_staff_portal_issue_lt265
+    lt263_listing.expect_applications_visible()
+src/pages/staff_portal/lt263_listing_page.py:88: in expect_applications_visible
+    expect(self.application_rows.first).to_be_visible(timeout=15_000)
+E   AssertionError: Locator expected to be visible
+E   Actual value: None
+E   Error: element(s) not found 
+E   Call log:
+E     - Expect &quot;to_be_visible&quot; with timeout 15000ms
+E     - waiting for locator(&quot;table.mat-...</pre></div></details></td>
+          <td><code>TestE2E006IndividualUserPayIt</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">30</td>
+          <td><strong>Phase 8 Public Portal Verify Sold</strong></td>
+          <td><code>TestE2E006IndividualUserPayIt</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+      </tbody>
     </table>
-  <footer>
-    <div id="data-container" data-jsonblob="{&#34;environment&#34;: {&#34;Python&#34;: &#34;3.13.12&#34;, &#34;Platform&#34;: &#34;Linux-6.14.0-1017-azure-x86_64-with-glibc2.39&#34;, &#34;Packages&#34;: {&#34;pytest&#34;: &#34;9.0.2&#34;, &#34;pluggy&#34;: &#34;1.6.0&#34;}, &#34;Plugins&#34;: {&#34;base-url&#34;: &#34;2.1.0&#34;, &#34;playwright&#34;: &#34;0.7.2&#34;, &#34;metadata&#34;: &#34;3.1.1&#34;, &#34;html&#34;: &#34;4.2.0&#34;}, &#34;CI&#34;: &#34;true&#34;, &#34;JAVA_HOME&#34;: &#34;/usr/lib/jvm/temurin-17-jdk-amd64&#34;, &#34;Base URL&#34;: &#34;&#34;}, &#34;tests&#34;: {&#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_1_public_portal_submit_lt260&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_1_public_portal_submit_lt260&#34;, &#34;duration&#34;: &#34;00:00:52&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_1_public_portal_submit_lt260&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:52&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_2_staff_portal_process_lt260_no_owners&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_2_staff_portal_process_lt260_no_owners&#34;, &#34;duration&#34;: &#34;00:00:57&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_2_staff_portal_process_lt260_no_owners&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:57&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_3_public_portal_submit_lt262&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_3_public_portal_submit_lt262&#34;, &#34;duration&#34;: &#34;00:00:33&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_3_public_portal_submit_lt262&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:33&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_4_staff_portal_process_lt262_no_owners&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_4_staff_portal_process_lt262_no_owners&#34;, &#34;duration&#34;: &#34;00:00:37&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_4_staff_portal_process_lt262_no_owners&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:37&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_5_staff_portal_court_hearing_favorable&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_5_staff_portal_court_hearing_favorable&#34;, &#34;duration&#34;: &#34;00:00:27&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_5_staff_portal_court_hearing_favorable&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:27&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_6_public_portal_submit_lt263&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_6_public_portal_submit_lt263&#34;, &#34;duration&#34;: &#34;00:02:21&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_6_public_portal_submit_lt263&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:02:21&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_7_staff_portal_process_lt263&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_7_staff_portal_process_lt263&#34;, &#34;duration&#34;: &#34;00:00:23&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_7_staff_portal_process_lt263&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:23&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_002_no_owners_court_hearing.py:298: in test_phase_7_staff_portal_process_lt263\n    lt263_listing.expect_applications_visible()\nsrc/pages/staff_portal/lt263_listing_page.py:88: in expect_applications_visible\n    expect(self.application_rows.first).to_be_visible(timeout=15_000)\nE   AssertionError: Locator expected to be visible\nE   Actual value: None\nE   Error: element(s) not found \nE   Call log:\nE     - Expect &amp;quot;to_be_visible&amp;quot; with timeout 15000ms\nE     - waiting for locator(&amp;quot;table.mat-table tr.mat-row, table tbody tr&amp;quot;).first\n&#34;}], &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_8_public_portal_verify_sold&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_8_public_portal_verify_sold&#34;, &#34;duration&#34;: &#34;00:00:09&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_8_public_portal_verify_sold&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:09&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_1_public_portal_submit_lt260&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_1_public_portal_submit_lt260&#34;, &#34;duration&#34;: &#34;00:00:33&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_1_public_portal_submit_lt260&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:33&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_2_staff_portal_process_lt260&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_2_staff_portal_process_lt260&#34;, &#34;duration&#34;: &#34;00:00:31&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_2_staff_portal_process_lt260&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:31&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_3_public_portal_submit_lt262a&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_3_public_portal_submit_lt262a&#34;, &#34;duration&#34;: &#34;00:00:38&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_3_public_portal_submit_lt262a&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:38&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_4_staff_portal_process_lt262a&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_4_staff_portal_process_lt262a&#34;, &#34;duration&#34;: &#34;00:00:15&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_4_staff_portal_process_lt262a&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:15&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_5_public_portal_verify_sold&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_5_public_portal_verify_sold&#34;, &#34;duration&#34;: &#34;00:00:10&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_5_public_portal_verify_sold&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:10&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_e2e_004_sheriff_inspector_lt261.py::TestE2E004SheriffInspectorLt261::test_phase_1_staff_portal_submit_lt261&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_004_sheriff_inspector_lt261.py::TestE2E004SheriffInspectorLt261::test_phase_1_staff_portal_submit_lt261&#34;, &#34;duration&#34;: &#34;00:05:12&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_004_sheriff_inspector_lt261.py::TestE2E004SheriffInspectorLt261::test_phase_1_staff_portal_submit_lt261&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:05:12&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_e2e_004_sheriff_inspector_lt261.py::TestE2E004SheriffInspectorLt261::test_phase_2_staff_portal_issue_lt265&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_004_sheriff_inspector_lt261.py::TestE2E004SheriffInspectorLt261::test_phase_2_staff_portal_issue_lt265&#34;, &#34;duration&#34;: &#34;00:00:20&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_004_sheriff_inspector_lt261.py::TestE2E004SheriffInspectorLt261::test_phase_2_staff_portal_issue_lt265&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:20&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_004_sheriff_inspector_lt261.py:102: in test_phase_2_staff_portal_issue_lt265\n    staff_dashboard.navigate_to_lt261_listing()\nsrc/pages/staff_portal/dashboard_page.py:105: in navigate_to_lt261_listing\n    self._wait_for_sidebar()\nsrc/pages/staff_portal/dashboard_page.py:63: in _wait_for_sidebar\n    self.lt260_nav_link.wait_for(state=&amp;quot;visible&amp;quot;, timeout=15_000)\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18074: in wait_for\n    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:710: in wait_for\n    await self._frame.wait_for_selector(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector\n    await self._channel.send(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send\n    return await self._connection.wrap_api_call(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call\n    raise rewrite_error(error, f&amp;quot;{parsed_st[&amp;#x27;apiName&amp;#x27;]}: {error}&amp;quot;) from None\nE   playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 15000ms exceeded.\nE   Call log:\nE     - waiting for locator(&amp;quot;a[href*=\\&amp;quot;LT-260/list\\&amp;quot;]&amp;quot;).first to be visible\n&#34;}], &#34;tests/test_e2e_004_sheriff_inspector_lt261.py::TestE2E004SheriffInspectorLt261::test_phase_3_staff_portal_verify_sold&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_004_sheriff_inspector_lt261.py::TestE2E004SheriffInspectorLt261::test_phase_3_staff_portal_verify_sold&#34;, &#34;duration&#34;: &#34;00:00:20&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_004_sheriff_inspector_lt261.py::TestE2E004SheriffInspectorLt261::test_phase_3_staff_portal_verify_sold&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:20&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_004_sheriff_inspector_lt261.py:125: in test_phase_3_staff_portal_verify_sold\n    staff_dashboard.navigate_to_lt261_listing()\nsrc/pages/staff_portal/dashboard_page.py:105: in navigate_to_lt261_listing\n    self._wait_for_sidebar()\nsrc/pages/staff_portal/dashboard_page.py:63: in _wait_for_sidebar\n    self.lt260_nav_link.wait_for(state=&amp;quot;visible&amp;quot;, timeout=15_000)\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18074: in wait_for\n    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:710: in wait_for\n    await self._frame.wait_for_selector(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector\n    await self._channel.send(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send\n    return await self._connection.wrap_api_call(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call\n    raise rewrite_error(error, f&amp;quot;{parsed_st[&amp;#x27;apiName&amp;#x27;]}: {error}&amp;quot;) from None\nE   playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 15000ms exceeded.\nE   Call log:\nE     - waiting for locator(&amp;quot;a[href*=\\&amp;quot;LT-260/list\\&amp;quot;]&amp;quot;).first to be visible\n&#34;}], &#34;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_1_staff_portal_add_paper_lt260&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_1_staff_portal_add_paper_lt260&#34;, &#34;duration&#34;: &#34;00:00:19&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_1_staff_portal_add_paper_lt260&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:19&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_005_paper_form_e2e.py:85: in test_phase_1_staff_portal_add_paper_lt260\n    staff_dashboard.navigate_to_lt260_listing()\nsrc/pages/staff_portal/dashboard_page.py:89: in navigate_to_lt260_listing\n    self._wait_for_sidebar()\nsrc/pages/staff_portal/dashboard_page.py:63: in _wait_for_sidebar\n    self.lt260_nav_link.wait_for(state=&amp;quot;visible&amp;quot;, timeout=15_000)\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18074: in wait_for\n    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:710: in wait_for\n    await self._frame.wait_for_selector(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector\n    await self._channel.send(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send\n    return await self._connection.wrap_api_call(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call\n    raise rewrite_error(error, f&amp;quot;{parsed_st[&amp;#x27;apiName&amp;#x27;]}: {error}&amp;quot;) from None\nE   playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 15000ms exceeded.\nE   Call log:\nE     - waiting for locator(&amp;quot;a[href*=\\&amp;quot;LT-260/list\\&amp;quot;]&amp;quot;).first to be visible\n&#34;}], &#34;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_2_staff_portal_record_payment&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_2_staff_portal_record_payment&#34;, &#34;duration&#34;: &#34;00:00:20&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_2_staff_portal_record_payment&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:20&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_005_paper_form_e2e.py:122: in test_phase_2_staff_portal_record_payment\n    staff_dashboard.navigate_to_payments()\nsrc/pages/staff_portal/dashboard_page.py:113: in navigate_to_payments\n    self._wait_for_sidebar()\nsrc/pages/staff_portal/dashboard_page.py:63: in _wait_for_sidebar\n    self.lt260_nav_link.wait_for(state=&amp;quot;visible&amp;quot;, timeout=15_000)\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18074: in wait_for\n    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:710: in wait_for\n    await self._frame.wait_for_selector(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector\n    await self._channel.send(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send\n    return await self._connection.wrap_api_call(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call\n    raise rewrite_error(error, f&amp;quot;{parsed_st[&amp;#x27;apiName&amp;#x27;]}: {error}&amp;quot;) from None\nE   playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 15000ms exceeded.\nE   Call log:\nE     - waiting for locator(&amp;quot;a[href*=\\&amp;quot;LT-260/list\\&amp;quot;]&amp;quot;).first to be visible\n&#34;}], &#34;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_3_staff_portal_process_lt260&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_3_staff_portal_process_lt260&#34;, &#34;duration&#34;: &#34;00:00:20&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_3_staff_portal_process_lt260&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:20&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_005_paper_form_e2e.py:145: in test_phase_3_staff_portal_process_lt260\n    staff_dashboard.navigate_to_lt260_listing()\nsrc/pages/staff_portal/dashboard_page.py:89: in navigate_to_lt260_listing\n    self._wait_for_sidebar()\nsrc/pages/staff_portal/dashboard_page.py:63: in _wait_for_sidebar\n    self.lt260_nav_link.wait_for(state=&amp;quot;visible&amp;quot;, timeout=15_000)\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18074: in wait_for\n    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:710: in wait_for\n    await self._frame.wait_for_selector(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector\n    await self._channel.send(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send\n    return await self._connection.wrap_api_call(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call\n    raise rewrite_error(error, f&amp;quot;{parsed_st[&amp;#x27;apiName&amp;#x27;]}: {error}&amp;quot;) from None\nE   playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 15000ms exceeded.\nE   Call log:\nE     - waiting for locator(&amp;quot;a[href*=\\&amp;quot;LT-260/list\\&amp;quot;]&amp;quot;).first to be visible\n&#34;}], &#34;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_4_staff_portal_add_paper_lt262&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_4_staff_portal_add_paper_lt262&#34;, &#34;duration&#34;: &#34;00:00:20&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_4_staff_portal_add_paper_lt262&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:20&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_005_paper_form_e2e.py:175: in test_phase_4_staff_portal_add_paper_lt262\n    staff_dashboard.navigate_to_lt262_listing()\nsrc/pages/staff_portal/dashboard_page.py:93: in navigate_to_lt262_listing\n    self._wait_for_sidebar()\nsrc/pages/staff_portal/dashboard_page.py:63: in _wait_for_sidebar\n    self.lt260_nav_link.wait_for(state=&amp;quot;visible&amp;quot;, timeout=15_000)\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18074: in wait_for\n    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:710: in wait_for\n    await self._frame.wait_for_selector(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector\n    await self._channel.send(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send\n    return await self._connection.wrap_api_call(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call\n    raise rewrite_error(error, f&amp;quot;{parsed_st[&amp;#x27;apiName&amp;#x27;]}: {error}&amp;quot;) from None\nE   playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 15000ms exceeded.\nE   Call log:\nE     - waiting for locator(&amp;quot;a[href*=\\&amp;quot;LT-260/list\\&amp;quot;]&amp;quot;).first to be visible\n&#34;}], &#34;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_5_staff_portal_add_paper_lt263&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_5_staff_portal_add_paper_lt263&#34;, &#34;duration&#34;: &#34;00:00:20&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_5_staff_portal_add_paper_lt263&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:20&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_005_paper_form_e2e.py:203: in test_phase_5_staff_portal_add_paper_lt263\n    staff_dashboard.navigate_to_lt263_listing()\nsrc/pages/staff_portal/dashboard_page.py:97: in navigate_to_lt263_listing\n    self._wait_for_sidebar()\nsrc/pages/staff_portal/dashboard_page.py:63: in _wait_for_sidebar\n    self.lt260_nav_link.wait_for(state=&amp;quot;visible&amp;quot;, timeout=15_000)\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18074: in wait_for\n    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:710: in wait_for\n    await self._frame.wait_for_selector(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector\n    await self._channel.send(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send\n    return await self._connection.wrap_api_call(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call\n    raise rewrite_error(error, f&amp;quot;{parsed_st[&amp;#x27;apiName&amp;#x27;]}: {error}&amp;quot;) from None\nE   playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 15000ms exceeded.\nE   Call log:\nE     - waiting for locator(&amp;quot;a[href*=\\&amp;quot;LT-260/list\\&amp;quot;]&amp;quot;).first to be visible\n&#34;}], &#34;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_6_staff_portal_issue_lt265&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_6_staff_portal_issue_lt265&#34;, &#34;duration&#34;: &#34;00:00:19&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_6_staff_portal_issue_lt265&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:19&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_005_paper_form_e2e.py:230: in test_phase_6_staff_portal_issue_lt265\n    staff_dashboard.navigate_to_lt263_listing()\nsrc/pages/staff_portal/dashboard_page.py:97: in navigate_to_lt263_listing\n    self._wait_for_sidebar()\nsrc/pages/staff_portal/dashboard_page.py:63: in _wait_for_sidebar\n    self.lt260_nav_link.wait_for(state=&amp;quot;visible&amp;quot;, timeout=15_000)\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18074: in wait_for\n    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:710: in wait_for\n    await self._frame.wait_for_selector(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector\n    await self._channel.send(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send\n    return await self._connection.wrap_api_call(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call\n    raise rewrite_error(error, f&amp;quot;{parsed_st[&amp;#x27;apiName&amp;#x27;]}: {error}&amp;quot;) from None\nE   playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 15000ms exceeded.\nE   Call log:\nE     - waiting for locator(&amp;quot;a[href*=\\&amp;quot;LT-260/list\\&amp;quot;]&amp;quot;).first to be visible\n&#34;}], &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_1_public_portal_login&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_1_public_portal_login&#34;, &#34;duration&#34;: &#34;00:00:04&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_1_public_portal_login&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:04&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_2_public_portal_create_lt260&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_2_public_portal_create_lt260&#34;, &#34;duration&#34;: &#34;00:00:22&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_2_public_portal_create_lt260&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:22&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_006_individual_user_payit.py:121: in test_phase_2_public_portal_create_lt260\n    lt260.click_vin_lookup()\nsrc/pages/public_portal/lt260_form_page.py:138: in click_vin_lookup\n    vin_error_modal.wait_for(state=&amp;quot;visible&amp;quot;, timeout=10000)\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18074: in wait_for\n    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:710: in wait_for\n    await self._frame.wait_for_selector(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector\n    await self._channel.send(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send\n    return await self._connection.wrap_api_call(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call\n    raise rewrite_error(error, f&amp;quot;{parsed_st[&amp;#x27;apiName&amp;#x27;]}: {error}&amp;quot;) from None\nE   playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 10000ms exceeded.\nE   Call log:\nE     - waiting for locator(&amp;quot;text=\\&amp;quot;THE VIN ENTERED MAY HAVE AN ERROR\\&amp;quot;&amp;quot;) to be visible\n&#34;}], &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_3_staff_portal_process_lt260&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_3_staff_portal_process_lt260&#34;, &#34;duration&#34;: &#34;00:00:20&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_3_staff_portal_process_lt260&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:20&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_006_individual_user_payit.py:148: in test_phase_3_staff_portal_process_lt260\n    staff_dashboard.navigate_to_lt260_listing()\nsrc/pages/staff_portal/dashboard_page.py:89: in navigate_to_lt260_listing\n    self._wait_for_sidebar()\nsrc/pages/staff_portal/dashboard_page.py:63: in _wait_for_sidebar\n    self.lt260_nav_link.wait_for(state=&amp;quot;visible&amp;quot;, timeout=15_000)\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18074: in wait_for\n    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:710: in wait_for\n    await self._frame.wait_for_selector(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector\n    await self._channel.send(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send\n    return await self._connection.wrap_api_call(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call\n    raise rewrite_error(error, f&amp;quot;{parsed_st[&amp;#x27;apiName&amp;#x27;]}: {error}&amp;quot;) from None\nE   playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 15000ms exceeded.\nE   Call log:\nE     - waiting for locator(&amp;quot;a[href*=\\&amp;quot;LT-260/list\\&amp;quot;]&amp;quot;).first to be visible\n&#34;}], &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_4_public_portal_submit_lt262_payit&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_4_public_portal_submit_lt262_payit&#34;, &#34;duration&#34;: &#34;00:00:34&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_4_public_portal_submit_lt262_payit&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:34&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_006_individual_user_payit.py:169: in test_phase_4_public_portal_submit_lt262_payit\n    dashboard.select_application(0)\nsrc/pages/public_portal/dashboard_page.py:42: in select_application\n    self.application_list.nth(index).click()\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15631: in click\n    self._sync(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click\n    return await self._frame._click(self._selector, strict=True, **params)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_frame.py:566: in _click\n    await self._channel.send(&amp;quot;click&amp;quot;, self._timeout, locals_to_params(locals()))\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send\n    return await self._connection.wrap_api_call(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call\n    raise rewrite_error(error, f&amp;quot;{parsed_st[&amp;#x27;apiName&amp;#x27;]}: {error}&amp;quot;) from None\nE   playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.\nE   Call log:\nE     - waiting for locator(&amp;quot;[class*=\\&amp;quot;group-block \\&amp;quot;]&amp;quot;).first\n&#34;}], &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_5_staff_portal_process_lt262&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_5_staff_portal_process_lt262&#34;, &#34;duration&#34;: &#34;00:00:20&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_5_staff_portal_process_lt262&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:20&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_006_individual_user_payit.py:207: in test_phase_5_staff_portal_process_lt262\n    staff_dashboard.navigate_to_lt262_listing()\nsrc/pages/staff_portal/dashboard_page.py:93: in navigate_to_lt262_listing\n    self._wait_for_sidebar()\nsrc/pages/staff_portal/dashboard_page.py:63: in _wait_for_sidebar\n    self.lt260_nav_link.wait_for(state=&amp;quot;visible&amp;quot;, timeout=15_000)\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18074: in wait_for\n    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:710: in wait_for\n    await self._frame.wait_for_selector(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector\n    await self._channel.send(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send\n    return await self._connection.wrap_api_call(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call\n    raise rewrite_error(error, f&amp;quot;{parsed_st[&amp;#x27;apiName&amp;#x27;]}: {error}&amp;quot;) from None\nE   playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 15000ms exceeded.\nE   Call log:\nE     - waiting for locator(&amp;quot;a[href*=\\&amp;quot;LT-260/list\\&amp;quot;]&amp;quot;).first to be visible\n&#34;}], &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_6_public_portal_submit_lt263&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_6_public_portal_submit_lt263&#34;, &#34;duration&#34;: &#34;00:00:34&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_6_public_portal_submit_lt263&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:34&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_006_individual_user_payit.py:231: in test_phase_6_public_portal_submit_lt263\n    dashboard.select_application(0)\nsrc/pages/public_portal/dashboard_page.py:42: in select_application\n    self.application_list.nth(index).click()\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15631: in click\n    self._sync(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click\n    return await self._frame._click(self._selector, strict=True, **params)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_frame.py:566: in _click\n    await self._channel.send(&amp;quot;click&amp;quot;, self._timeout, locals_to_params(locals()))\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send\n    return await self._connection.wrap_api_call(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call\n    raise rewrite_error(error, f&amp;quot;{parsed_st[&amp;#x27;apiName&amp;#x27;]}: {error}&amp;quot;) from None\nE   playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.\nE   Call log:\nE     - waiting for locator(&amp;quot;[class*=\\&amp;quot;group-block \\&amp;quot;]&amp;quot;).first\n&#34;}], &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_7_staff_portal_issue_lt265&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_7_staff_portal_issue_lt265&#34;, &#34;duration&#34;: &#34;00:00:20&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_7_staff_portal_issue_lt265&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:20&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_006_individual_user_payit.py:264: in test_phase_7_staff_portal_issue_lt265\n    staff_dashboard.navigate_to_lt263_listing()\nsrc/pages/staff_portal/dashboard_page.py:97: in navigate_to_lt263_listing\n    self._wait_for_sidebar()\nsrc/pages/staff_portal/dashboard_page.py:63: in _wait_for_sidebar\n    self.lt260_nav_link.wait_for(state=&amp;quot;visible&amp;quot;, timeout=15_000)\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18074: in wait_for\n    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:710: in wait_for\n    await self._frame.wait_for_selector(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector\n    await self._channel.send(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send\n    return await self._connection.wrap_api_call(\n/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call\n    raise rewrite_error(error, f&amp;quot;{parsed_st[&amp;#x27;apiName&amp;#x27;]}: {error}&amp;quot;) from None\nE   playwright._impl._errors.TimeoutError: Locator.wait_for: Timeout 15000ms exceeded.\nE   Call log:\nE     - waiting for locator(&amp;quot;a[href*=\\&amp;quot;LT-260/list\\&amp;quot;]&amp;quot;).first to be visible\n&#34;}], &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_8_public_portal_verify_sold&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_8_public_portal_verify_sold&#34;, &#34;duration&#34;: &#34;00:00:25&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_8_public_portal_verify_sold&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:25&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;tests/test_e2e_006_individual_user_payit.py:283: in test_phase_8_public_portal_verify_sold\n    dashboard.expect_vehicle_in_sold_tab()\nsrc/pages/public_portal/dashboard_page.py:136: in expect_vehicle_in_sold_tab\n    expect(self.application_list.first).to_be_visible(timeout=20_000)\nE   AssertionError: Locator expected to be visible\nE   Actual value: None\nE   Error: element(s) not found \nE   Call log:\nE     - Expect &amp;quot;to_be_visible&amp;quot; with timeout 20000ms\nE     - waiting for locator(&amp;quot;[class*=\\&amp;quot;group-block \\&amp;quot;]&amp;quot;).first\n&#34;}]}, &#34;renderCollapsed&#34;: [&#34;passed&#34;], &#34;initialSort&#34;: &#34;result&#34;, &#34;title&#34;: &#34;report.html&#34;}"></div>
-    <script>
-      (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-const { getCollapsedCategory, setCollapsedIds } = require('./storage.js')
+  </div>
 
-class DataManager {
-    setManager(data) {
-        const collapsedCategories = [...getCollapsedCategory(data.renderCollapsed)]
-        const collapsedIds = []
-        const tests = Object.values(data.tests).flat().map((test, index) => {
-            const collapsed = collapsedCategories.includes(test.result.toLowerCase())
-            const id = `test_${index}`
-            if (collapsed) {
-                collapsedIds.push(id)
-            }
-            return {
-                ...test,
-                id,
-                collapsed,
-            }
-        })
-        const dataBlob = { ...data, tests }
-        this.data = { ...dataBlob }
-        this.renderData = { ...dataBlob }
-        setCollapsedIds(collapsedIds)
-    }
+  <div class="footer">
+    Generated by NSM E2E Automation &middot; March 26, 2026 at 01:19 PM UTC
+  </div>
 
-    get allData() {
-        return { ...this.data }
-    }
-
-    resetRender() {
-        this.renderData = { ...this.data }
-    }
-
-    setRender(data) {
-        this.renderData.tests = [...data]
-    }
-
-    toggleCollapsedItem(id) {
-        this.renderData.tests = this.renderData.tests.map((test) =>
-            test.id === id ? { ...test, collapsed: !test.collapsed } : test,
-        )
-    }
-
-    set allCollapsed(collapsed) {
-        this.renderData = { ...this.renderData, tests: [...this.renderData.tests.map((test) => (
-            { ...test, collapsed }
-        ))] }
-    }
-
-    get testSubset() {
-        return [...this.renderData.tests]
-    }
-
-    get environment() {
-        return this.renderData.environment
-    }
-
-    get initialSort() {
-        return this.data.initialSort
-    }
-}
-
-module.exports = {
-    manager: new DataManager(),
-}
-
-},{"./storage.js":8}],2:[function(require,module,exports){
-const mediaViewer = require('./mediaviewer.js')
-const templateEnvRow = document.getElementById('template_environment_row')
-const templateResult = document.getElementById('template_results-table__tbody')
-
-function htmlToElements(html) {
-    const temp = document.createElement('template')
-    temp.innerHTML = html
-    return temp.content.childNodes
-}
-
-const find = (selector, elem) => {
-    if (!elem) {
-        elem = document
-    }
-    return elem.querySelector(selector)
-}
-
-const findAll = (selector, elem) => {
-    if (!elem) {
-        elem = document
-    }
-    return [...elem.querySelectorAll(selector)]
-}
-
-const dom = {
-    getStaticRow: (key, value) => {
-        const envRow = templateEnvRow.content.cloneNode(true)
-        const isObj = typeof value === 'object' && value !== null
-        const values = isObj ? Object.keys(value).map((k) => `${k}: ${value[k]}`) : null
-
-        const valuesElement = htmlToElements(
-            values ? `<ul>${values.map((val) => `<li>${val}</li>`).join('')}<ul>` : `<div>${value}</div>`)[0]
-        const td = findAll('td', envRow)
-        td[0].textContent = key
-        td[1].appendChild(valuesElement)
-
-        return envRow
-    },
-    getResultTBody: ({ testId, id, log, extras, resultsTableRow, tableHtml, result, collapsed }) => {
-        const resultBody = templateResult.content.cloneNode(true)
-        resultBody.querySelector('tbody').classList.add(result.toLowerCase())
-        resultBody.querySelector('tbody').id = testId
-        resultBody.querySelector('.collapsible').dataset.id = id
-
-        resultsTableRow.forEach((html) => {
-            const t = document.createElement('template')
-            t.innerHTML = html
-            resultBody.querySelector('.collapsible').appendChild(t.content)
-        })
-
-        if (log) {
-            // Wrap lines starting with "E" with span.error to color those lines red
-            const wrappedLog = log.replace(/^E.*$/gm, (match) => `<span class="error">${match}</span>`)
-            resultBody.querySelector('.log').innerHTML = wrappedLog
-        } else {
-            resultBody.querySelector('.log').remove()
-        }
-
-        if (collapsed) {
-            resultBody.querySelector('.collapsible > .col-result')?.classList.add('collapsed')
-            resultBody.querySelector('.extras-row').classList.add('hidden')
-        } else {
-            resultBody.querySelector('.collapsible > .col-result')?.classList.remove('collapsed')
-        }
-
-        const media = []
-        extras?.forEach(({ name, format_type, content }) => {
-            if (['image', 'video'].includes(format_type)) {
-                media.push({ path: content, name, format_type })
-            }
-
-            if (format_type === 'html') {
-                resultBody.querySelector('.extraHTML').insertAdjacentHTML('beforeend', `<div>${content}</div>`)
-            }
-        })
-        mediaViewer.setup(resultBody, media)
-
-        // Add custom html from the pytest_html_results_table_html hook
-        tableHtml?.forEach((item) => {
-            resultBody.querySelector('td[class="extra"]').insertAdjacentHTML('beforeend', item)
-        })
-
-        return resultBody
-    },
-}
-
-module.exports = {
-    dom,
-    htmlToElements,
-    find,
-    findAll,
-}
-
-},{"./mediaviewer.js":6}],3:[function(require,module,exports){
-const { manager } = require('./datamanager.js')
-const { doSort } = require('./sort.js')
-const storageModule = require('./storage.js')
-
-const getFilteredSubSet = (filter) =>
-    manager.allData.tests.filter(({ result }) => filter.includes(result.toLowerCase()))
-
-const doInitFilter = () => {
-    const currentFilter = storageModule.getVisible()
-    const filteredSubset = getFilteredSubSet(currentFilter)
-    manager.setRender(filteredSubset)
-}
-
-const doFilter = (type, show) => {
-    if (show) {
-        storageModule.showCategory(type)
-    } else {
-        storageModule.hideCategory(type)
-    }
-
-    const currentFilter = storageModule.getVisible()
-    const filteredSubset = getFilteredSubSet(currentFilter)
-    manager.setRender(filteredSubset)
-
-    const sortColumn = storageModule.getSort()
-    doSort(sortColumn, true)
-}
-
-module.exports = {
-    doFilter,
-    doInitFilter,
-}
-
-},{"./datamanager.js":1,"./sort.js":7,"./storage.js":8}],4:[function(require,module,exports){
-const { redraw, bindEvents, renderStatic } = require('./main.js')
-const { doInitFilter } = require('./filter.js')
-const { doInitSort } = require('./sort.js')
-const { manager } = require('./datamanager.js')
-const data = JSON.parse(document.getElementById('data-container').dataset.jsonblob)
-
-function init() {
-    manager.setManager(data)
-    doInitFilter()
-    doInitSort()
-    renderStatic()
-    redraw()
-    bindEvents()
-}
-
-init()
-
-},{"./datamanager.js":1,"./filter.js":3,"./main.js":5,"./sort.js":7}],5:[function(require,module,exports){
-const { dom, find, findAll } = require('./dom.js')
-const { manager } = require('./datamanager.js')
-const { doSort } = require('./sort.js')
-const { doFilter } = require('./filter.js')
-const {
-    getVisible,
-    getCollapsedIds,
-    setCollapsedIds,
-    getSort,
-    getSortDirection,
-    possibleFilters,
-} = require('./storage.js')
-
-const removeChildren = (node) => {
-    while (node.firstChild) {
-        node.removeChild(node.firstChild)
-    }
-}
-
-const renderStatic = () => {
-    const renderEnvironmentTable = () => {
-        const environment = manager.environment
-        const rows = Object.keys(environment).map((key) => dom.getStaticRow(key, environment[key]))
-        const table = document.getElementById('environment')
-        removeChildren(table)
-        rows.forEach((row) => table.appendChild(row))
-    }
-    renderEnvironmentTable()
-}
-
-const addItemToggleListener = (elem) => {
-    elem.addEventListener('click', ({ target }) => {
-        const id = target.parentElement.dataset.id
-        manager.toggleCollapsedItem(id)
-
-        const collapsedIds = getCollapsedIds()
-        if (collapsedIds.includes(id)) {
-            const updated = collapsedIds.filter((item) => item !== id)
-            setCollapsedIds(updated)
-        } else {
-            collapsedIds.push(id)
-            setCollapsedIds(collapsedIds)
-        }
-        redraw()
-    })
-}
-
-const renderContent = (tests) => {
-    const sortAttr = getSort(manager.initialSort)
-    const sortAsc = JSON.parse(getSortDirection())
-    const rows = tests.map(dom.getResultTBody)
-    const table = document.getElementById('results-table')
-    const tableHeader = document.getElementById('results-table-head')
-
-    const newTable = document.createElement('table')
-    newTable.id = 'results-table'
-
-    // remove all sorting classes and set the relevant
-    findAll('.sortable', tableHeader).forEach((elem) => elem.classList.remove('asc', 'desc'))
-    tableHeader.querySelector(`.sortable[data-column-type="${sortAttr}"]`)?.classList.add(sortAsc ? 'desc' : 'asc')
-    newTable.appendChild(tableHeader)
-
-    if (!rows.length) {
-        const emptyTable = document.getElementById('template_results-table__body--empty').content.cloneNode(true)
-        newTable.appendChild(emptyTable)
-    } else {
-        rows.forEach((row) => {
-            if (!!row) {
-                findAll('.collapsible td:not(.col-links', row).forEach(addItemToggleListener)
-                find('.logexpander', row).addEventListener('click',
-                    (evt) => evt.target.parentNode.classList.toggle('expanded'),
-                )
-                newTable.appendChild(row)
-            }
-        })
-    }
-
-    table.replaceWith(newTable)
-}
-
-const renderDerived = () => {
-    const currentFilter = getVisible()
-    possibleFilters.forEach((result) => {
-        const input = document.querySelector(`input[data-test-result="${result}"]`)
-        input.checked = currentFilter.includes(result)
-    })
-}
-
-const bindEvents = () => {
-    const filterColumn = (evt) => {
-        const { target: element } = evt
-        const { testResult } = element.dataset
-
-        doFilter(testResult, element.checked)
-        const collapsedIds = getCollapsedIds()
-        const updated = manager.renderData.tests.map((test) => {
-            return {
-                ...test,
-                collapsed: collapsedIds.includes(test.id),
-            }
-        })
-        manager.setRender(updated)
-        redraw()
-    }
-
-    const header = document.getElementById('environment-header')
-    header.addEventListener('click', () => {
-        const table = document.getElementById('environment')
-        table.classList.toggle('hidden')
-        header.classList.toggle('collapsed')
-    })
-
-    findAll('input[name="filter_checkbox"]').forEach((elem) => {
-        elem.addEventListener('click', filterColumn)
-    })
-
-    findAll('.sortable').forEach((elem) => {
-        elem.addEventListener('click', (evt) => {
-            const { target: element } = evt
-            const { columnType } = element.dataset
-            doSort(columnType)
-            redraw()
-        })
-    })
-
-    document.getElementById('show_all_details').addEventListener('click', () => {
-        manager.allCollapsed = false
-        setCollapsedIds([])
-        redraw()
-    })
-    document.getElementById('hide_all_details').addEventListener('click', () => {
-        manager.allCollapsed = true
-        const allIds = manager.renderData.tests.map((test) => test.id)
-        setCollapsedIds(allIds)
-        redraw()
-    })
-}
-
-const redraw = () => {
-    const { testSubset } = manager
-
-    renderContent(testSubset)
-    renderDerived()
-}
-
-module.exports = {
-    redraw,
-    bindEvents,
-    renderStatic,
-}
-
-},{"./datamanager.js":1,"./dom.js":2,"./filter.js":3,"./sort.js":7,"./storage.js":8}],6:[function(require,module,exports){
-class MediaViewer {
-    constructor(assets) {
-        this.assets = assets
-        this.index = 0
-    }
-
-    nextActive() {
-        this.index = this.index === this.assets.length - 1 ? 0 : this.index + 1
-        return [this.activeFile, this.index]
-    }
-
-    prevActive() {
-        this.index = this.index === 0 ? this.assets.length - 1 : this.index -1
-        return [this.activeFile, this.index]
-    }
-
-    get currentIndex() {
-        return this.index
-    }
-
-    get activeFile() {
-        return this.assets[this.index]
-    }
-}
-
-
-const setup = (resultBody, assets) => {
-    if (!assets.length) {
-        resultBody.querySelector('.media').classList.add('hidden')
-        return
-    }
-
-    const mediaViewer = new MediaViewer(assets)
-    const container = resultBody.querySelector('.media-container')
-    const leftArrow = resultBody.querySelector('.media-container__nav--left')
-    const rightArrow = resultBody.querySelector('.media-container__nav--right')
-    const mediaName = resultBody.querySelector('.media__name')
-    const counter = resultBody.querySelector('.media__counter')
-    const imageEl = resultBody.querySelector('img')
-    const sourceEl = resultBody.querySelector('source')
-    const videoEl = resultBody.querySelector('video')
-
-    const setImg = (media, index) => {
-        if (media?.format_type === 'image') {
-            imageEl.src = media.path
-
-            imageEl.classList.remove('hidden')
-            videoEl.classList.add('hidden')
-        } else if (media?.format_type === 'video') {
-            sourceEl.src = media.path
-
-            videoEl.classList.remove('hidden')
-            imageEl.classList.add('hidden')
-        }
-
-        mediaName.innerText = media?.name
-        counter.innerText = `${index + 1} / ${assets.length}`
-    }
-    setImg(mediaViewer.activeFile, mediaViewer.currentIndex)
-
-    const moveLeft = () => {
-        const [media, index] = mediaViewer.prevActive()
-        setImg(media, index)
-    }
-    const doRight = () => {
-        const [media, index] = mediaViewer.nextActive()
-        setImg(media, index)
-    }
-    const openImg = () => {
-        window.open(mediaViewer.activeFile.path, '_blank')
-    }
-    if (assets.length === 1) {
-        container.classList.add('media-container--fullscreen')
-    } else {
-        leftArrow.addEventListener('click', moveLeft)
-        rightArrow.addEventListener('click', doRight)
-    }
-    imageEl.addEventListener('click', openImg)
-}
-
-module.exports = {
-    setup,
-}
-
-},{}],7:[function(require,module,exports){
-const { manager } = require('./datamanager.js')
-const storageModule = require('./storage.js')
-
-const genericSort = (list, key, ascending, customOrder) => {
-    let sorted
-    if (customOrder) {
-        sorted = list.sort((a, b) => {
-            const aValue = a.result.toLowerCase()
-            const bValue = b.result.toLowerCase()
-
-            const aIndex = customOrder.findIndex((item) => item.toLowerCase() === aValue)
-            const bIndex = customOrder.findIndex((item) => item.toLowerCase() === bValue)
-
-            // Compare the indices to determine the sort order
-            return aIndex - bIndex
-        })
-    } else {
-        sorted = list.sort((a, b) => a[key] === b[key] ? 0 : a[key] > b[key] ? 1 : -1)
-    }
-
-    if (ascending) {
-        sorted.reverse()
-    }
-    return sorted
-}
-
-const durationSort = (list, ascending) => {
-    const parseDuration = (duration) => {
-        if (duration.includes(':')) {
-            // If it's in the format "HH:mm:ss"
-            const [hours, minutes, seconds] = duration.split(':').map(Number)
-            return (hours * 3600 + minutes * 60 + seconds) * 1000
-        } else {
-            // If it's in the format "nnn ms"
-            return parseInt(duration)
-        }
-    }
-    const sorted = list.sort((a, b) => parseDuration(a['duration']) - parseDuration(b['duration']))
-    if (ascending) {
-        sorted.reverse()
-    }
-    return sorted
-}
-
-const doInitSort = () => {
-    const type = storageModule.getSort(manager.initialSort)
-    const ascending = storageModule.getSortDirection()
-    const list = manager.testSubset
-    const initialOrder = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed', 'Skipped', 'Passed']
-
-    storageModule.setSort(type)
-    storageModule.setSortDirection(ascending)
-
-    if (type?.toLowerCase() === 'original') {
-        manager.setRender(list)
-    } else {
-        let sortedList
-        switch (type) {
-        case 'duration':
-            sortedList = durationSort(list, ascending)
-            break
-        case 'result':
-            sortedList = genericSort(list, type, ascending, initialOrder)
-            break
-        default:
-            sortedList = genericSort(list, type, ascending)
-            break
-        }
-        manager.setRender(sortedList)
-    }
-}
-
-const doSort = (type, skipDirection) => {
-    const newSortType = storageModule.getSort(manager.initialSort) !== type
-    const currentAsc = storageModule.getSortDirection()
-    let ascending
-    if (skipDirection) {
-        ascending = currentAsc
-    } else {
-        ascending = newSortType ? false : !currentAsc
-    }
-    storageModule.setSort(type)
-    storageModule.setSortDirection(ascending)
-
-    const list = manager.testSubset
-    const sortedList = type === 'duration' ? durationSort(list, ascending) : genericSort(list, type, ascending)
-    manager.setRender(sortedList)
-}
-
-module.exports = {
-    doInitSort,
-    doSort,
-}
-
-},{"./datamanager.js":1,"./storage.js":8}],8:[function(require,module,exports){
-const possibleFilters = [
-    'passed',
-    'skipped',
-    'failed',
-    'error',
-    'xfailed',
-    'xpassed',
-    'rerun',
-]
-
-const getVisible = () => {
-    const url = new URL(window.location.href)
-    const settings = new URLSearchParams(url.search).get('visible')
-    const lower = (item) => {
-        const lowerItem = item.toLowerCase()
-        if (possibleFilters.includes(lowerItem)) {
-            return lowerItem
-        }
-        return null
-    }
-    return settings === null ?
-        possibleFilters :
-        [...new Set(settings?.split(',').map(lower).filter((item) => item))]
-}
-
-const hideCategory = (categoryToHide) => {
-    const url = new URL(window.location.href)
-    const visibleParams = new URLSearchParams(url.search).get('visible')
-    const currentVisible = visibleParams ? visibleParams.split(',') : [...possibleFilters]
-    const settings = [...new Set(currentVisible)].filter((f) => f !== categoryToHide).join(',')
-
-    url.searchParams.set('visible', settings)
-    window.history.pushState({}, null, unescape(url.href))
-}
-
-const showCategory = (categoryToShow) => {
-    if (typeof window === 'undefined') {
-        return
-    }
-    const url = new URL(window.location.href)
-    const currentVisible = new URLSearchParams(url.search).get('visible')?.split(',').filter(Boolean) ||
-        [...possibleFilters]
-    const settings = [...new Set([categoryToShow, ...currentVisible])]
-    const noFilter = possibleFilters.length === settings.length || !settings.length
-
-    noFilter ? url.searchParams.delete('visible') : url.searchParams.set('visible', settings.join(','))
-    window.history.pushState({}, null, unescape(url.href))
-}
-
-const getSort = (initialSort) => {
-    const url = new URL(window.location.href)
-    let sort = new URLSearchParams(url.search).get('sort')
-    if (!sort) {
-        sort = initialSort || 'result'
-    }
-    return sort
-}
-
-const setSort = (type) => {
-    const url = new URL(window.location.href)
-    url.searchParams.set('sort', type)
-    window.history.pushState({}, null, unescape(url.href))
-}
-
-const getCollapsedCategory = (renderCollapsed) => {
-    let categories
-    if (typeof window !== 'undefined') {
-        const url = new URL(window.location.href)
-        const collapsedItems = new URLSearchParams(url.search).get('collapsed')
-        switch (true) {
-        case !renderCollapsed && collapsedItems === null:
-            categories = ['passed']
-            break
-        case collapsedItems?.length === 0 || /^["']{2}$/.test(collapsedItems):
-            categories = []
-            break
-        case /^all$/.test(collapsedItems) || collapsedItems === null && /^all$/.test(renderCollapsed):
-            categories = [...possibleFilters]
-            break
-        default:
-            categories = collapsedItems?.split(',').map((item) => item.toLowerCase()) || renderCollapsed
-            break
-        }
-    } else {
-        categories = []
-    }
-    return categories
-}
-
-const getSortDirection = () => JSON.parse(sessionStorage.getItem('sortAsc')) || false
-const setSortDirection = (ascending) => sessionStorage.setItem('sortAsc', ascending)
-
-const getCollapsedIds = () => JSON.parse(sessionStorage.getItem('collapsedIds')) || []
-const setCollapsedIds = (list) => sessionStorage.setItem('collapsedIds', JSON.stringify(list))
-
-module.exports = {
-    getVisible,
-    hideCategory,
-    showCategory,
-    getCollapsedIds,
-    setCollapsedIds,
-    getSort,
-    setSort,
-    getSortDirection,
-    setSortDirection,
-    getCollapsedCategory,
-    possibleFilters,
-}
-
-},{}]},{},[4]);
-    </script>
-  </footer>
-  </body>
+</div>
+</body>
 </html>
