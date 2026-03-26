@@ -1,0 +1,7 @@
+playwright>=1.50.0
+pytest>=8.0.0
+pytest-playwright>=0.6.2
+python-dotenv>=1.0.0
+openpyxl>=3.1.0
+PyPDF2>=3.0.0
+pytest-html>=4.0.0

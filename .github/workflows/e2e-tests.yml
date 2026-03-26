@@ -1,0 +1,126 @@
+name: NSM E2E Tests
+
+on:
+  schedule:
+    # Tuesday-Friday: Core & critical tests at 6:00 AM UTC
+    - cron: '0 6 * * 2-5'
+    # Monday: Full suite at 4:00 AM UTC
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      test_scope:
+        description: 'Test scope to run'
+        required: false
+        default: 'core'
+        type: choice
+        options:
+          - core
+          - full
+          - smoke
+
+env:
+  PUBLIC_PORTAL_URL: ${{ secrets.PUBLIC_PORTAL_URL }}
+  PUBLIC_PORTAL_USERNAME: ${{ secrets.PUBLIC_PORTAL_USERNAME }}
+  PUBLIC_PORTAL_PASSWORD: ${{ secrets.PUBLIC_PORTAL_PASSWORD }}
+  STAFF_PORTAL_URL: ${{ secrets.STAFF_PORTAL_URL }}
+  STAFF_PORTAL_USERNAME: ${{ secrets.STAFF_PORTAL_USERNAME }}
+  STAFF_PORTAL_PASSWORD: ${{ secrets.STAFF_PORTAL_PASSWORD }}
+  STAFF_USER_B_USERNAME: ${{ secrets.STAFF_USER_B_USERNAME }}
+  STAFF_USER_B_PASSWORD: ${{ secrets.STAFF_USER_B_PASSWORD }}
+  PUBLIC_USER_B_USERNAME: ${{ secrets.PUBLIC_USER_B_USERNAME }}
+  PUBLIC_USER_B_PASSWORD: ${{ secrets.PUBLIC_USER_B_PASSWORD }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright browsers
+        run: playwright install chromium --with-deps
+
+      - name: Determine test scope
+        id: scope
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            SCOPE="${{ github.event.inputs.test_scope }}"
+          elif [ "${{ github.event.schedule }}" = "0 4 * * 1" ]; then
+            SCOPE="full"
+          else
+            SCOPE="core"
+          fi
+          echo "scope=$SCOPE" >> $GITHUB_OUTPUT
+          echo "Running test scope: $SCOPE"
+
+      - name: Run tests
+        id: tests
+        continue-on-error: true
+        run: |
+          if [ "${{ steps.scope.outputs.scope }}" = "full" ]; then
+            pytest --html=report.html --self-contained-html -v --tb=short 2>&1 | tee test_output.txt
+          elif [ "${{ steps.scope.outputs.scope }}" = "smoke" ]; then
+            pytest -m "smoke or core" --html=report.html --self-contained-html -v --tb=short 2>&1 | tee test_output.txt
+          else
+            pytest -m "core or critical" --html=report.html --self-contained-html -v --tb=short 2>&1 | tee test_output.txt
+          fi
+
+      - name: Extract test summary
+        if: always()
+        id: summary
+        run: |
+          SUMMARY=$(grep -E "^(FAILED|PASSED|ERROR|=)" test_output.txt | tail -1 || echo "No summary available")
+          echo "summary=$SUMMARY" >> $GITHUB_OUTPUT
+
+      - name: Upload HTML report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-report
+          path: report.html
+          retention-days: 30
+
+      - name: Prepare report for GitHub Pages
+        if: always()
+        run: |
+          mkdir -p gh-pages-content
+          cp report.html gh-pages-content/report.html
+          # Create index.html that redirects to report
+          cat > gh-pages-content/index.html << 'HEREDOC'
+          <!DOCTYPE html>
+          <html>
+          <head><meta http-equiv="refresh" content="0;url=report.html"></head>
+          <body><a href="report.html">View Report</a></body>
+          </html>
+          HEREDOC
+
+      - name: Deploy to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./gh-pages-content
+          publish_branch: gh-pages
+
+      - name: Post results to Slack via Expertly
+        if: always()
+        env:
+          EXPERTLY_USERNAME: ${{ secrets.EXPERTLY_USERNAME }}
+          EXPERTLY_PASSWORD: ${{ secrets.EXPERTLY_PASSWORD }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          TEST_SUMMARY: ${{ steps.summary.outputs.summary }}
+          TEST_SCOPE: ${{ steps.scope.outputs.scope }}
+          REPO_NAME: ${{ github.repository }}
+        run: python scripts/notify_slack.py

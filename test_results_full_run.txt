@@ -1,0 +1,314 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.0, pytest-9.0.2, pluggy-1.6.0 -- /Library/Frameworks/Python.framework/Versions/3.13/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/kunal/NSM/e2eautomation
+configfile: pytest.ini
+plugins: playwright-0.7.2, anyio-4.9.0, base-url-2.1.0
+collecting ... collected 201 items
+
+tests/test_e2e_001_standard_vehicle_lifecycle.py::TestE2E001StandardVehicleLifecycle::test_phase_1_public_portal_create_lt260 PASSED [  0%]
+tests/test_e2e_001_standard_vehicle_lifecycle.py::TestE2E001StandardVehicleLifecycle::test_phase_2_staff_portal_process_lt260 PASSED [  0%]
+tests/test_e2e_001_standard_vehicle_lifecycle.py::TestE2E001StandardVehicleLifecycle::test_phase_3_public_portal_submit_lt262 PASSED [  1%]
+tests/test_e2e_001_standard_vehicle_lifecycle.py::TestE2E001StandardVehicleLifecycle::test_phase_4_staff_portal_process_lt262 PASSED [  1%]
+tests/test_e2e_001_standard_vehicle_lifecycle.py::TestE2E001StandardVehicleLifecycle::test_phase_5_staff_portal_track_lt264 PASSED [  2%]
+tests/test_e2e_001_standard_vehicle_lifecycle.py::TestE2E001StandardVehicleLifecycle::test_phase_6_staff_portal_process_lt263 PASSED [  2%]
+tests/test_e2e_001_standard_vehicle_lifecycle.py::TestE2E001StandardVehicleLifecycle::test_phase_7_staff_portal_generate_lt265 PASSED [  3%]
+tests/test_e2e_001_standard_vehicle_lifecycle.py::TestE2E001StandardVehicleLifecycle::test_phase_8_staff_portal_verify_sold PASSED [  3%]
+tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_1_public_portal_submit_lt260 PASSED [  4%]
+tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_2_staff_portal_process_lt260_no_owners PASSED [  4%]
+tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_3_public_portal_submit_lt262 PASSED [  5%]
+tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_4_staff_portal_process_lt262_no_owners PASSED [  5%]
+tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_5_staff_portal_court_hearing_favorable PASSED [  6%]
+tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_6_public_portal_submit_lt263 FAILED [  6%]
+tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_7_staff_portal_process_lt263 PASSED [  7%]
+tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_8_public_portal_verify_sold PASSED [  7%]
+tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_1_public_portal_submit_lt260 PASSED [  8%]
+tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_2_staff_portal_process_lt260 PASSED [  8%]
+tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_3_public_portal_submit_lt262a PASSED [  9%]
+tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_4_staff_portal_process_lt262a PASSED [  9%]
+tests/test_e2e_003_mobile_home_lt262a.py::TestE2E003MobileHomeLt262a::test_phase_5_public_portal_verify_sold PASSED [ 10%]
+tests/test_e2e_004_sheriff_inspector_lt261.py::TestE2E004SheriffInspectorLt261::test_phase_1_staff_portal_submit_lt261 PASSED [ 10%]
+tests/test_e2e_004_sheriff_inspector_lt261.py::TestE2E004SheriffInspectorLt261::test_phase_2_staff_portal_issue_lt265 PASSED [ 11%]
+tests/test_e2e_004_sheriff_inspector_lt261.py::TestE2E004SheriffInspectorLt261::test_phase_3_staff_portal_verify_sold PASSED [ 11%]
+tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_1_staff_portal_add_paper_lt260 PASSED [ 12%]
+tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_2_staff_portal_record_payment PASSED [ 12%]
+tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_3_staff_portal_process_lt260 PASSED [ 13%]
+tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_4_staff_portal_add_paper_lt262 PASSED [ 13%]
+tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_5_staff_portal_add_paper_lt263 PASSED [ 14%]
+tests/test_e2e_005_paper_form_e2e.py::TestE2E005PaperFormE2E::test_phase_6_staff_portal_issue_lt265 PASSED [ 14%]
+tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_1_public_portal_login PASSED [ 15%]
+tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_2_public_portal_create_lt260 PASSED [ 15%]
+tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_3_staff_portal_process_lt260 PASSED [ 16%]
+tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_4_public_portal_submit_lt262_payit PASSED [ 16%]
+tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_5_staff_portal_process_lt262 PASSED [ 17%]
+tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_6_public_portal_submit_lt263 FAILED [ 17%]
+tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_7_staff_portal_issue_lt265 PASSED [ 18%]
+tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_8_public_portal_verify_sold PASSED [ 18%]
+tests/test_e2e_007_rejection_resubmission.py::TestE2E007RejectionResubmission::test_phase_1_public_portal_submit_lt260 PASSED [ 19%]
+tests/test_e2e_007_rejection_resubmission.py::TestE2E007RejectionResubmission::test_phase_2_staff_portal_reject_lt260 PASSED [ 19%]
+tests/test_e2e_007_rejection_resubmission.py::TestE2E007RejectionResubmission::test_phase_3_staff_portal_verify_rejected PASSED [ 20%]
+tests/test_e2e_007_rejection_resubmission.py::TestE2E007RejectionResubmission::test_phase_4_public_portal_verify_rejection PASSED [ 20%]
+tests/test_e2e_007_rejection_resubmission.py::TestE2E007RejectionResubmission::test_phase_5_public_portal_resubmit_lt260 PASSED [ 21%]
+tests/test_e2e_007_rejection_resubmission.py::TestE2E007RejectionResubmission::test_phase_6_staff_portal_process_resubmission PASSED [ 21%]
+tests/test_e2e_008_stolen_vehicle_lockout.py::TestE2E008StolenVehicleLockout::test_phase_1_public_portal_submit_lt260 PASSED [ 22%]
+tests/test_e2e_008_stolen_vehicle_lockout.py::TestE2E008StolenVehicleLockout::test_phase_2_staff_portal_mark_stolen PASSED [ 22%]
+tests/test_e2e_008_stolen_vehicle_lockout.py::TestE2E008StolenVehicleLockout::test_phase_3_staff_portal_verify_stolen_tab PASSED [ 23%]
+tests/test_e2e_008_stolen_vehicle_lockout.py::TestE2E008StolenVehicleLockout::test_phase_4_public_portal_verify_locked PASSED [ 23%]
+tests/test_e2e_009_vehicle_reclaim.py::TestE2E009VehicleReclaim::test_phase_1_public_portal_submit_lt260 PASSED [ 24%]
+tests/test_e2e_009_vehicle_reclaim.py::TestE2E009VehicleReclaim::test_phase_2_staff_portal_process_lt260 PASSED [ 24%]
+tests/test_e2e_009_vehicle_reclaim.py::TestE2E009VehicleReclaim::test_phase_3_public_portal_submit_lt262 PASSED [ 25%]
+tests/test_e2e_009_vehicle_reclaim.py::TestE2E009VehicleReclaim::test_phase_4_staff_portal_process_lt262 PASSED [ 25%]
+tests/test_e2e_009_vehicle_reclaim.py::TestE2E009VehicleReclaim::test_phase_5_public_portal_vehicle_reclaim PASSED [ 26%]
+tests/test_e2e_009_vehicle_reclaim.py::TestE2E009VehicleReclaim::test_phase_6_staff_portal_close_file PASSED [ 26%]
+tests/test_e2e_009_vehicle_reclaim.py::TestE2E009VehicleReclaim::test_phase_7_public_portal_verify_closed PASSED [ 27%]
+tests/test_e2e_010_unfavorable_court_judgment.py::TestE2E010UnfavorableCourtJudgment::test_phase_1_public_portal_submit_lt260 PASSED [ 27%]
+tests/test_e2e_010_unfavorable_court_judgment.py::TestE2E010UnfavorableCourtJudgment::test_phase_2_staff_portal_process_lt260 PASSED [ 28%]
+tests/test_e2e_010_unfavorable_court_judgment.py::TestE2E010UnfavorableCourtJudgment::test_phase_3_public_portal_submit_lt262 PASSED [ 28%]
+tests/test_e2e_010_unfavorable_court_judgment.py::TestE2E010UnfavorableCourtJudgment::test_phase_4_staff_portal_issue_lt264 PASSED [ 29%]
+tests/test_e2e_010_unfavorable_court_judgment.py::TestE2E010UnfavorableCourtJudgment::test_phase_5_staff_portal_unfavorable_judgment PASSED [ 29%]
+tests/test_e2e_010_unfavorable_court_judgment.py::TestE2E010UnfavorableCourtJudgment::test_phase_6_public_portal_lt263_still_locked PASSED [ 30%]
+tests/test_e2e_011_nordis_delivery_blocked.py::TestE2E011NordisDeliveryBlocked::test_phase_1_setup_submit_lt260 PASSED [ 30%]
+tests/test_e2e_011_nordis_delivery_blocked.py::TestE2E011NordisDeliveryBlocked::test_phase_2_staff_process_lt260 PASSED [ 31%]
+tests/test_e2e_011_nordis_delivery_blocked.py::TestE2E011NordisDeliveryBlocked::test_phase_3_submit_lt262_and_issue_lt264 PASSED [ 31%]
+tests/test_e2e_011_nordis_delivery_blocked.py::TestE2E011NordisDeliveryBlocked::test_phase_4_verify_tracking_status PASSED [ 32%]
+tests/test_e2e_011_nordis_delivery_blocked.py::TestE2E011NordisDeliveryBlocked::test_phase_5_public_portal_lt263_locked PASSED [ 32%]
+tests/test_e2e_012_drawdown_setup_usage.py::TestE2E012DrawdownSetupUsage::test_phase_0_setup_lt260 PASSED [ 33%]
+tests/test_e2e_012_drawdown_setup_usage.py::TestE2E012DrawdownSetupUsage::test_phase_1_setup_drawdown_bank PASSED [ 33%]
+tests/test_e2e_012_drawdown_setup_usage.py::TestE2E012DrawdownSetupUsage::test_phase_2_add_funds PASSED [ 34%]
+tests/test_e2e_012_drawdown_setup_usage.py::TestE2E012DrawdownSetupUsage::test_phase_3_configure_auto_recharge PASSED [ 34%]
+tests/test_e2e_012_drawdown_setup_usage.py::TestE2E012DrawdownSetupUsage::test_phase_4_pay_lt262_via_drawdown PASSED [ 35%]
+tests/test_e2e_012_drawdown_setup_usage.py::TestE2E012DrawdownSetupUsage::test_phase_5_verify_balance_and_history FAILED [ 35%]
+tests/test_e2e_013_multi_user_business.py::TestE2E013MultiUserBusiness::test_phase_1_admin_submit_lt260 PASSED [ 36%]
+tests/test_e2e_013_multi_user_business.py::TestE2E013MultiUserBusiness::test_phase_2_staff_process_lt260 PASSED [ 36%]
+tests/test_e2e_013_multi_user_business.py::TestE2E013MultiUserBusiness::test_phase_3_user_b_can_see_application PASSED [ 37%]
+tests/test_e2e_013_multi_user_business.py::TestE2E013MultiUserBusiness::test_phase_4_admin_sees_all_applications PASSED [ 37%]
+tests/test_e2e_014_company_switching.py::TestE2E014CompanySwitching::test_phase_1_select_company_a PASSED [ 38%]
+tests/test_e2e_014_company_switching.py::TestE2E014CompanySwitching::test_phase_2_submit_lt260_under_company_a PASSED [ 38%]
+tests/test_e2e_014_company_switching.py::TestE2E014CompanySwitching::test_phase_3_switch_to_company_b PASSED [ 39%]
+tests/test_e2e_015_fiscal_user_restrictions.py::TestE2E015FiscalUserRestrictions::test_phase_1_fiscal_user_dashboard PASSED [ 39%]
+tests/test_e2e_015_fiscal_user_restrictions.py::TestE2E015FiscalUserRestrictions::test_phase_2_restricted_areas_not_accessible PASSED [ 40%]
+tests/test_e2e_015_fiscal_user_restrictions.py::TestE2E015FiscalUserRestrictions::test_phase_3_reports_accessible PASSED [ 40%]
+tests/test_e2e_016_lsa_full_workflow.py::TestE2E016LSAFullWorkflow::test_phase_1_verify_dashboard PASSED [ 41%]
+tests/test_e2e_016_lsa_full_workflow.py::TestE2E016LSAFullWorkflow::test_phase_2_process_lt260 PASSED [ 41%]
+tests/test_e2e_016_lsa_full_workflow.py::TestE2E016LSAFullWorkflow::test_phase_3_user_management PASSED [ 42%]
+tests/test_e2e_016_lsa_full_workflow.py::TestE2E016LSAFullWorkflow::test_phase_4_configuration PASSED [ 42%]
+tests/test_e2e_016_lsa_full_workflow.py::TestE2E016LSAFullWorkflow::test_phase_5_facility_management PASSED [ 43%]
+tests/test_e2e_016_lsa_full_workflow.py::TestE2E016LSAFullWorkflow::test_phase_6_reports PASSED [ 43%]
+tests/test_e2e_017_invalid_vin_draft_resume.py::TestE2E017InvalidVinDraftResume::test_phase_1_enter_invalid_vin_save_draft PASSED [ 44%]
+tests/test_e2e_017_invalid_vin_draft_resume.py::TestE2E017InvalidVinDraftResume::test_phase_2_resume_draft_and_submit FAILED [ 44%]
+tests/test_e2e_018_duplicate_vin_detection.py::TestE2E018DuplicateVinDetection::test_phase_1_user_a_submits_lt260 PASSED [ 45%]
+tests/test_e2e_018_duplicate_vin_detection.py::TestE2E018DuplicateVinDetection::test_phase_2_user_b_submits_lt260_same_vin PASSED [ 45%]
+tests/test_e2e_018_duplicate_vin_detection.py::TestE2E018DuplicateVinDetection::test_phase_3_staff_verifies_duplicate PASSED [ 46%]
+tests/test_e2e_019_payment_failure_retry.py::TestE2E019PaymentFailureRetry::test_phase_1_setup_lt260 PASSED [ 46%]
+tests/test_e2e_019_payment_failure_retry.py::TestE2E019PaymentFailureRetry::test_phase_2_submit_lt262_payit_fails PASSED [ 47%]
+tests/test_e2e_019_payment_failure_retry.py::TestE2E019PaymentFailureRetry::test_phase_3_switch_to_drawdown_succeeds PASSED [ 47%]
+tests/test_e2e_020_paper_form_relaxed_dates.py::TestE2E020PaperFormRelaxedDates::test_phase_1_add_paper_lt263_short_date PASSED [ 48%]
+tests/test_e2e_020_paper_form_relaxed_dates.py::TestE2E020PaperFormRelaxedDates::test_phase_2_verify_paper_form_accepted PASSED [ 48%]
+tests/test_e2e_021_stolen_vehicle_reset.py::TestE2E021StolenVehicleReset::test_phase_1_submit_and_mark_stolen PASSED [ 49%]
+tests/test_e2e_021_stolen_vehicle_reset.py::TestE2E021StolenVehicleReset::test_phase_2_resubmit_same_vin PASSED [ 49%]
+tests/test_e2e_021_stolen_vehicle_reset.py::TestE2E021StolenVehicleReset::test_phase_3_verify_reset_conflict PASSED [ 50%]
+tests/test_e2e_022_concurrent_staff_actions.py::TestE2E022ConcurrentStaffActions::test_phase_1_setup_lt262 PASSED [ 50%]
+tests/test_e2e_022_concurrent_staff_actions.py::TestE2E022ConcurrentStaffActions::test_phase_2_verify_lt264_consistency PASSED [ 51%]
+tests/test_e2e_023_payit_status_update.py::TestE2E023PayItStatusUpdate::test_phase_0_setup_lt260 PASSED [ 51%]
+tests/test_e2e_023_payit_status_update.py::TestE2E023PayItStatusUpdate::test_phase_1_submit_lt262_payit PASSED [ 52%]
+tests/test_e2e_023_payit_status_update.py::TestE2E023PayItStatusUpdate::test_phase_2_verify_cart_cleared PASSED [ 52%]
+tests/test_e2e_023_payit_status_update.py::TestE2E023PayItStatusUpdate::test_phase_3_staff_verifies_payment PASSED [ 53%]
+tests/test_e2e_024_close_file_attribution.py::TestE2E024CloseFileAttribution::test_phase_0_setup_to_lt264 PASSED [ 53%]
+tests/test_e2e_024_close_file_attribution.py::TestE2E024CloseFileAttribution::test_phase_1_pp_initiate_reclaim PASSED [ 54%]
+tests/test_e2e_024_close_file_attribution.py::TestE2E024CloseFileAttribution::test_phase_2_sp_verify_updated_by PASSED [ 54%]
+tests/test_e2e_025_paper_form_submitted_date.py::TestE2E025PaperFormSubmittedDate::test_phase_1_add_paper_lt260_verify_date PASSED [ 55%]
+tests/test_e2e_025_paper_form_submitted_date.py::TestE2E025PaperFormSubmittedDate::test_phase_2_process_verify_pipeline PASSED [ 55%]
+tests/test_e2e_026_nordis_letter_reconciliation.py::TestE2E026NordisLetterReconciliation::test_phase_1_navigate_to_daily_transmission PASSED [ 56%]
+tests/test_e2e_026_nordis_letter_reconciliation.py::TestE2E026NordisLetterReconciliation::test_phase_2_verify_letter_counts PASSED [ 56%]
+tests/test_e2e_027_case_status_transitions.py::TestE2E027CaseStatusTransitions::test_phase_1_lt260_status PASSED [ 57%]
+tests/test_e2e_027_case_status_transitions.py::TestE2E027CaseStatusTransitions::test_phase_2_lt262_status PASSED [ 57%]
+tests/test_e2e_027_case_status_transitions.py::TestE2E027CaseStatusTransitions::test_phase_3_court_hearing_status PASSED [ 58%]
+tests/test_e2e_028_cart_clearance_duplicates.py::TestE2E028CartClearanceDuplicates::test_phase_0_setup PASSED [ 58%]
+tests/test_e2e_028_cart_clearance_duplicates.py::TestE2E028CartClearanceDuplicates::test_phase_1_add_to_cart_and_pay PASSED [ 59%]
+tests/test_e2e_028_cart_clearance_duplicates.py::TestE2E028CartClearanceDuplicates::test_phase_2_verify_cart_cleared PASSED [ 59%]
+tests/test_e2e_028_cart_clearance_duplicates.py::TestE2E028CartClearanceDuplicates::test_phase_3_re_add_blocked PASSED [ 60%]
+tests/test_e2e_029_edit_post_processing.py::TestE2E029EditPostProcessing::test_phase_1_process_and_view_correspondence PASSED [ 60%]
+tests/test_e2e_029_edit_post_processing.py::TestE2E029EditPostProcessing::test_phase_2_edit_requestor_details PASSED [ 61%]
+tests/test_e2e_029_edit_post_processing.py::TestE2E029EditPostProcessing::test_phase_3_verify_correspondence_original PASSED [ 61%]
+tests/test_e2e_030_lt264a_issuance.py::TestE2E030Lt264aIssuance::test_phase_1_verify_aging_tracking PASSED [ 62%]
+tests/test_e2e_030_lt264a_issuance.py::TestE2E030Lt264aIssuance::test_phase_2_issue_lt264a SKIPPED [ 62%]
+tests/test_e2e_031_lt264b_hearing_notification.py::TestE2E031Lt264bHearingNotification::test_phase_1_find_hearing_request PASSED [ 63%]
+tests/test_e2e_031_lt264b_hearing_notification.py::TestE2E031Lt264bHearingNotification::test_phase_2_issue_lt264b PASSED [ 63%]
+tests/test_e2e_031_lt264b_hearing_notification.py::TestE2E031Lt264bHearingNotification::test_phase_3_verify_requestor_notified PASSED [ 64%]
+tests/test_e2e_032_draft_auto_save.py::TestE2E032DraftAutoSave::test_phase_1_partially_fill_lt260 PASSED [ 64%]
+tests/test_e2e_032_draft_auto_save.py::TestE2E032DraftAutoSave::test_phase_2_navigate_away PASSED [ 65%]
+tests/test_e2e_032_draft_auto_save.py::TestE2E032DraftAutoSave::test_phase_3_resume_verify_fields PASSED [ 65%]
+tests/test_e2e_033_nordis_sftp_failure.py::TestE2E033NordisSftpFailure::test_phase_1_navigate_nordis_tracking SKIPPEDt be simulated in E2E UI
+tests)                                                                   [ 66%]
+tests/test_e2e_033_nordis_sftp_failure.py::TestE2E033NordisSftpFailure::test_phase_2_verify_monitoring_ui SKIPPEDt be simulated in E2E UI
+tests)                                                                   [ 66%]
+tests/test_e2e_033_nordis_sftp_failure.py::TestE2E033NordisSftpFailure::test_phase_3_sftp_connection_test SKIPPEDomated in E2E) [ 67%]
+tests/test_e2e_034_concurrent_vin_processing.py::TestE2E034ConcurrentVinProcessing::test_phase_0_setup_lt260 PASSED [ 67%]
+tests/test_e2e_034_concurrent_vin_processing.py::TestE2E034ConcurrentVinProcessing::test_phase_1_concurrent_processing PASSED [ 68%]
+tests/test_e2e_034_concurrent_vin_processing.py::TestE2E034ConcurrentVinProcessing::test_phase_2_verify_no_corruption PASSED [ 68%]
+tests/test_e2e_035_report_date_filters.py::TestE2E035ReportDateFilters::test_phase_1_generate_reports_with_dates SKIPPEDation, not
+suitable for E2E UI automation)                                          [ 69%]
+tests/test_e2e_035_report_date_filters.py::TestE2E035ReportDateFilters::test_phase_2_verify_report_content SKIPPEDation, not suitable for E2E
+UI automation)                                                           [ 69%]
+tests/test_e2e_036_report_export_integrity.py::TestE2E036ReportExportIntegrity::test_phase_1_daily_revenue_xlsx SKIPPED [ 70%]
+tests/test_e2e_036_report_export_integrity.py::TestE2E036ReportExportIntegrity::test_phase_2_daily_revenue_pdf SKIPPED [ 70%]
+tests/test_e2e_036_report_export_integrity.py::TestE2E036ReportExportIntegrity::test_phase_3_daily_deposit_xlsx SKIPPED [ 71%]
+tests/test_e2e_036_report_export_integrity.py::TestE2E036ReportExportIntegrity::test_phase_4_daily_deposit_pdf SKIPPED [ 71%]
+tests/test_e2e_037_draft_global_search_exclusion.py::TestE2E037DraftGlobalSearchExclusion::test_phase_0_setup_submit_and_process_lt260 PASSED [ 72%]
+tests/test_e2e_037_draft_global_search_exclusion.py::TestE2E037DraftGlobalSearchExclusion::test_phase_1_save_lt262_as_draft PASSED [ 72%]
+tests/test_e2e_037_draft_global_search_exclusion.py::TestE2E037DraftGlobalSearchExclusion::test_phase_2_global_search_excludes_draft PASSED [ 73%]
+tests/test_e2e_037_draft_global_search_exclusion.py::TestE2E037DraftGlobalSearchExclusion::test_phase_3_review_lt262_not_visible PASSED [ 73%]
+tests/test_e2e_037_draft_global_search_exclusion.py::TestE2E037DraftGlobalSearchExclusion::test_phase_4_resume_draft_submit_pay PASSED [ 74%]
+tests/test_e2e_037_draft_global_search_exclusion.py::TestE2E037DraftGlobalSearchExclusion::test_phase_5_global_search_includes_submitted_lt262 PASSED [ 74%]
+tests/test_e2e_037_draft_global_search_exclusion.py::TestE2E037DraftGlobalSearchExclusion::test_phase_6_lt262_listing_to_process PASSED [ 75%]
+tests/test_e2e_038_closed_cases_report_attribution.py::TestE2E038ClosedCasesReportAttribution::test_phase_0_setup_two_applications PASSED [ 75%]
+tests/test_e2e_038_closed_cases_report_attribution.py::TestE2E038ClosedCasesReportAttribution::test_phase_1_staff_close_case_a PASSED [ 76%]
+tests/test_e2e_038_closed_cases_report_attribution.py::TestE2E038ClosedCasesReportAttribution::test_phase_2_closed_cases_report_case_a PASSED [ 76%]
+tests/test_e2e_038_closed_cases_report_attribution.py::TestE2E038ClosedCasesReportAttribution::test_phase_3_public_reclaim_case_b PASSED [ 77%]
+tests/test_e2e_038_closed_cases_report_attribution.py::TestE2E038ClosedCasesReportAttribution::test_phase_4_closed_cases_report_case_b PASSED [ 77%]
+tests/test_e2e_038_closed_cases_report_attribution.py::TestE2E038ClosedCasesReportAttribution::test_phase_5_no_blank_closed_by PASSED [ 78%]
+tests/test_e2e_039_correspondence_letter_accuracy.py::TestE2E039CorrespondenceLetterAccuracy::test_phase_0_setup_through_lt262 PASSED [ 78%]
+tests/test_e2e_039_correspondence_letter_accuracy.py::TestE2E039CorrespondenceLetterAccuracy::test_phase_1_process_lt262 PASSED [ 79%]
+tests/test_e2e_039_correspondence_letter_accuracy.py::TestE2E039CorrespondenceLetterAccuracy::test_phase_2_verify_correspondence_present PASSED [ 79%]
+tests/test_e2e_039_correspondence_letter_accuracy.py::TestE2E039CorrespondenceLetterAccuracy::test_phase_3_verify_letter_name_accuracy PASSED [ 80%]
+tests/test_e2e_040_listing_global_search_consistency.py::TestE2E040ListingGlobalSearchConsistency::test_phase_0_setup_through_lt262 PASSED [ 80%]
+tests/test_e2e_040_listing_global_search_consistency.py::TestE2E040ListingGlobalSearchConsistency::test_phase_1_process_lt262_checkbox_independence PASSED [ 81%]
+tests/test_e2e_040_listing_global_search_consistency.py::TestE2E040ListingGlobalSearchConsistency::test_phase_2_save_lt263_as_draft SKIPPED [ 81%]
+tests/test_e2e_040_listing_global_search_consistency.py::TestE2E040ListingGlobalSearchConsistency::test_phase_3_lt262_listing_persists_with_lt263_draft PASSED [ 82%]
+tests/test_e2e_040_listing_global_search_consistency.py::TestE2E040ListingGlobalSearchConsistency::test_phase_4_global_search_matches_listing PASSED [ 82%]
+tests/test_e2e_041_lt262_workflow_tab_visibility.py::TestE2E041Lt262WorkflowTabVisibility::test_phase_0a_public_portal_submit_lt260 PASSED [ 83%]
+tests/test_e2e_041_lt262_workflow_tab_visibility.py::TestE2E041Lt262WorkflowTabVisibility::test_phase_0b_staff_portal_process_lt260 PASSED [ 83%]
+tests/test_e2e_041_lt262_workflow_tab_visibility.py::TestE2E041Lt262WorkflowTabVisibility::test_phase_0c_public_portal_submit_lt262 PASSED [ 84%]
+tests/test_e2e_041_lt262_workflow_tab_visibility.py::TestE2E041Lt262WorkflowTabVisibility::test_phase_1_process_lt262_verify_aging_tab PASSED [ 84%]
+tests/test_e2e_041_lt262_workflow_tab_visibility.py::TestE2E041Lt262WorkflowTabVisibility::test_phase_2_mark_court_hearing_verify_tab PASSED [ 85%]
+tests/test_e2e_041_lt262_workflow_tab_visibility.py::TestE2E041Lt262WorkflowTabVisibility::test_phase_3_paper_lt262_no_payment_verify_pending PASSED [ 85%]
+tests/test_e2e_041_lt262_workflow_tab_visibility.py::TestE2E041Lt262WorkflowTabVisibility::test_phase_4_verify_all_tabs_render PASSED [ 86%]
+tests/test_e2e_042_sso_domain_migration.py::TestE2E042SsoDomainMigration::test_phase_1_sso_domain_change SKIPPEDel changes) [ 86%]
+tests/test_e2e_042_sso_domain_migration.py::TestE2E042SsoDomainMigration::test_phase_2_verify_login_after_migration SKIPPEDel changes) [ 87%]
+tests/test_e2e_043_closed_case_lt264_lockdown.py::TestE2E043ClosedCaseLt264Lockdown::test_phase_0a_public_portal_submit_lt260 PASSED [ 87%]
+tests/test_e2e_043_closed_case_lt264_lockdown.py::TestE2E043ClosedCaseLt264Lockdown::test_phase_0b_staff_portal_process_lt260 PASSED [ 88%]
+tests/test_e2e_043_closed_case_lt264_lockdown.py::TestE2E043ClosedCaseLt264Lockdown::test_phase_0c_public_portal_submit_lt262 PASSED [ 88%]
+tests/test_e2e_043_closed_case_lt264_lockdown.py::TestE2E043ClosedCaseLt264Lockdown::test_phase_0d_staff_portal_process_lt262 PASSED [ 89%]
+tests/test_e2e_043_closed_case_lt264_lockdown.py::TestE2E043ClosedCaseLt264Lockdown::test_phase_1_verify_track_lt264_enabled PASSED [ 89%]
+tests/test_e2e_043_closed_case_lt264_lockdown.py::TestE2E043ClosedCaseLt264Lockdown::test_phase_2_close_file_verify_closed PASSED [ 90%]
+tests/test_e2e_043_closed_case_lt264_lockdown.py::TestE2E043ClosedCaseLt264Lockdown::test_phase_3_verify_track_lt264_disabled_on_closed PASSED [ 90%]
+tests/test_e2e_043_closed_case_lt264_lockdown.py::TestE2E043ClosedCaseLt264Lockdown::test_phase_4_close_file_already_closed_error PASSED [ 91%]
+tests/test_e2e_044_lt264_button_idempotency.py::TestE2E044Lt264ButtonIdempotency::test_phase_0a_public_portal_submit_lt260 PASSED [ 91%]
+tests/test_e2e_044_lt264_button_idempotency.py::TestE2E044Lt264ButtonIdempotency::test_phase_0b_staff_portal_process_lt260 PASSED [ 92%]
+tests/test_e2e_044_lt264_button_idempotency.py::TestE2E044Lt264ButtonIdempotency::test_phase_0c_public_portal_submit_lt262 PASSED [ 92%]
+tests/test_e2e_044_lt264_button_idempotency.py::TestE2E044Lt264ButtonIdempotency::test_phase_1_double_click_issue_lt264 PASSED [ 93%]
+tests/test_e2e_044_lt264_button_idempotency.py::TestE2E044Lt264ButtonIdempotency::test_phase_2_verify_no_duplicate_recipients PASSED [ 93%]
+tests/test_e2e_044_lt264_button_idempotency.py::TestE2E044Lt264ButtonIdempotency::test_phase_3_double_click_submit_lt260 PASSED [ 94%]
+tests/test_e2e_045_nordis_backend_triggers.py::TestE2E045NordisBackendTriggers::test_phase_1_verify_nordis_tracking SKIPPED job trigger
+that cannot be simulated in E2E UI tests)                                [ 94%]
+tests/test_e2e_045_nordis_backend_triggers.py::TestE2E045NordisBackendTriggers::test_phase_2_verify_nordis_correspondence SKIPPED job trigger
+that cannot be simulated in E2E UI tests)                                [ 95%]
+tests/test_e2e_045_nordis_backend_triggers.py::TestE2E045NordisBackendTriggers::test_phase_3_backend_trigger_precondition SKIPPEDondition
+only)                                                                    [ 95%]
+tests/test_e2e_046_global_search_offline_payment.py::TestE2E046GlobalSearchOfflinePayment::test_phase_0_setup_case_a_check_payment PASSED [ 96%]
+tests/test_e2e_046_global_search_offline_payment.py::TestE2E046GlobalSearchOfflinePayment::test_phase_1_setup_case_b_money_order_payment PASSED [ 96%]
+tests/test_e2e_046_global_search_offline_payment.py::TestE2E046GlobalSearchOfflinePayment::test_phase_2_global_search_check_payment PASSED [ 97%]
+tests/test_e2e_046_global_search_offline_payment.py::TestE2E046GlobalSearchOfflinePayment::test_phase_3_global_search_money_order_payment PASSED [ 97%]
+tests/test_e2e_047_facility_name_special_chars.py::TestE2E047FacilityNameSpecialChars::test_phase_1_edit_company_name_valid PASSED [ 98%]
+tests/test_e2e_047_facility_name_special_chars.py::TestE2E047FacilityNameSpecialChars::test_phase_2_edit_company_name_semicolon_rejected PASSED [ 98%]
+tests/test_e2e_047_facility_name_special_chars.py::TestE2E047FacilityNameSpecialChars::test_phase_3_edit_company_name_angle_brackets_rejected PASSED [ 99%]
+tests/test_e2e_047_facility_name_special_chars.py::TestE2E047FacilityNameSpecialChars::test_phase_4_add_another_company_special_char_start SKIPPED [ 99%]
+tests/test_e2e_047_facility_name_special_chars.py::TestE2E047FacilityNameSpecialChars::test_phase_5_verify_facility_name_in_staff_portal PASSED [100%]
+
+=================================== FAILURES ===================================
+____ TestE2E002NoOwnersCourtHearing.test_phase_6_public_portal_submit_lt263 ____
+tests/test_e2e_002_no_owners_court_hearing.py:265: in test_phase_6_public_portal_submit_lt263
+    dashboard.click_submit_lt263()
+src/pages/public_portal/dashboard_page.py:93: in click_submit_lt263
+    self._click_action_button("Submit LT-263")
+src/pages/public_portal/dashboard_page.py:85: in _click_action_button
+    btn.dispatch_event("click")
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15790: in dispatch_event
+    self._sync(
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_locator.py:186: in dispatch_event
+    return await self._frame.dispatch_event(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_frame.py:420: in dispatch_event
+    await self._channel.send(
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.TimeoutError: Locator.dispatch_event: Timeout 30000ms exceeded.
+E   Call log:
+E     - waiting for locator("button:has-text(\"Submit LT-263\"), a:has-text(\"Submit LT-263\")").first
+____ TestE2E006IndividualUserPayIt.test_phase_6_public_portal_submit_lt263 _____
+tests/test_e2e_006_individual_user_payit.py:233: in test_phase_6_public_portal_submit_lt263
+    dashboard.click_submit_lt263()
+src/pages/public_portal/dashboard_page.py:93: in click_submit_lt263
+    self._click_action_button("Submit LT-263")
+src/pages/public_portal/dashboard_page.py:85: in _click_action_button
+    btn.dispatch_event("click")
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15790: in dispatch_event
+    self._sync(
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_locator.py:186: in dispatch_event
+    return await self._frame.dispatch_event(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_frame.py:420: in dispatch_event
+    await self._channel.send(
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.TimeoutError: Locator.dispatch_event: Timeout 30000ms exceeded.
+E   Call log:
+E     - waiting for locator("button:has-text(\"Submit LT-263\"), a:has-text(\"Submit LT-263\")").first
+_____ TestE2E012DrawdownSetupUsage.test_phase_5_verify_balance_and_history _____
+tests/test_e2e_012_drawdown_setup_usage.py:199: in test_phase_5_verify_balance_and_history
+    profile.view_account_history()
+src/pages/public_portal/profile_page.py:261: in view_account_history
+    self.history_link.click()
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15637: in click
+    self._sync(
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_frame.py:566: in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E   Call log:
+E     - waiting for locator("a:has-text(\"Drawdown Account History\"), button:has-text(\"History\")").first
+_____ TestE2E017InvalidVinDraftResume.test_phase_2_resume_draft_and_submit _____
+tests/test_e2e_017_invalid_vin_draft_resume.py:140: in test_phase_2_resume_draft_and_submit
+    lt260.accept_terms_and_sign(PERSON["name"], PERSON["email"])
+src/pages/public_portal/lt260_form_page.py:180: in accept_terms_and_sign
+    self.click_terms_tab()
+src/pages/public_portal/lt260_form_page.py:90: in click_terms_tab
+    self.terms_tab.dispatch_event("click")
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15790: in dispatch_event
+    self._sync(
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_locator.py:186: in dispatch_event
+    return await self._frame.dispatch_event(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_frame.py:420: in dispatch_event
+    await self._channel.send(
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/playwright/_impl/_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.TimeoutError: Locator.dispatch_event: Timeout 30000ms exceeded.
+E   Call log:
+E     - waiting for locator("[role=\"tab\"]:has-text(\"Terms and Conditions\")")
+=========================== short test summary info ============================
+FAILED tests/test_e2e_002_no_owners_court_hearing.py::TestE2E002NoOwnersCourtHearing::test_phase_6_public_portal_submit_lt263 - playwright._impl._errors.TimeoutError: Locator.dispatch_event: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("button:has-text(\"Submit LT-263\"), a:has-text(\"Submit LT-263\")").first
+FAILED tests/test_e2e_006_individual_user_payit.py::TestE2E006IndividualUserPayIt::test_phase_6_public_portal_submit_lt263 - playwright._impl._errors.TimeoutError: Locator.dispatch_event: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("button:has-text(\"Submit LT-263\"), a:has-text(\"Submit LT-263\")").first
+FAILED tests/test_e2e_012_drawdown_setup_usage.py::TestE2E012DrawdownSetupUsage::test_phase_5_verify_balance_and_history - playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("a:has-text(\"Drawdown Account History\"), button:has-text(\"History\")").first
+FAILED tests/test_e2e_017_invalid_vin_draft_resume.py::TestE2E017InvalidVinDraftResume::test_phase_2_resume_draft_and_submit - playwright._impl._errors.TimeoutError: Locator.dispatch_event: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("[role=\"tab\"]:has-text(\"Terms and Conditions\")")
+=========== 4 failed, 180 passed, 17 skipped in 13510.79s (3:45:10) ============

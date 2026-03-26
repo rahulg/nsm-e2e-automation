@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.env
+auth/
+test-results/
+playwright-report/
+.pytest_cache/
+venv/
+.venv/
+src/debug/
+test_output.txt
+report.html
+node_modules/
+.DS_Store
+*.png
+!fixtures/*.png
+LT-264.pdf
