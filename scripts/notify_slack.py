@@ -15,8 +15,10 @@ Environment variables:
 import os
 import sys
 import json
+import re
 import urllib.request
 import urllib.error
+from datetime import datetime, timezone
 
 EXPERTLY_BASE = "https://demo.expertly.cloud"
 CHAIN_ID = "46b4336ff4bd42574c3083babd9cd903"
@@ -150,11 +152,20 @@ def main():
         print("[expertly] EXPERTLY_USERNAME/PASSWORD not set, skipping Slack notification")
         return
 
+    # Extract passed/failed counts from pytest summary
+    match = re.search(r"(\d+)\s+passed", summary)
+    passed = match.group(1) if match else "0"
+    match = re.search(r"(\d+)\s+failed", summary)
+    failed = match.group(1) if match else "0"
+
+    run_date = datetime.now(timezone.utc).strftime("%B %d, %Y at %I:%M %p UTC")
+
     message = (
         f"Hello, \n"
         f"Please find the automation test run report below for QA - NSM ({scope} tests)\n"
-        f"Summary: {summary}\n"
-        f":- {report_url}"
+        f"Summary: {passed} Passed, {failed} Failed \n"
+        f"HTML Report :- {report_url} \n"
+        f"Run Date :- {run_date}"
     )
 
     print(f"[notify] Logging into Expertly via browser...")
