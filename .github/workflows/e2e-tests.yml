@@ -73,12 +73,16 @@ jobs:
         continue-on-error: true
         run: |
           if [ "${{ steps.scope.outputs.scope }}" = "full" ]; then
-            pytest --html=report.html --self-contained-html -v --tb=short 2>&1 | tee test_output.txt
+            pytest --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
           elif [ "${{ steps.scope.outputs.scope }}" = "smoke" ]; then
-            pytest -m "smoke or core" --html=report.html --self-contained-html -v --tb=short 2>&1 | tee test_output.txt
+            pytest -m "smoke or core" --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
           else
-            pytest -m "core" --html=report.html --self-contained-html -v --tb=short 2>&1 | tee test_output.txt
+            pytest -m "core" --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
           fi
+
+      - name: Generate HTML report
+        if: always()
+        run: python scripts/generate_report.py results.json report.html
 
       - name: Extract test summary
         if: always()
@@ -100,7 +104,6 @@ jobs:
         run: |
           mkdir -p gh-pages-content
           cp report.html gh-pages-content/report.html
-          # Create index.html that redirects to report
           cat > gh-pages-content/index.html << 'HEREDOC'
           <!DOCTYPE html>
           <html>
