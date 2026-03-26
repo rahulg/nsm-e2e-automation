@@ -124,3 +124,4 @@ jobs:
           TEST_SCOPE: ${{ steps.scope.outputs.scope }}
           REPO_NAME: ${{ github.repository }}
         run: python scripts/notify_slack.py
+
