@@ -30,6 +30,9 @@ env:
   PUBLIC_USER_B_USERNAME: ${{ secrets.PUBLIC_USER_B_USERNAME }}
   PUBLIC_USER_B_PASSWORD: ${{ secrets.PUBLIC_USER_B_PASSWORD }}
 
+permissions:
+  contents: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
