@@ -76,7 +76,7 @@
     <h1>NSM E2E Test Report — QA</h1>
     <div class="subtitle">Automated end-to-end test results for NCDOT Notice & Storage Management</div>
     <div class="header-meta">
-      <div class="meta-item"><div class="label">Run Date</div><div class="value">April 15, 2026 at 11:17 AM UTC</div></div>
+      <div class="meta-item"><div class="label">Run Date</div><div class="value">April 16, 2026 at 11:21 AM UTC</div></div>
       <div class="meta-item"><div class="label">Environment</div><div class="value">QA</div></div>
       <div class="meta-item"><div class="label">Duration</div><div class="value">0m 0s</div></div>
       <div class="meta-item"><div class="label">Tests Collected</div><div class="value">30</div></div>
@@ -119,16 +119,16 @@
         </tr>
         <tr class="red-row">
           <td class="num">3</td>
-          <td><strong>Phase 3 Public Portal Submit Lt262</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_002_no_owners_court_hearing.py:157: in test_phase_3_public_portal_submit_lt262
-    dashboard.expect_application_processed()
-src/pages/public_portal/dashboard_page.py:130: in expect_application_processed
-    expect(self.page.get_by_text(re.compile(r&quot;Processed&quot;, re.I)).first).to_be_visible(timeout=15_000)
+          <td><strong>Phase 3 Public Portal Submit Lt262</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_002_no_owners_court_hearing.py:161: in test_phase_3_public_portal_submit_lt262
+    lt262.expect_form_tabs_visible()
+src/pages/public_portal/lt262_form_page.py:77: in expect_form_tabs_visible
+    expect(self.form_details_tab).to_be_visible(timeout=15_000)
 E   AssertionError: Locator expected to be visible
 E   Actual value: None
 E   Error: element(s) not found 
 E   Call log:
 E     - Expect &quot;to_be_visible&quot; with timeout 15000ms
-E     -...</pre></div></details></td>
+E     - waiting for locator(&quot;[role=\&quot;tab\&quot;]:has-text(\&quot;LT...</pre></div></details></td>
           <td><code>TestE2E002NoOwnersCourtHearing</code></td>
           <td class="num">0.0s</td>
           <td><span class="badge fail">FAIL</span></td>
@@ -193,16 +193,13 @@ E     - waiting for locator(&quot;table....</pre></div></details></td>
         </tr>
         <tr class="red-row">
           <td class="num">11</td>
-          <td><strong>Phase 3 Public Portal Submit Lt262A</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_003_mobile_home_lt262a.py:154: in test_phase_3_public_portal_submit_lt262a
-    dashboard.expect_application_processed()
-src/pages/public_portal/dashboard_page.py:130: in expect_application_processed
-    expect(self.page.get_by_text(re.compile(r&quot;Processed&quot;, re.I)).first).to_be_visible(timeout=15_000)
-E   AssertionError: Locator expected to be visible
-E   Actual value: None
-E   Error: element(s) not found 
-E   Call log:
-E     - Expect &quot;to_be_visible&quot; with timeout 15000ms
-E     - wai...</pre></div></details></td>
+          <td><strong>Phase 3 Public Portal Submit Lt262A</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_003_mobile_home_lt262a.py:174: in test_phase_3_public_portal_submit_lt262a
+    lt262a.fill_lien_charges(STANDARD_LIEN_CHARGES)
+src/pages/public_portal/lt262a_form_page.py:90: in fill_lien_charges
+    cls = checkbox.get_attribute(&quot;class&quot;) or &quot;&quot;
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.13.12/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16973: in get_attribute
+    self._sync(self._impl_obj.get_attribute(name=name, timeout=timeout))...</pre></div></details></td>
           <td><code>TestE2E003MobileHomeLt262a</code></td>
           <td class="num">0.0s</td>
           <td><span class="badge fail">FAIL</span></td>
@@ -324,16 +321,16 @@ E     - waiting for locator(&quot;table.mat-table t...</pre></div></details></td
         </tr>
         <tr class="red-row">
           <td class="num">26</td>
-          <td><strong>Phase 4 Public Portal Submit Lt262 Payit</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_006_individual_user_payit.py:170: in test_phase_4_public_portal_submit_lt262_payit
-    dashboard.expect_application_processed()
-src/pages/public_portal/dashboard_page.py:130: in expect_application_processed
-    expect(self.page.get_by_text(re.compile(r&quot;Processed&quot;, re.I)).first).to_be_visible(timeout=15_000)
+          <td><strong>Phase 4 Public Portal Submit Lt262 Payit</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_006_individual_user_payit.py:174: in test_phase_4_public_portal_submit_lt262_payit
+    lt262.expect_form_tabs_visible()
+src/pages/public_portal/lt262_form_page.py:77: in expect_form_tabs_visible
+    expect(self.form_details_tab).to_be_visible(timeout=15_000)
 E   AssertionError: Locator expected to be visible
 E   Actual value: None
 E   Error: element(s) not found 
 E   Call log:
 E     - Expect &quot;to_be_visible&quot; with timeout 15000ms
-E  ...</pre></div></details></td>
+E     - waiting for locator(&quot;[role=\&quot;tab\&quot;]:has-text(...</pre></div></details></td>
           <td><code>TestE2E006IndividualUserPayIt</code></td>
           <td class="num">0.0s</td>
           <td><span class="badge fail">FAIL</span></td>
@@ -380,7 +377,7 @@ E     - waiting for locator(&quot;table.mat-...</pre></div></details></td>
   </div>
 
   <div class="footer">
-    Generated by NSM E2E Automation &middot; April 15, 2026 at 11:17 AM UTC
+    Generated by NSM E2E Automation &middot; April 16, 2026 at 11:21 AM UTC
   </div>
 
 </div>
