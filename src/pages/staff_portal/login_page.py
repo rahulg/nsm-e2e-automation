@@ -19,8 +19,11 @@ class StaffLoginPage:
         self.page.locator('button:has-text("Log in with")').click()
         self.page.wait_for_load_state("networkidle")
 
-        # Step 2: Click Expertly login image on intermediate page
-        self.page.locator("(//img[@alt='Expertly'])[2]").click()
+        # Step 2: Click verifi logo on intermediate page — (//img[@alt='Expertly'])[2]
+        # Wait explicitly before clicking to handle slow headless CI rendering
+        img = self.page.locator("//img[@alt='Expertly']").nth(1)
+        img.wait_for(state="visible", timeout=30_000)
+        img.click()
         self.page.locator("input#loginId").wait_for(state="visible", timeout=30_000)
 
         # Step 2: Enter username
