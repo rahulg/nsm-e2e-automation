@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NSM E2E Test Report — QA</title>
+<style>
+  :root {
+    --green: #16a34a; --green-bg: #f0fdf4; --green-border: #bbf7d0;
+    --red: #dc2626; --red-bg: #fef2f2; --red-border: #fecaca;
+    --orange: #d97706; --orange-bg: #fffbeb;
+    --blue: #2563eb; --blue-bg: #eff6ff;
+    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+    --gray-300: #d1d5db; --gray-500: #6b7280; --gray-700: #374151; --gray-900: #111827;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--gray-900); background: var(--gray-50); line-height: 1.6; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+  .header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 40px 32px; border-radius: 16px; margin-bottom: 32px; }
+  .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .header .subtitle { font-size: 15px; color: #94a3b8; margin-bottom: 24px; }
+  .header-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .meta-item { font-size: 13px; }
+  .meta-item .label { color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px; font-weight: 600; }
+  .meta-item .value { color: white; font-weight: 500; margin-top: 2px; }
+
+  .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+  .summary-card { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--gray-200); }
+  .summary-card .number { font-size: 36px; font-weight: 700; line-height: 1; }
+  .summary-card .label { font-size: 13px; color: var(--gray-500); margin-top: 4px; font-weight: 500; }
+  .summary-card.pass { border-top: 4px solid var(--green); } .summary-card.pass .number { color: var(--green); }
+  .summary-card.fail { border-top: 4px solid var(--red); } .summary-card.fail .number { color: var(--red); }
+  .summary-card.warn { border-top: 4px solid var(--orange); } .summary-card.warn .number { color: var(--orange); }
+  .summary-card.total { border-top: 4px solid var(--gray-700); } .summary-card.total .number { color: var(--gray-700); }
+
+  .result-banner { border-radius: 12px; padding: 16px 24px; margin-bottom: 32px; display: flex; align-items: center; gap: 12px; }
+  .result-banner.pass { background: var(--green-bg); border: 1px solid var(--green-border); }
+  .result-banner.pass .text { color: var(--green); }
+  .result-banner.fail { background: var(--red-bg); border: 1px solid var(--red-border); }
+  .result-banner.fail .text { color: var(--red); }
+  .result-banner .icon { font-size: 28px; }
+  .result-banner .text { font-size: 16px; font-weight: 600; }
+  .result-banner .subtext { font-size: 13px; color: var(--gray-500); font-weight: 400; }
+
+  .section { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--gray-200); overflow: hidden; margin-bottom: 32px; }
+  .section-title { padding: 20px 24px 16px; font-size: 18px; font-weight: 600; border-bottom: 1px solid var(--gray-200); }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--gray-50); }
+  th { text-align: left; padding: 10px 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); font-weight: 600; }
+  td { padding: 12px 16px; font-size: 14px; border-top: 1px solid var(--gray-100); }
+  tr:hover td { background: var(--gray-50); }
+  .red-row td { background: var(--red-bg); }
+  td.num { text-align: center; color: var(--gray-500); font-size: 13px; }
+  code { font-size: 12px; background: var(--gray-100); padding: 2px 6px; border-radius: 4px; word-break: break-all; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+  .badge.pass { background: var(--green-bg); color: var(--green); }
+  .badge.fail { background: var(--red-bg); color: var(--red); }
+  .badge.warn { background: var(--orange-bg); color: var(--orange); }
+
+  .error-box { background: var(--red-bg); border: 1px solid var(--red-border); border-radius: 8px; padding: 12px 16px; margin-top: 8px; font-size: 12px; color: var(--red); overflow-x: auto; }
+  .error-box pre { white-space: pre-wrap; word-break: break-word; font-family: monospace; margin: 0; }
+  .error-toggle { margin-top: 6px; }
+  .toggle-btn { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; color: var(--gray-700); background: var(--gray-100); border: 1px solid var(--gray-200); }
+  .toggle-btn:hover { background: var(--gray-200); }
+  .toggle-btn.has-issues { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
+
+  .footer { text-align: center; padding: 24px; font-size: 12px; color: var(--gray-500); }
+  @media (max-width: 640px) { .summary-row { grid-template-columns: repeat(2, 1fr); } .header-meta { grid-template-columns: 1fr; } .container { padding: 16px; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>NSM E2E Test Report — QA</h1>
+    <div class="subtitle">Automated end-to-end test results for NCDOT Notice & Storage Management</div>
+    <div class="header-meta">
+      <div class="meta-item"><div class="label">Run Date</div><div class="value">April 24, 2026 at 11:20 AM UTC</div></div>
+      <div class="meta-item"><div class="label">Environment</div><div class="value">QA</div></div>
+      <div class="meta-item"><div class="label">Duration</div><div class="value">0m 0s</div></div>
+      <div class="meta-item"><div class="label">Tests Collected</div><div class="value">42</div></div>
+    </div>
+  </div>
+
+  <div class="summary-row">
+    <div class="summary-card pass"><div class="number">33</div><div class="label">Passed</div></div>
+    <div class="summary-card fail"><div class="number">6</div><div class="label">Failed</div></div>
+    <div class="summary-card warn"><div class="number">175</div><div class="label">Skipped</div></div>
+    <div class="summary-card total"><div class="number">42</div><div class="label">Total</div></div>
+  </div>
+
+  <div class="result-banner fail">
+    <div class="icon">&#x274C;</div>
+    <div>
+      <div class="text">6 TEST(S) FAILED</div>
+      <div class="subtext">33 passed, 175 skipped in 0.0s</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Test Results</h2>
+    <table>
+      <thead><tr><th>#</th><th>Test</th><th>Class</th><th>Duration</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="num">1</td>
+          <td><strong>Phase 1 Public Portal Create Lt260</strong></td>
+          <td><code>TestE2E001StandardVehicleLifecycle</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">2</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260</strong></td>
+          <td><code>TestE2E001StandardVehicleLifecycle</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">3</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262</strong></td>
+          <td><code>TestE2E001StandardVehicleLifecycle</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">4</td>
+          <td><strong>Phase 4 Staff Portal Process Lt262</strong></td>
+          <td><code>TestE2E001StandardVehicleLifecycle</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">5</td>
+          <td><strong>Phase 5 Staff Portal Track Lt264</strong></td>
+          <td><code>TestE2E001StandardVehicleLifecycle</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">6</td>
+          <td><strong>Phase 5A Public Portal Submit Lt263</strong></td>
+          <td><code>TestE2E001StandardVehicleLifecycle</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">7</td>
+          <td><strong>Phase 6 Staff Portal Process Lt263</strong></td>
+          <td><code>TestE2E001StandardVehicleLifecycle</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">8</td>
+          <td><strong>Phase 7 Staff Portal Verify Lt263 On Lt262</strong></td>
+          <td><code>TestE2E001StandardVehicleLifecycle</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">9</td>
+          <td><strong>Phase 8 Staff Portal Verify Sold</strong></td>
+          <td><code>TestE2E001StandardVehicleLifecycle</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">10</td>
+          <td><strong>Phase 9 Public Portal Verify Vehicle Sold</strong></td>
+          <td><code>TestE2E001StandardVehicleLifecycle</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">11</td>
+          <td><strong>Phase 1 Public Portal Submit Lt260</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">12</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260 No Owners</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">13</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">14</td>
+          <td><strong>Phase 4 Staff Portal Process Lt262 No Owners</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">15</td>
+          <td><strong>Phase 5 Public Portal Submit Lt263</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">16</td>
+          <td><strong>Phase 6 Staff Portal Process Lt263</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">17</td>
+          <td><strong>Phase 7 Staff Portal Verify Lt263 On Lt262</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">18</td>
+          <td><strong>Phase 8 Staff Portal Verify Sold</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">19</td>
+          <td><strong>Phase 9 Public Portal Verify Vehicle Sold</strong></td>
+          <td><code>TestE2E002NoOwnersCourtHearing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">20</td>
+          <td><strong>Phase 1 Public Portal Submit Lt260</strong></td>
+          <td><code>TestE2E003MobileHomeLt262a</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">21</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260</strong></td>
+          <td><code>TestE2E003MobileHomeLt262a</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">22</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262A</strong></td>
+          <td><code>TestE2E003MobileHomeLt262a</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">23</td>
+          <td><strong>Phase 4 Staff Portal Process Lt262A</strong></td>
+          <td><code>TestE2E003MobileHomeLt262a</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">24</td>
+          <td><strong>Phase 5 Staff Portal Verify Sold</strong></td>
+          <td><code>TestE2E003MobileHomeLt262a</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">25</td>
+          <td><strong>Phase 1 Staff Portal Submit Lt261</strong></td>
+          <td><code>TestE2E004SheriffInspectorLt261</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">26</td>
+          <td><strong>Phase 2 Staff Portal Verify Lt261 Processed</strong></td>
+          <td><code>TestE2E004SheriffInspectorLt261</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">27</td>
+          <td><strong>Phase 3 Staff Portal Verify Sold</strong></td>
+          <td><code>TestE2E004SheriffInspectorLt261</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">28</td>
+          <td><strong>Phase 1 Staff Portal Add Paper Lt260</strong></td>
+          <td><code>TestE2E005PaperFormE2E</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">29</td>
+          <td><strong>Phase 2 Staff Portal Record Payment</strong></td>
+          <td><code>TestE2E005PaperFormE2E</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">30</td>
+          <td><strong>Phase 3 Staff Portal Issue Lt260C</strong></td>
+          <td><code>TestE2E005PaperFormE2E</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">31</td>
+          <td><strong>Phase 4 Staff Portal Lt262B Court Hearing</strong></td>
+          <td><code>TestE2E005PaperFormE2E</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">32</td>
+          <td><strong>Phase 5 Staff Portal Add Paper Lt263</strong></td>
+          <td><code>TestE2E005PaperFormE2E</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">33</td>
+          <td><strong>Phase 6 Staff Portal Verify Sold Lt265</strong></td>
+          <td><code>TestE2E005PaperFormE2E</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">34</td>
+          <td><strong>Phase 1 Public Portal Create Lt260</strong></td>
+          <td><code>TestE2E006IndividualUserE2EFlow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge warn">SKIP</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">35</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_006_individual_user_E2E_flow.py:135: in test_phase_2_staff_portal_process_lt260
+    lt260_listing.click_to_process_tab()
+src/pages/staff_portal/lt260_listing_page.py:34: in click_to_process_tab
+    self.to_process_tab.dispatch_event(&quot;click&quot;)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15784: in dispatch_event
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:1...</pre></div></details></td>
+          <td><code>TestE2E006IndividualUserE2EFlow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">36</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262</strong></td>
+          <td><code>TestE2E006IndividualUserE2EFlow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge warn">SKIP</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">37</td>
+          <td><strong>Phase 4 Staff Portal Process Lt262</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_006_individual_user_E2E_flow.py:211: in test_phase_4_staff_portal_process_lt262
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15631: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click...</pre></div></details></td>
+          <td><code>TestE2E006IndividualUserE2EFlow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">38</td>
+          <td><strong>Phase 5 Staff Portal Track Lt264</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_006_individual_user_E2E_flow.py:245: in test_phase_5_staff_portal_track_lt264
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15631: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+ ...</pre></div></details></td>
+          <td><code>TestE2E006IndividualUserE2EFlow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">39</td>
+          <td><strong>Phase 6 Public Portal Submit Lt263</strong></td>
+          <td><code>TestE2E006IndividualUserE2EFlow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge warn">SKIP</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">40</td>
+          <td><strong>Phase 7 Staff Portal Process Lt263</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_006_individual_user_E2E_flow.py:412: in test_phase_7_staff_portal_process_lt263
+    lt263_listing.expect_applications_visible()
+src/pages/staff_portal/lt263_listing_page.py:88: in expect_applications_visible
+    expect(self.application_rows.first).to_be_visible(timeout=15_000)
+E   AssertionError: Locator expected to be visible
+E   Actual value: None
+E   Error: element(s) not found 
+E   Call log:
+E     - Expect &quot;to_be_visible&quot; with timeout 15000ms
+E     - waiting for locator(&quot;table...</pre></div></details></td>
+          <td><code>TestE2E006IndividualUserE2EFlow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">41</td>
+          <td><strong>Phase 8 Staff Portal Verify Lt263 On Lt262</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_006_individual_user_E2E_flow.py:436: in test_phase_8_staff_portal_verify_lt263_on_lt262
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:15631: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: ...</pre></div></details></td>
+          <td><code>TestE2E006IndividualUserE2EFlow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">42</td>
+          <td><strong>Phase 9 Staff Portal Verify Sold</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_006_individual_user_E2E_flow.py:456: in test_phase_9_staff_portal_verify_sold
+    lt263_listing.expect_applications_visible()
+src/pages/staff_portal/lt263_listing_page.py:88: in expect_applications_visible
+    expect(self.application_rows.first).to_be_visible(timeout=15_000)
+E   AssertionError: Locator expected to be visible
+E   Actual value: None
+E   Error: element(s) not found 
+E   Call log:
+E     - Expect &quot;to_be_visible&quot; with timeout 15000ms
+E     - waiting for locator(&quot;table.m...</pre></div></details></td>
+          <td><code>TestE2E006IndividualUserE2EFlow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    Generated by NSM E2E Automation &middot; April 24, 2026 at 11:20 AM UTC
+  </div>
+
+</div>
+</body>
+</html>
