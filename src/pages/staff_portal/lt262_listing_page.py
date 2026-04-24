@@ -140,37 +140,34 @@ class Lt262ListingPage:
 
     def search_by_vin(self, vin: str):
         self._dismiss_cdk_overlay()
+
+        # Click "Show Filters" to reveal column filter fields
+        show_filters_btn = self.page.locator('button:has-text("Show Filters")').first
         try:
-            self.search_input.wait_for(state="visible", timeout=10_000)
+            show_filters_btn.wait_for(state="visible", timeout=5_000)
+            show_filters_btn.click()
+            self.page.wait_for_timeout(1000)
         except Exception:
-            pass
-        # Use fill() which bypasses CDK overlay (sets value directly)
-        self.search_input.fill("")
-        self.page.wait_for_timeout(300)
-        self.search_input.fill(vin)
-        self.search_input.press("Enter")
+            pass  # Filters may already be visible
+
+        # Enter VIN in the VIN column filter field
+        vin_filter = self.page.locator('input[name="vin"]').first
+        try:
+            vin_filter.wait_for(state="visible", timeout=5_000)
+            vin_filter.fill("")
+            self.page.wait_for_timeout(300)
+            vin_filter.fill(vin)
+            self.page.wait_for_timeout(500)
+            vin_filter.press("Enter")
+        except Exception:
+            # Fallback to old search input
+            self.search_input.fill("")
+            self.page.wait_for_timeout(300)
+            self.search_input.fill(vin)
+            self.search_input.press("Enter")
+
         self.page.wait_for_load_state("networkidle")
         self.page.wait_for_timeout(2000)
-
-        # If search didn't filter results, retry with type()
-        try:
-            self.application_rows.first.wait_for(state="visible", timeout=5_000)
-            first_row = self.application_rows.first.text_content() or ""
-            if vin not in first_row:
-                self.search_input.fill("")
-                self.page.wait_for_timeout(500)
-                self.search_input.type(vin, delay=50)
-                self.page.wait_for_timeout(1000)
-                self.search_input.press("Enter")
-                self.page.wait_for_load_state("networkidle")
-                self.page.wait_for_timeout(2000)
-
-                # Retry 2: JS-based Angular event dispatch
-                first_row = self.application_rows.first.text_content() or ""
-                if vin not in first_row:
-                    self._js_search(vin)
-        except Exception:
-            pass
 
     # ===== Detail page tab navigation =====
 
@@ -178,10 +175,13 @@ class Lt262ListingPage:
         """Click a detail page tab with CDK dismissal."""
         self._dismiss_cdk_overlay()
         try:
-            tab_locator.dispatch_event("click")
+            tab_locator.click(timeout=10_000)
         except Exception:
             self._dismiss_cdk_overlay()
-            tab_locator.click(force=True)
+            try:
+                tab_locator.dispatch_event("click")
+            except Exception:
+                tab_locator.click(force=True)
         self.page.wait_for_timeout(1000)
 
     def click_review_lt262_tab(self):
@@ -272,8 +272,17 @@ class Lt262ListingPage:
             except Exception:
                 self._dismiss_cdk_overlay()
                 btn.click(force=True)
-            self.page.wait_for_load_state("networkidle")
             self.page.wait_for_timeout(2000)
+
+            # Confirm in the modal — click "Issue" button
+            modal_issue = self.page.locator('mat-dialog-container button:has-text("Issue")').first
+            try:
+                modal_issue.wait_for(state="visible", timeout=10_000)
+                modal_issue.click()
+            except Exception:
+                pass
+            self.page.wait_for_load_state("networkidle")
+            self.page.wait_for_timeout(3000)
         except Exception:
             # LT-264 button not found — check alternatives
 
@@ -366,22 +375,37 @@ class Lt262ListingPage:
         self.page.wait_for_timeout(1000)
 
     def issue_lt262b(self):
-        """Issue LT-262B (for no-owners path — sent to requestor only)."""
+        """Navigate to CHECK DCI tab, click Issue LT-262B, confirm modal,
+        verify green banner, then wait for auto-redirect to REVIEW COURT HEARINGS."""
+        # Navigate to CHECK DCI AND NMVTIS tab
+        self.click_check_dci_tab()
+        self.page.wait_for_timeout(1000)
+
+        # Click Generate/Issue LT-262B button
         btn = self.page.locator(
-            'button:has-text("Issue LT-262B"), button:has-text("Issue LT-262 B"), '
-            'button:has-text("LT-262B")'
+            'button:has-text("Generate LT-262B"), button:has-text("Issue LT-262B"), '
+            'button:has-text("Issue LT-262 B"), button:has-text("LT-262B")'
         ).first
-        try:
-            expect(btn).to_be_visible(timeout=10_000)
-        except Exception:
-            # Fallback: try any Issue button on the CHECK DCI tab
-            self.click_check_dci_tab()
-            self.page.wait_for_timeout(1000)
-            btn = self.page.locator('button:has-text("Issue")').first
-            expect(btn).to_be_visible(timeout=10_000)
+        expect(btn).to_be_visible(timeout=10_000)
         btn.click()
-        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(1000)
+
+        # Confirm modal — click Issue
+        issue_btn = self.page.locator('mat-dialog-container button:has-text("Issue")').first
+        issue_btn.wait_for(state="visible", timeout=10_000)
+        issue_btn.click()
         self.page.wait_for_timeout(2000)
+
+        # Verify green success banner
+        success = self.page.get_by_text(
+            re.compile(r"issued successfully|success", re.I)
+        ).first
+        expect(success).to_be_visible(timeout=15_000)
+
+        # Wait for auto-redirect to REVIEW COURT HEARINGS tab
+        court_hearings_tab = self.page.locator('[role="tab"]:has-text("REVIEW COURT HEARINGS")')
+        court_hearings_tab.wait_for(state="visible", timeout=20_000)
+        self.page.wait_for_timeout(1000)
 
     def click_closed_tab(self):
         self._click_tab(self.closed_tab, "Closed")

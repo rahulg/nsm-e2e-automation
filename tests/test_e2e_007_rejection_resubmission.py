@@ -170,11 +170,10 @@ class TestE2E007RejectionResubmission:
             dashboard.select_business()
             dashboard.click_start_here()
 
-            # Resubmit with same VIN but corrected info
+            # Resubmit — VIN lookup pre-fills vehicle details, so skip fill_vehicle_details
             lt260 = Lt260FormPage(page)
             lt260.enter_vin(TEST_VIN)
             lt260.click_vin_lookup()
-            lt260.fill_vehicle_details(VEHICLE)
             lt260.fill_date_vehicle_left(past_date(30))
             lt260.fill_license_plate(PLATE)
             lt260.fill_approx_value(APPROX_VEHICLE_VALUE)
@@ -191,7 +190,9 @@ class TestE2E007RejectionResubmission:
     # PHASE 6: Staff Portal — Process resubmitted LT-260
     # ========================================================================
     def test_phase_6_staff_portal_process_resubmission(self, staff_context: BrowserContext):
-        """Phase 6: [Staff Portal] Process resubmitted LT-260 — auto-issuance"""
+        """Phase 6: [Staff Portal] Process resubmitted LT-260 — same as E2E-001 Phase 2.
+        Edit → add owner → stolen=No → save → Issue 160B and 260A → verify Processed.
+        """
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
@@ -204,13 +205,22 @@ class TestE2E007RejectionResubmission:
             lt260_listing.click_to_process_tab()
             lt260_listing.search_by_vin(TEST_VIN)
             lt260_listing.select_application(0)
+
             form_processing.expect_detail_page_visible()
 
-            # Verify auto-issuance on resubmission
-            lt260_listing.verify_owners_check_visible()
-            lt260_listing.verify_auto_issuance()
+            # Edit → add owner → stolen=No → save
+            form_processing.click_edit()
+            form_processing.add_owner(
+                PERSON["name"], ADDRESS["street"], ADDRESS["zip"]
+            )
+            form_processing.select_stolen_no()
+            form_processing.click_save()
 
-            # Verify moved to processed
-            lt260_listing.verify_moved_to_processed(TEST_VIN)
+            # Issue 160B and 260A
+            form_processing.issue_160b_and_260a()
+
+            # Verify success and Processed status
+            form_processing.expect_issued_success_toast()
+            form_processing.expect_status_processed()
         finally:
             page.close()

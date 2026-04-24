@@ -5,9 +5,9 @@ Staff Portal only — no Public Portal involvement.
 Workflow: SP: LT-261 → SP: LT-265 (vehicle approved for sale directly)
 
 Phases:
-  1. [Staff Portal] Navigate to LT-261, enter vehicle and officer details, submit
-  2. [Staff Portal] Issue LT-265 directly — no LT-260, LT-262, or LT-263 needed
-  3. [Staff Portal] Verify vehicle moves to Sold tab
+  1. [Staff Portal] Add from E-Stop → modal (VIN only) → fill form → submit
+  2. [Staff Portal] LT-261 listing → search VIN → status Processed → View Correspondence → LT-265 entry
+  3. [Staff Portal] Sold listing → search VIN → status Processed → View Correspondence → LT-265 entry
 """
 
 import re
@@ -19,19 +19,17 @@ from playwright.sync_api import BrowserContext, expect
 from src.config.env import ENV
 from src.helpers.data_helper import (
     generate_vin,
-    random_vehicle,
     generate_person,
-    generate_address,
+    future_date,
 )
 from src.pages.staff_portal.dashboard_page import StaffDashboardPage
 from src.pages.staff_portal.lt261_page import Lt261Page
+from src.pages.staff_portal.sold_listing_page import SoldListingPage
 
 
 # ─── Shared test data ───
 TEST_VIN = generate_vin()
-VEHICLE = random_vehicle()
 OFFICER = generate_person()
-ADDRESS = generate_address()
 
 SP_DASHBOARD_URL = re.sub(r"/login$", "/pages/ncdot-notice-and-storage/dashboard", ENV.STAFF_PORTAL_URL)
 
@@ -48,10 +46,10 @@ class TestE2E004SheriffInspectorLt261:
     """E2E-004: Sheriff/Inspector LT-261 — Staff-only workflow to LT-265"""
 
     # ========================================================================
-    # PHASE 1: Staff Portal — Create and submit LT-261
+    # PHASE 1: Staff Portal — Add LT-261 from E-Stop
     # ========================================================================
     def test_phase_1_staff_portal_submit_lt261(self, staff_context: BrowserContext):
-        """Phase 1: [Staff Portal] Navigate to LT-261, fill vehicle + officer info, submit"""
+        """Phase 1: [Staff Portal] Add from E-Stop → modal (VIN only) → fill form → submit"""
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
@@ -62,35 +60,52 @@ class TestE2E004SheriffInspectorLt261:
             # Navigate to LT-261 listing
             staff_dashboard.navigate_to_lt261_listing()
 
-            # Enter vehicle details
-            lt261.enter_vin(TEST_VIN)
-            lt261.click_vin_lookup()
-            lt261.fill_vehicle_details(VEHICLE)
+            # Click "Add from E-Stop" — opens modal
+            lt261.click_add_from_estop()
 
-            # Fill officer/inspector information
-            lt261.fill_officer_info(
-                name=OFFICER["name"],
-                badge="NC-12345",
-                department="NC Highway Patrol",
-            )
+            # Modal: enter VIN, click Next
+            lt261.fill_modal_vin_next(TEST_VIN)
 
-            # Fill location and circumstances
-            lt261.fill_location_and_circumstances(
-                location=f"{ADDRESS['street']}, {ADDRESS['city']}, NC {ADDRESS['zip']}",
-                circumstances="Vehicle found abandoned on roadside. No plates, no registration visible. "
-                              "Appears inoperable. Officer verified VIN from dash plate.",
-            )
+            # Form: Year
+            lt261.fill_year("2018")
 
-            # Submit LT-261
-            lt261.submit()
+            # Form: Make (autocomplete chip input)
+            lt261.fill_make("TOY")
+
+            # Under "Location of Vehicle-Sale Date":
+            # Search location (type "pen", select first suggestion)
+            lt261.fill_search_location("pen")
+
+            # Right panel: check "USE SAME ADDRESS AS PLACE STORED"
+            lt261.check_use_same_address_storage()
+
+            # Sale Date
+            lt261.fill_sale_date(future_date(21))
+
+            # Under "Notice of Sale for Other Reasons": select first option
+            lt261.select_notice_of_sale_reason()
+
+            # Under "Name and Address of Agency or Department Selling Vehicle":
+            # Check "USE SAME ADDRESS AS PLACE STORED"
+            lt261.check_agency_use_same_address()
+
+            # Fill NAME field
+            lt261.fill_agency_name(OFFICER["name"])
+
+            # Stolen → No
+            lt261.select_stolen_no()
+
+            # Submit → confirm modal → green banner → redirect to listing
+            lt261.submit_with_confirmation()
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 2: Staff Portal — Issue LT-265 directly
+    # PHASE 2: Staff Portal — Verify LT-261 Processed + LT-265 in correspondence
     # ========================================================================
-    def test_phase_2_staff_portal_issue_lt265(self, staff_context: BrowserContext):
-        """Phase 2: [Staff Portal] Issue LT-265 directly from LT-261 — no LT-260/262/263 needed"""
+    def test_phase_2_staff_portal_verify_lt261_processed(self, staff_context: BrowserContext):
+        """Phase 2: [Staff Portal] LT-261 listing → search VIN → status Processed →
+        View Correspondence/Documents → Correspondence History modal has LT-265 entry"""
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
@@ -98,45 +113,49 @@ class TestE2E004SheriffInspectorLt261:
             staff_dashboard = StaffDashboardPage(page)
             lt261 = Lt261Page(page)
 
-            # Navigate to LT-261 listing
+            # Navigate to LT-261 listing → Processed tab
             staff_dashboard.navigate_to_lt261_listing()
-            lt261.click_to_process_tab()
+            lt261.click_processed_tab()
+
+            # Search for the VIN using filters
             lt261.search_by_vin(TEST_VIN)
             lt261.select_application(0)
 
-            # Issue LT-265 directly (skips entire LT-260/262/263 chain)
-            lt261.issue_lt265()
+            # Verify status is Processed
+            lt261.expect_status_processed()
+
+            # Click "View Correspondence/Documents" → verify modal + LT-265 entry
+            lt261.click_view_correspondence()
+            lt261.expect_lt265_in_correspondence()
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 3: Staff Portal — Verify vehicle in Sold tab
+    # PHASE 3: Staff Portal — Verify vehicle in Sold listing + LT-265 in correspondence
     # ========================================================================
     def test_phase_3_staff_portal_verify_sold(self, staff_context: BrowserContext):
-        """Phase 3: [Staff Portal] Verify vehicle in Sold/Processed tab — workflow complete"""
+        """Phase 3: [Staff Portal] Sold listing → search VIN → status Processed →
+        View Correspondence/Documents → Correspondence History modal has LT-265 entry"""
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
 
             staff_dashboard = StaffDashboardPage(page)
+            sold_listing = SoldListingPage(page)
             lt261 = Lt261Page(page)
 
-            # Navigate to LT-261 listing and verify in processed tab
-            staff_dashboard.navigate_to_lt261_listing()
-            lt261.verify_vehicle_in_sold_tab(TEST_VIN)
-
-            # Also verify in Sold nav section
+            # Navigate to Sold listing
             staff_dashboard.navigate_to_sold()
-            page.wait_for_timeout(2000)
 
-            # Search for our VIN in the sold listing
-            search = page.locator('input[placeholder*="Search using VIN"]').first
-            try:
-                search.fill(TEST_VIN)
-                search.press("Enter")
-                page.wait_for_load_state("networkidle")
-                page.wait_for_timeout(1000)
-            except Exception:
-                pass
+            # Search for the VIN using filters
+            sold_listing.search_by_vin(TEST_VIN)
+            sold_listing.select_application(0)
+
+            # Verify status is Processed
+            lt261.expect_status_processed()
+
+            # Click "View Correspondence/Documents" → verify modal + LT-265 entry
+            lt261.click_view_correspondence()
+            lt261.expect_lt265_in_correspondence()
         finally:
             page.close()

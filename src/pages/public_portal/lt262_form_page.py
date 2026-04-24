@@ -57,35 +57,48 @@ class Lt262FormPage:
         tab.dispatch_event("click")
         self.page.wait_for_timeout(1000)
 
+    def _click_next(self):
+        """Click Next button to advance to the next tab, preserving form state."""
+        next_btn = self.page.locator('button:has-text("Next")').first
+        next_btn.scroll_into_view_if_needed(timeout=5_000)
+        next_btn.click()
+        self.page.wait_for_timeout(2000)
+
     def click_form_details_tab(self):
         self._click_outer_tab(self.form_details_tab)
 
     def click_additional_details_tab(self):
-        self._click_outer_tab(self.additional_details_tab)
+        self._click_next()
 
     def click_supporting_docs_tab(self):
-        self._click_outer_tab(self.supporting_docs_tab)
+        self._click_next()
 
     def click_terms_tab(self):
-        self._click_outer_tab(self.terms_tab)
+        self._click_next()
 
     def click_fee_due_tab(self):
-        self._click_outer_tab(self.fee_due_tab)
+        self._click_next()
 
     def expect_form_tabs_visible(self):
         """Wait for the form to be ready."""
         expect(self.form_details_tab).to_be_visible(timeout=15_000)
         self._wait_for_loader()
 
+    # ===== Navigate through inner tabs A and B (pre-filled, just advance) =====
+
+    def skip_vehicle_and_location_tabs(self):
+        """Advance past Tab A (Vehicle) and Tab B (Location) — pre-filled from LT-260."""
+        # Tab A: DESCRIPTION OF VEHICLE — already visible on form load
+        self._click_next()  # A → B
+        # Tab B: LOCATION OF VEHICLE
+        self._click_next()  # B → C
+
     # ===== Tab C: DESCRIPTION OF LIEN =====
 
     def fill_lien_charges(self, charges: dict):
-        """Fill Tab C lien charges. Each charge type has a mat-checkbox + dollar input.
+        """Fill Tab C lien charges. Must be called after skip_vehicle_and_location_tabs().
         charges keys: 'storage', 'towing', 'labor', 'materials', 'other'
         """
-        self.click_form_details_tab()
-        self._click_inner_tab(self.tab_c)
-
         charge_map = {
             "labor": ("laborChk", "LaborFee"),
             "materials": ("materialsCheck", "MaterialsFee"),
@@ -97,32 +110,31 @@ class Lt262FormPage:
         for charge_type, (chk_name, fee_name) in charge_map.items():
             amount = charges.get(charge_type)
             if amount:
-                # Click the checkbox to enable the fee input
                 checkbox = self.page.locator(f'mat-checkbox:has-text("{charge_type.capitalize()}")')
                 cls = checkbox.get_attribute("class") or ""
                 if "mat-checkbox-checked" not in cls:
                     checkbox.locator("label").click()
                     self.page.wait_for_timeout(300)
 
-                # Fill the fee amount
                 fee_input = self.page.locator(f'input[name="{fee_name}"]')
                 fee_input.fill(amount)
                 self.page.wait_for_timeout(200)
 
+        self._click_next()  # C → D
+
     # ===== Tab D: DATE OF STORAGE =====
 
     def fill_date_of_storage(self, date_str: str):
-        """Fill Tab D with the storage date (MM/DD/YYYY format)."""
-        self._click_inner_tab(self.tab_d)
+        """Fill Tab D with the storage date. Must be called after fill_lien_charges()."""
         date_input = self.page.locator('input[placeholder="MM/DD/YYYY"]').first
         date_input.fill(date_str)
         self.page.wait_for_timeout(300)
+        self._click_next()  # D → E
 
     # ===== Tab E: NAME AND ADDRESS =====
 
     def fill_person_authorizing(self, name: str, address: str, zip_code: str, city: str = "Raleigh"):
-        """Fill Tab E — person authorizing repairs/storage."""
-        self._click_inner_tab(self.tab_e)
+        """Fill Tab E. Must be called after fill_date_of_storage()."""
         self.page.locator('input[placeholder="Name"]').first.fill(name)
         self.page.locator('input[placeholder="Physical Address"]').first.fill(address)
         self.page.locator('input[placeholder="Zip"]').first.fill(zip_code)
@@ -131,7 +143,9 @@ class Lt262FormPage:
 
     # ===== Additional Details (outer tab) =====
 
-    def fill_additional_details(self, name: str, address: str, zip_code: str, city: str = "Raleigh"):
+    def fill_additional_details(self, name: str, address: str, zip_code: str,
+                                city: str = "Raleigh", state: str = "North Carolina",
+                                phone: str = "9195551234"):
         """Fill the Additional Details outer tab — person proposing to sell vehicle."""
         self.click_additional_details_tab()
         self.page.locator('input[aria-label="Name *"]').first.fill(name)
@@ -150,6 +164,26 @@ class Lt262FormPage:
 
         self.page.locator('input[aria-label="City *"]').first.fill(city)
         self.page.wait_for_timeout(500)
+
+        # State dropdown
+        state_select = self.page.locator('mat-select[aria-label="State *"]')
+        try:
+            state_select.click()
+            self.page.wait_for_timeout(500)
+            self.page.locator(f'mat-option:has-text("{state}")').first.click()
+            self.page.wait_for_timeout(500)
+        except Exception:
+            pass
+
+        # Phone
+        phone_input = self.page.locator('input[type="tel"]').first
+        try:
+            phone_input.scroll_into_view_if_needed(timeout=5_000)
+            phone_input.click()
+            phone_input.fill(phone)
+            self.page.wait_for_timeout(300)
+        except Exception:
+            pass
 
     # ===== Supporting Documents (outer tab) =====
 
@@ -202,105 +236,15 @@ class Lt262FormPage:
     # ===== Fee Due (outer tab) =====
 
     def finish_and_pay(self):
-        """Click 'Finish and Pay' on the Fee Due tab.
-
-        The button is only enabled once ALL tabs (Form Details with inner tabs,
-        Additional Details, Supporting Documents, Terms and Conditions) are complete.
-        We wait for the button to become enabled before clicking.
-        """
-        # Dismiss any CDK overlays first
-        try:
-            self.page.keyboard.press("Escape")
-            self.page.wait_for_timeout(300)
-        except Exception:
-            pass
-
-        self.click_fee_due_tab()
+        """Advance to Fee Due tab via Next and click 'Finish and Pay'."""
+        self.click_fee_due_tab()  # Next from Terms → Fee Due
         self.page.wait_for_timeout(1000)
 
-        # Wait for the "Finish and Pay" button to become enabled
-        try:
-            self.page.wait_for_function(
-                """() => {
-                    const buttons = document.querySelectorAll('button');
-                    for (const b of buttons) {
-                        if (b.textContent.includes('Finish and Pay') && !b.disabled) return true;
-                    }
-                    return false;
-                }""",
-                timeout=15_000,
-            )
-        except Exception:
-            # If still disabled, try re-visiting each tab to trigger validation
-            self.click_form_details_tab()
-            self.page.wait_for_timeout(500)
-            self.click_additional_details_tab()
-            self.page.wait_for_timeout(500)
-            # Re-visit Supporting Documents tab
-            try:
-                self.supporting_docs_tab.dispatch_event("click")
-                self.page.wait_for_timeout(500)
-            except Exception:
-                pass
-            self.click_terms_tab()
-            self.page.wait_for_timeout(500)
-            self.click_fee_due_tab()
-            self.page.wait_for_timeout(1000)
-
-            # Second attempt to wait for enabled
-            try:
-                self.page.wait_for_function(
-                    """() => {
-                        const buttons = document.querySelectorAll('button');
-                        for (const b of buttons) {
-                            if (b.textContent.includes('Finish and Pay') && !b.disabled) return true;
-                        }
-                        return false;
-                    }""",
-                    timeout=10_000,
-                )
-            except Exception:
-                pass  # Will force-click below
-
-        # Dismiss CDK overlay before attempting click
-        try:
-            self.page.keyboard.press("Escape")
-            self.page.wait_for_timeout(300)
-        except Exception:
-            pass
-
-        # Try normal click first, fall back to force click, then JS click
-        try:
-            self.finish_and_pay_button.click(timeout=5_000)
-        except Exception:
-            try:
-                self.finish_and_pay_button.click(force=True, timeout=5_000)
-            except Exception:
-                # JS force-click as last resort (bypasses disabled check)
-                self.page.evaluate("""() => {
-                    const buttons = document.querySelectorAll('button');
-                    for (const b of buttons) {
-                        if (b.textContent.includes('Finish and Pay')) {
-                            b.removeAttribute('disabled');
-                            b.click();
-                            return;
-                        }
-                    }
-                }""")
-                self.page.wait_for_timeout(1000)
-                # If still on same page, try Angular form submit via ngSubmit
-                try:
-                    self.page.evaluate("""() => {
-                        const form = document.querySelector('form');
-                        if (form) {
-                            form.dispatchEvent(new Event('submit', { bubbles: true }));
-                            form.dispatchEvent(new Event('ngSubmit', { bubbles: true }));
-                        }
-                    }""")
-                except Exception:
-                    pass
+        # Click Finish and Pay
+        self.finish_and_pay_button.scroll_into_view_if_needed(timeout=5_000)
+        self.finish_and_pay_button.click()
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(2000)
+        self.page.wait_for_timeout(5000)
 
     def expect_fee_displayed(self):
         """Verify the fee amount is shown on Fee Due tab."""

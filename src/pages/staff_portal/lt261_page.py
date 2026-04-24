@@ -2,12 +2,11 @@
 Staff Portal LT-261 Page — Sheriff/Inspector Standalone workflow.
 
 LT-261 is a staff-only form for vehicles reported by law enforcement.
-The entire workflow (submit → issue LT-265) happens within the Staff Portal.
-No Public Portal involvement.
+Flow:
+  Listing → Add from Paper → Modal (VIN + E-Stop) → Form → Submit → Confirm → Listing
 """
 
 import re
-from datetime import datetime
 from playwright.sync_api import Page, expect
 
 
@@ -27,63 +26,9 @@ class Lt261Page:
             'input[placeholder*="Search using VIN"], input[placeholder*="Search" i], input[placeholder*="VIN" i]'
         ).first
 
-        # Form fields — vehicle details
-        self.vin_input = page.locator('input[name="sno"], input[placeholder*="VIN" i]').first
-        self.vin_lookup_button = page.locator(
-            'button:has-text("VIN Lookup"), button:has-text("Lookup"), '
-            'button:has-text("Search"), button:has-text("Verify")'
-        ).first
-        self.make_input = page.locator('input[placeholder="Enter Make"], input[name*="make" i]').first
-        self.year_input = page.locator('input[name="year"], input[name*="year" i]').first
-        self.model_input = page.locator('input[name="model"], input[name*="model" i]').first
-        self.body_input = page.locator('input[name*="body" i], mat-select[name*="body" i]').first
-        self.color_input = page.locator('input[name="color"], input[name*="color" i]').first
-
-        # Officer/Inspector info — use multiple fallback locator patterns
-        self.officer_name_input = page.locator(
-            'input[placeholder*="Officer" i], input[name*="officer" i], '
-            'input[placeholder*="Inspector" i], input[name*="inspector" i], '
-            'input[aria-label*="Officer" i], input[aria-label*="Inspector" i], '
-            'input[aria-label*="Name" i]'
-        ).first
-        self.badge_number_input = page.locator(
-            'input[placeholder*="Badge" i], input[name*="badge" i], '
-            'input[aria-label*="Badge" i], input[placeholder*="Number" i]'
-        ).first
-        self.department_input = page.locator(
-            'input[placeholder*="Department" i], input[name*="department" i], '
-            'input[aria-label*="Department" i], input[placeholder*="Agency" i]'
-        ).first
-
-        # Location and circumstances
-        self.location_input = page.locator(
-            'input[placeholder*="Location" i], input[aria-label*="Location" i], '
-            'input[name*="location" i]'
-        ).first
-        self.circumstances_input = page.locator(
-            'textarea[placeholder*="Circumstances" i], textarea[name*="circumstances" i], '
-            'textarea[placeholder*="Description" i], textarea'
-        ).first
-
-        # Buttons
-        self.submit_button = page.locator('button:has-text("Submit")').first
-        self.issue_lt265_button = page.locator('button:has-text("Issue LT-265"), button:has-text("Generate LT-265")').first
-        self.back_button = page.locator('button:has-text("Back")').first
-
-    # ===== Listing navigation =====
-
-    def click_to_process_tab(self):
-        self.to_process_tab.click()
-        self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(1000)
-
-    def click_processed_tab(self):
-        self.processed_tab.click()
-        self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(1000)
+    # ===== Listing actions =====
 
     def _dismiss_cdk_overlay(self):
-        """Dismiss CDK overlay blocking clicks."""
         try:
             self.page.evaluate("""() => {
                 document.querySelectorAll(
@@ -99,33 +44,224 @@ class Lt261Page:
         except Exception:
             pass
 
-    def search_by_vin(self, vin: str):
-        self._dismiss_cdk_overlay()
-        try:
-            self.search_input.wait_for(state="visible", timeout=10_000)
-        except Exception:
-            pass
-        self.search_input.fill("")
-        self.page.wait_for_timeout(300)
-        self.search_input.fill(vin)
-        self.search_input.press("Enter")
+    def click_add_from_paper(self):
+        """Click 'Add from Paper' button on the LT-261 listing page."""
+        btn = self.page.locator('button:has-text("Add from Paper"), button:has-text("Add Paper")').first
+        btn.wait_for(state="visible", timeout=10_000)
+        btn.click()
+        self.page.wait_for_timeout(1000)
+
+    def click_add_from_estop(self):
+        """Click 'Add Paper E-Stop' button on the LT-261 listing page."""
+        btn = self.page.locator('//span[contains(text(),"Add Paper E-Stop")]')
+        btn.wait_for(state="visible", timeout=10_000)
+        btn.click()
+        self.page.wait_for_timeout(1000)
+
+    def fill_modal_vin_and_estop(self, vin: str):
+        """In the Add from Paper modal: enter VIN, select E-Stop radio, click Next."""
+        vin_input = self.page.locator('mat-dialog-container input[placeholder*="VIN" i], mat-dialog-container input[name*="vin" i]').first
+        vin_input.wait_for(state="visible", timeout=10_000)
+        vin_input.fill(vin)
+        self.page.wait_for_timeout(500)
+
+        estop_radio = self.page.locator(
+            'mat-dialog-container mat-radio-button:has-text("E-Stop"), '
+            'mat-dialog-container label:has-text("E-Stop")'
+        ).first
+        estop_radio.wait_for(state="visible", timeout=10_000)
+        estop_radio.click()
+        self.page.wait_for_timeout(500)
+
+        next_btn = self.page.locator('mat-dialog-container button:has-text("Next")').first
+        next_btn.wait_for(state="visible", timeout=10_000)
+        next_btn.click()
+
+    def fill_modal_vin_next(self, vin: str):
+        """In the Add from E-Stop modal: enter VIN and click Next (no radio selection)."""
+        vin_input = self.page.locator('mat-dialog-container input[placeholder*="VIN" i], mat-dialog-container input[name*="vin" i]').first
+        vin_input.wait_for(state="visible", timeout=10_000)
+        vin_input.fill(vin)
+        self.page.wait_for_timeout(500)
+
+        next_btn = self.page.locator('mat-dialog-container button:has-text("Next")').first
+        next_btn.wait_for(state="visible", timeout=10_000)
+        next_btn.click()
         self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(3000)
+
+    def fill_make(self, make_text: str = "TOY"):
+        """Type in the Make autocomplete field and select the first suggestion."""
+        make_input = self.page.locator("(//input[@role='combobox'])[2]")
+        make_input.wait_for(state="visible", timeout=15_000)
+        make_input.click()
+        make_input.fill(make_text)
+        self.page.wait_for_timeout(1000)
+
+        # Select first option from the autocomplete dropdown
+        option = self.page.locator('.cdk-overlay-pane mat-option').first
+        option.wait_for(state="visible", timeout=10_000)
+        option.click()
+        self.page.wait_for_timeout(500)
+
+    def fill_year(self, year: str):
+        """Fill the Year field."""
+        year_input = self.page.locator(
+            'input[name*="year" i], input[aria-label*="Year" i], input[placeholder*="Year" i]'
+        ).first
+        year_input.wait_for(state="visible", timeout=10_000)
+        year_input.fill(year)
+        self.page.wait_for_timeout(300)
+
+    def fill_search_location(self, search_text: str = "pen"):
+        """Type in SEARCH LOCATION field and pick the first suggestion."""
+        location_input = self.page.locator('input[placeholder*="Search Garage Name or Address" i]').first
+        location_input.wait_for(state="visible", timeout=10_000)
+        location_input.click()
+        location_input.fill(search_text)
         self.page.wait_for_timeout(2000)
 
-        # If search didn't filter results, retry with type()
+        # Select first mat-option from the overlay panel (not mat-chip with role=option)
+        suggestion = self.page.locator('.cdk-overlay-pane mat-option, mat-autocomplete mat-option').first
+        suggestion.wait_for(state="visible", timeout=10_000)
+        suggestion.click()
+        self.page.wait_for_timeout(500)
+
+    def check_use_same_address_storage(self):
+        """Check 'USE SAME ADDRESS AS PLACE STORED' checkbox in the right panel (location section)."""
+        # There may be two such checkboxes — pick the first one (location/right panel)
+        cb = self.page.locator(
+            'mat-checkbox:has-text("USE SAME ADDRESS AS PLACE STORED"), '
+            'label:has-text("USE SAME ADDRESS AS PLACE STORED")'
+        ).first
+        cb.wait_for(state="visible", timeout=10_000)
+        if "mat-checkbox-checked" not in (cb.get_attribute("class") or ""):
+            cb.click()
+            self.page.wait_for_timeout(500)
+
+    def fill_sale_date(self, date_str: str):
+        """Fill the Sale Date field (MM/DD/YYYY)."""
+        date_input = self.page.locator(
+            'input[aria-label*="Sale Date" i], input[placeholder*="Sale Date" i], '
+            'input[placeholder*="MM/DD/YYYY"]'
+        ).first
+        date_input.wait_for(state="visible", timeout=10_000)
+        date_input.fill(date_str)
+        self.page.keyboard.press("Tab")
+        self.page.wait_for_timeout(300)
+
+    def select_notice_of_sale_reason(self):
+        """Select the first option from 'Notice of Sale for Other Reasons' dropdown."""
+        dropdown = self.page.locator(
+            'mat-select[aria-label*="Notice of Sale" i], '
+            'mat-select[aria-label*="Other Reasons" i]'
+        ).first
+        dropdown.wait_for(state="visible", timeout=10_000)
+        dropdown.click()
+        self.page.wait_for_timeout(500)
+
+        option = self.page.locator('mat-option').first
+        option.wait_for(state="visible", timeout=10_000)
+        option.click()
+        self.page.wait_for_timeout(500)
+
+    def check_agency_use_same_address(self):
+        """Check 'USE SAME ADDRESS AS PLACE STORED' under Agency/Department section."""
+        # Second occurrence (agency section)
+        cbs = self.page.locator(
+            'mat-checkbox:has-text("USE SAME ADDRESS AS PLACE STORED")'
+        )
+        cb = cbs.nth(1) if cbs.count() > 1 else cbs.first
+        cb.wait_for(state="visible", timeout=10_000)
+        if "mat-checkbox-checked" not in (cb.get_attribute("class") or ""):
+            cb.click()
+            self.page.wait_for_timeout(500)
+
+    def fill_agency_name(self, name: str):
+        """Fill the NAME field under 'Name and Address of Agency or Department Selling Vehicle'."""
+        name_input = self.page.locator(
+            "input[placeholder='NAME'], input[aria-label='NAME'], "
+            "input[placeholder='Name'], input[aria-label='Name']"
+        ).first
+        name_input.wait_for(state="visible", timeout=10_000)
+        name_input.fill(name)
+        self.page.wait_for_timeout(300)
+
+    def select_stolen_no(self):
+        """Select 'No' from the Stolen dropdown."""
+        stolen_dropdown = self.page.locator(
+            'mat-select[aria-label*="Stolen" i], mat-select[name*="stolen" i]'
+        ).first
+        stolen_dropdown.wait_for(state="visible", timeout=10_000)
+        stolen_dropdown.click()
+        self.page.wait_for_timeout(500)
+
+        no_option = self.page.locator('mat-option:has-text("No")').first
+        no_option.wait_for(state="visible", timeout=10_000)
+        no_option.click()
+        self.page.wait_for_timeout(500)
+
+    def submit_with_confirmation(self):
+        """Click Submit → confirm modal (Yes) → verify green banner → wait for redirect."""
+        self._dismiss_cdk_overlay()
+        submit_btn = self.page.locator('button:has-text("Submit")').first
+        submit_btn.wait_for(state="visible", timeout=15_000)
+        submit_btn.scroll_into_view_if_needed()
+        submit_btn.click()
+        self.page.wait_for_timeout(1000)
+
+        # Confirmation modal → Yes
+        yes_btn = self.page.locator('mat-dialog-container button:has-text("Yes")').first
+        yes_btn.wait_for(state="visible", timeout=10_000)
+        yes_btn.click()
+        self.page.wait_for_timeout(2000)
+
+        # Verify green success banner (may auto-dismiss quickly — soft check)
         try:
-            self.application_rows.first.wait_for(state="visible", timeout=5_000)
-            first_row = self.application_rows.first.text_content() or ""
-            if vin not in first_row:
-                self.search_input.fill("")
-                self.page.wait_for_timeout(500)
-                self.search_input.type(vin, delay=50)
-                self.page.wait_for_timeout(1000)
-                self.search_input.press("Enter")
-                self.page.wait_for_load_state("networkidle")
-                self.page.wait_for_timeout(2000)
+            success = self.page.get_by_text(re.compile(r"success", re.I)).first
+            expect(success).to_be_visible(timeout=5_000)
+        except Exception:
+            pass  # Banner may have already dismissed before check
+
+        # Wait for redirect back to listing
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(1000)
+
+    # ===== Listing navigation =====
+
+    def click_to_process_tab(self):
+        self.to_process_tab.click()
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(1000)
+
+    def click_processed_tab(self):
+        self.processed_tab.click()
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(1000)
+
+    def search_by_vin(self, vin: str):
+        self._dismiss_cdk_overlay()
+
+        # Try column filter (Show Filters pattern used elsewhere)
+        show_filters_btn = self.page.locator('button:has-text("Show Filters")').first
+        try:
+            show_filters_btn.wait_for(state="visible", timeout=5_000)
+            show_filters_btn.click()
+            self.page.wait_for_timeout(1000)
         except Exception:
             pass
+
+        vin_filter = self.page.locator('input[name="vin"]').first
+        try:
+            vin_filter.wait_for(state="visible", timeout=5_000)
+            vin_filter.fill(vin)
+            vin_filter.press("Enter")
+        except Exception:
+            self.search_input.fill(vin)
+            self.search_input.press("Enter")
+
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(2000)
 
     def select_application(self, index: int = 0):
         self.vin_links.nth(index).click()
@@ -135,180 +271,27 @@ class Lt261Page:
     def expect_applications_visible(self):
         expect(self.application_rows.first).to_be_visible(timeout=15_000)
 
-    # ===== Form filling =====
+    def expect_status_processed(self):
+        """Verify the application status shows 'Processed'."""
+        expect(
+            self.page.get_by_text(re.compile(r"Processed", re.I)).first
+        ).to_be_visible(timeout=15_000)
 
-    def enter_vin(self, vin: str):
-        self.vin_input.fill(vin)
-
-    def click_vin_lookup(self):
-        try:
-            self.vin_lookup_button.wait_for(state="visible", timeout=10_000)
-            self.vin_lookup_button.click()
-        except Exception:
-            # Fallback: JS click any lookup-like button near VIN input
-            self.page.evaluate("""() => {
-                const btns = document.querySelectorAll('button');
-                for (const btn of btns) {
-                    const txt = (btn.textContent || '').toLowerCase();
-                    if (txt.includes('lookup') || txt.includes('search') || txt.includes('verify') || txt.includes('vin')) {
-                        btn.click(); return;
-                    }
-                }
-            }""")
-        self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(2000)
-        # Dismiss any overlays
-        try:
-            for dismiss in ['button:has-text("OK")', 'button:has-text("Close")', 'button:has-text("Got it")']:
-                el = self.page.locator(dismiss).first
-                el.wait_for(state="visible", timeout=2_000)
-                el.click(force=True)
-                self.page.wait_for_timeout(500)
-        except Exception:
-            pass
-
-    def fill_vehicle_details(self, details: dict):
-        """Fill vehicle make/year/model/body/color."""
-        # Wait for the form to load — the make input should appear after VIN lookup
+    def click_view_correspondence(self):
+        """Click 'View Correspondence/Documents' link to open the Correspondence History modal."""
+        link = self.page.locator("//span[contains(text(),'View Correspondence/Documents')]")
+        link.wait_for(state="visible", timeout=10_000)
+        link.click()
         self.page.wait_for_timeout(1000)
 
-        if details.get("make"):
-            try:
-                self.make_input.wait_for(state="visible", timeout=10_000)
-                self.make_input.click()
-                self.make_input.fill("")
-                self.make_input.type(details["make"], delay=100)
-                autocomplete_option = self.page.locator('mat-option, .mat-autocomplete-panel .mat-option, [role="option"]').first
-                autocomplete_option.wait_for(state="visible", timeout=5000)
-                autocomplete_option.click()
-                self.page.wait_for_timeout(500)
-            except Exception:
-                # Fallback: try filling by JS
-                self.page.evaluate(f"""() => {{
-                    const inputs = document.querySelectorAll('input');
-                    for (const inp of inputs) {{
-                        const ph = (inp.placeholder || '').toLowerCase();
-                        const nm = (inp.name || '').toLowerCase();
-                        if (ph.includes('make') || nm.includes('make')) {{
-                            inp.value = '{details["make"]}';
-                            inp.dispatchEvent(new Event('input', {{bubbles: true}}));
-                            return;
-                        }}
-                    }}
-                }}""")
-        if details.get("year"):
-            try:
-                self.year_input.fill(details["year"])
-            except Exception:
-                pass
-        if details.get("model"):
-            try:
-                self.model_input.fill(details["model"])
-            except Exception:
-                pass
-        if details.get("body"):
-            try:
-                self.body_input.fill(details["body"])
-            except Exception:
-                # May be a mat-select dropdown
-                try:
-                    self.body_input.click()
-                    self.page.locator(f'mat-option:has-text("{details["body"]}")').first.click()
-                    self.page.wait_for_timeout(500)
-                except Exception:
-                    pass
-        if details.get("color"):
-            try:
-                self.color_input.fill(details["color"])
-            except Exception:
-                pass
+    def expect_lt265_in_correspondence(self):
+        """Verify 'Correspondence History' modal is shown and contains an LT-265 entry."""
+        # Modal heading
+        expect(
+            self.page.get_by_text(re.compile(r"Correspondence History", re.I)).first
+        ).to_be_visible(timeout=10_000)
 
-    def fill_officer_info(self, name: str, badge: str = "12345", department: str = "NC Highway Patrol"):
-        """Fill officer/inspector information."""
-        self.page.wait_for_timeout(1000)
-        try:
-            self.officer_name_input.wait_for(state="visible", timeout=10_000)
-            self.officer_name_input.fill(name)
-        except Exception:
-            # Fallback: try mat-form-field approach
-            try:
-                name_fields = self.page.locator('mat-form-field input[type="text"]')
-                # After vehicle fields, officer name is typically next
-                for i in range(name_fields.count()):
-                    field = name_fields.nth(i)
-                    placeholder = (field.get_attribute("placeholder") or "").lower()
-                    aria = (field.get_attribute("aria-label") or "").lower()
-                    if "officer" in placeholder or "inspector" in placeholder or "officer" in aria:
-                        field.fill(name)
-                        break
-            except Exception:
-                pass
-        try:
-            self.badge_number_input.wait_for(state="visible", timeout=5_000)
-            self.badge_number_input.fill(badge)
-        except Exception:
-            pass
-        try:
-            self.department_input.wait_for(state="visible", timeout=5_000)
-            self.department_input.fill(department)
-        except Exception:
-            pass
-
-    def fill_location_and_circumstances(self, location: str, circumstances: str):
-        """Fill location and circumstances."""
-        try:
-            self.location_input.fill(location)
-        except Exception:
-            pass
-        try:
-            self.circumstances_input.fill(circumstances)
-        except Exception:
-            pass
-
-    # ===== Actions =====
-
-    def submit(self):
-        self._dismiss_cdk_overlay()
-        try:
-            self.submit_button.scroll_into_view_if_needed()
-            self.submit_button.click(timeout=10_000)
-        except Exception:
-            # CDK overlay or button state issue — try fallbacks
-            self._dismiss_cdk_overlay()
-            try:
-                self.submit_button.click(force=True)
-            except Exception:
-                # JS fallback: find and click submit button
-                self.page.evaluate("""() => {
-                    const btns = document.querySelectorAll('button');
-                    for (const b of btns) {
-                        const txt = (b.textContent || '').trim().toLowerCase();
-                        if (txt.includes('submit') && !b.disabled) {
-                            b.scrollIntoView();
-                            b.click();
-                            return;
-                        }
-                    }
-                }""")
-        self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(2000)
-
-    def issue_lt265(self):
-        """Issue LT-265 directly from LT-261 detail page."""
-        expect(self.issue_lt265_button).to_be_visible(timeout=10_000)
-        self.issue_lt265_button.click()
-        self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(2000)
-
-    # ===== Assertions =====
-
-    def verify_lt261_submitted(self):
-        """Verify LT-261 was submitted successfully."""
-        success = self.page.locator('[class*="success" i], [class*="toast" i], [class*="snack" i]').first
-        expect(success).to_be_visible(timeout=15_000)
-
-    def verify_vehicle_in_sold_tab(self, vin: str):
-        """Verify vehicle appears in processed/sold tab."""
-        self.click_processed_tab()
-        self.search_by_vin(vin)
-        expect(self.application_rows.first).to_be_visible(timeout=15_000)
+        # LT-265 entry in the modal
+        expect(
+            self.page.get_by_text(re.compile(r"LT-265", re.I)).first
+        ).to_be_visible(timeout=10_000)

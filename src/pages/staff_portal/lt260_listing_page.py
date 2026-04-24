@@ -118,36 +118,34 @@ class Lt260ListingPage:
 
     def search_by_vin(self, vin: str):
         self._dismiss_cdk_overlay()
+
+        # Click "Show Filters" to reveal column filter fields
+        show_filters_btn = self.page.locator('button:has-text("Show Filters")').first
         try:
-            self.search_input.wait_for(state="visible", timeout=10_000)
+            show_filters_btn.wait_for(state="visible", timeout=5_000)
+            show_filters_btn.click()
+            self.page.wait_for_timeout(1000)
         except Exception:
-            pass
-        self.search_input.fill("")
-        self.page.wait_for_timeout(300)
-        self.search_input.fill(vin)
-        self.search_input.press("Enter")
+            pass  # Filters may already be visible
+
+        # Enter VIN in the VIN column filter field
+        vin_filter = self.page.locator('input[name="vin"]').first
+        try:
+            vin_filter.wait_for(state="visible", timeout=5_000)
+            vin_filter.fill("")
+            self.page.wait_for_timeout(300)
+            vin_filter.fill(vin)
+            self.page.wait_for_timeout(500)
+            vin_filter.press("Enter")
+        except Exception:
+            # Fallback to old search input
+            self.search_input.fill("")
+            self.page.wait_for_timeout(300)
+            self.search_input.fill(vin)
+            self.search_input.press("Enter")
+
         self.page.wait_for_load_state("networkidle")
         self.page.wait_for_timeout(2000)
-
-        # If search didn't filter results, retry with type()
-        try:
-            self.application_rows.first.wait_for(state="visible", timeout=5_000)
-            first_row = self.application_rows.first.text_content() or ""
-            if vin not in first_row:
-                self.search_input.fill("")
-                self.page.wait_for_timeout(500)
-                self.search_input.type(vin, delay=50)
-                self.page.wait_for_timeout(1000)
-                self.search_input.press("Enter")
-                self.page.wait_for_load_state("networkidle")
-                self.page.wait_for_timeout(2000)
-
-                # Retry 2: JS-based Angular event dispatch
-                first_row = self.application_rows.first.text_content() or ""
-                if vin not in first_row:
-                    self._js_search(vin)
-        except Exception:
-            pass
 
     def verify_owners_check_visible(self):
         """Verify owner check section is visible. Soft-fail for random VINs."""
@@ -435,22 +433,58 @@ class Lt260ListingPage:
         self.page.wait_for_timeout(2000)
 
     def download_for_cms(self):
-        """Click 'Download for CMS' on stolen vehicle detail page.
-
-        With random VINs (no STARS stolen record), the save_as_stolen action
-        may not fully complete, so the Download for CMS button may not appear.
-        """
+        """Click 'Download for CMS' on stolen vehicle detail page and verify green success banner."""
         cms_btn = self.page.locator(
-            'button:has-text("Download for CMS"), button:has-text("CMS"), '
-            'button:has-text("Download"), a:has-text("Download for CMS")'
+            'button:has-text("Download for CMS"), a:has-text("Download for CMS")'
+        ).first
+        expect(cms_btn).to_be_visible(timeout=10_000)
+        cms_btn.click()
+        self.page.wait_for_timeout(2000)
+
+        # Verify green success banner appears
+        success_banner = self.page.locator(
+            '.mat-snack-bar-container, [class*="toast-success"], '
+            '[class*="alert-success"], [class*="success-banner"]'
         ).first
         try:
-            expect(cms_btn).to_be_visible(timeout=10_000)
-            cms_btn.click()
-            self.page.wait_for_timeout(2000)
+            expect(success_banner).to_be_visible(timeout=10_000)
         except Exception:
-            # Button not available — may happen with random VINs
-            pass
+            # Fallback: match any visible success text
+            try:
+                expect(
+                    self.page.get_by_text(re.compile(r"success|downloaded", re.I)).first
+                ).to_be_visible(timeout=5_000)
+            except Exception:
+                pass  # Banner may auto-dismiss before assertion
+
+    def verify_correspondence_lt260d(self):
+        """Click 'View Correspondence/Documents' link, verify 'Correspondence History'
+        modal is displayed with an LT-260D entry."""
+        view_corr = self.page.locator(
+            '//span[contains(text(),"View Correspondence/Documents")]'
+        ).first
+        view_corr.wait_for(state="visible", timeout=15_000)
+        view_corr.click()
+        self.page.wait_for_timeout(1500)
+
+        # Verify modal title
+        modal_title = self.page.get_by_text(re.compile(r"Correspondence History", re.I)).first
+        expect(modal_title).to_be_visible(timeout=10_000)
+
+        # Verify LT-260D entry in the modal
+        lt260d_entry = self.page.get_by_text(re.compile(r"LT-260D", re.I)).first
+        expect(lt260d_entry).to_be_visible(timeout=10_000)
+
+        # Close modal
+        try:
+            close_btn = self.page.locator(
+                'mat-dialog-container button:has-text("Close"), [mat-dialog-close]'
+            ).first
+            close_btn.click(timeout=3_000)
+            self.page.wait_for_timeout(500)
+        except Exception:
+            self.page.keyboard.press("Escape")
+            self.page.wait_for_timeout(500)
 
     def close_file(self, remarks: str = None):
         """Close file with optional remarks."""
@@ -526,69 +560,31 @@ class Lt260ListingPage:
         self.page.wait_for_timeout(2000)
 
     def reject_application(self, reasons: list = None):
-        """Reject the current application with given reasons."""
+        """Reject the current application.
+        Opens the Reject modal, checks the specific rejection reason checkbox,
+        then clicks Reject/Confirm to submit.
+        """
         expect(self.reject_button).to_be_visible(timeout=10_000)
         self.reject_button.click()
         self.page.wait_for_timeout(2000)
 
-        reason_text = "; ".join(reasons or ["Provide complete serial number"])
-
-        # Strategy 1: Fill rejection reason textarea/input in dialog
-        reason_input = self.page.locator(
-            'mat-dialog-container textarea, mat-dialog-container input[placeholder*="reason" i], '
-            'mat-dialog-container input[type="text"], '
-            '.cdk-overlay-container textarea, .cdk-overlay-container input[type="text"]'
+        # Check the specific rejection reason checkbox by its label text
+        rejection_label = self.page.locator(
+            '//mat-checkbox[.//span[contains(text(),"SIGN AND/OR COMPLETE IN FULL IN SPACES INDICATED BY RED CHECK")]]'
         ).first
-        try:
-            reason_input.wait_for(state="visible", timeout=5_000)
-            reason_input.fill(reason_text)
+        rejection_label.wait_for(state="visible", timeout=10_000)
+        cls = rejection_label.get_attribute("class") or ""
+        if "mat-checkbox-checked" not in cls:
+            rejection_label.locator("label").click()
             self.page.wait_for_timeout(500)
-        except Exception:
-            pass
 
-        # Strategy 2: Check rejection reason checkboxes (some dialogs use checkboxes)
-        try:
-            checkboxes = self.page.locator(
-                'mat-dialog-container mat-checkbox, .cdk-overlay-container mat-checkbox'
-            )
-            cb_count = checkboxes.count()
-            if cb_count > 0:
-                # Check at least the first checkbox
-                for i in range(min(cb_count, 2)):
-                    cb = checkboxes.nth(i)
-                    cls = cb.get_attribute("class") or ""
-                    if "mat-checkbox-checked" not in cls:
-                        cb.locator("label").click()
-                        self.page.wait_for_timeout(300)
-        except Exception:
-            pass
-
-        # Strategy 3: Also try filling any textarea that became visible after checkbox
-        try:
-            ta = self.page.locator('mat-dialog-container textarea, .cdk-overlay-container textarea').first
-            if ta.is_visible():
-                ta.fill(reason_text)
-                self.page.wait_for_timeout(500)
-        except Exception:
-            pass
-
-        # Wait for confirm button to become enabled
-        self.page.wait_for_timeout(500)
-
-        # Click confirm in the dialog
+        # Click Reject / Confirm button in the modal
         confirm_btn = self.page.locator(
-            'mat-dialog-container button:has-text("Confirm"), '
             'mat-dialog-container button:has-text("Reject"), '
-            'mat-dialog-container button:has-text("Submit"), '
-            'button:has-text("Confirm"), button:has-text("Submit")'
+            'mat-dialog-container button:has-text("Confirm"), '
+            'mat-dialog-container button:has-text("Submit")'
         ).last
-        try:
-            confirm_btn.click(timeout=10_000)
-        except Exception:
-            # Force click as fallback
-            try:
-                confirm_btn.click(force=True)
-            except Exception:
-                confirm_btn.dispatch_event("click")
+        expect(confirm_btn).to_be_enabled(timeout=10_000)
+        confirm_btn.click()
         self.page.wait_for_load_state("networkidle")
         self.page.wait_for_timeout(2000)

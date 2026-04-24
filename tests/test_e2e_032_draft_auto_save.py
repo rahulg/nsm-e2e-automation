@@ -1,15 +1,14 @@
 """
 E2E-032: Draft Auto-Save and Resume
-Start LT-260, partially fill, navigate away, return, verify fields retained.
+Fill LT-260 through Tab 2 (Authorized Person), click Save as Draft → verify redirect.
+Phase 2: resume draft from dashboard, verify pre-filled fields, complete and submit.
 
 Phases:
-  1. [Public Portal] Start LT-260, partially fill vehicle details
-  2. [Public Portal] Navigate away from the form
-  3. [Public Portal] Return and verify fields are retained (draft saved)
+  1. [Public Portal] Fill LT-260 through Tab 2, click Save as Draft
+  2. [Public Portal] Open draft from dashboard, verify pre-filled fields, complete submission
 """
 
 import re
-from pathlib import Path
 
 import pytest
 from playwright.sync_api import BrowserContext, expect
@@ -37,6 +36,9 @@ VEHICLE = random_vehicle()
 PLATE = generate_license_plate()
 ADDRESS = generate_address()
 PERSON = generate_person()
+DATE_VEHICLE_LEFT = past_date(30)
+STORAGE_PHONE = "9195551234"
+BUSINESS_NAME = "G-Car Garages New"
 
 PP_DASHBOARD_URL = ENV.PUBLIC_PORTAL_URL
 
@@ -52,104 +54,140 @@ def go_to_public_dashboard(page):
 @pytest.mark.edge
 @pytest.mark.medium
 class TestE2E032DraftAutoSave:
-    """E2E-032: Draft auto-save — partial fill → navigate away → return → fields retained"""
+    """E2E-032: Fill through Tab 2 → Save as Draft → resume from dashboard → complete submission"""
 
     # ========================================================================
-    # PHASE 1: Public Portal — Start LT-260 and partially fill
+    # PHASE 1: Public Portal — Fill LT-260 through Tab 2 and Save as Draft
     # ========================================================================
-    def test_phase_1_partially_fill_lt260(self, public_context: BrowserContext):
-        """Phase 1: [Public Portal] Start LT-260, fill VIN + vehicle details, save draft"""
+    def test_phase_1_fill_and_save_draft(self, public_context: BrowserContext):
+        """Phase 1: [Public Portal] Fill LT-260 through Authorized Person tab, click Save as Draft"""
         page = public_context.new_page()
         try:
             go_to_public_dashboard(page)
+
             dashboard = PublicDashboardPage(page)
-            dashboard.select_business()
+            dashboard.select_business(BUSINESS_NAME)
             dashboard.click_start_here()
 
             lt260 = Lt260FormPage(page)
-            lt260.enter_vin(TEST_VIN)
-            lt260.click_vin_lookup()
 
-            # Partially fill — only vehicle details, no authorized person or terms
+            # Enter VIN (no VIN lookup — modal will appear at submit)
+            lt260.enter_vin(TEST_VIN)
+
+            # Fill vehicle details (Tab 1)
             lt260.fill_vehicle_details(VEHICLE)
-            lt260.fill_date_vehicle_left(past_date(30))
+            lt260.fill_date_vehicle_left(DATE_VEHICLE_LEFT)
             lt260.fill_license_plate(PLATE)
             lt260.fill_approx_value(APPROX_VEHICLE_VALUE)
             lt260.select_reason_storage()
             lt260.fill_storage_location(STORAGE_LOCATION_NAME, ADDRESS["street"], ADDRESS["zip"])
 
-            # Save as draft
-            draft_btn = page.locator('button:has-text("Save as Draft"), button:has-text("Save Draft")').first
-            try:
-                draft_btn.wait_for(state="visible", timeout=5_000)
-                draft_btn.click()
-                page.wait_for_load_state("networkidle")
-                page.wait_for_timeout(2000)
-            except Exception:
-                pass  # Draft save button may not be available
-        finally:
-            page.close()
+            # Fill authorized person (Tab 2)
+            lt260.fill_authorized_person(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
 
-    # ========================================================================
-    # PHASE 2: Public Portal — Navigate away
-    # ========================================================================
-    def test_phase_2_navigate_away(self, public_context: BrowserContext):
-        """Phase 2: [Public Portal] Navigate to dashboard (away from form)"""
-        page = public_context.new_page()
-        try:
-            go_to_public_dashboard(page)
-            dashboard = PublicDashboardPage(page)
-            dashboard.expect_on_dashboard()
+            # Click Save as Draft
+            save_draft_btn = page.locator('//button[contains(text()," Save as Draft ")]')
+            save_draft_btn.wait_for(state="visible", timeout=10_000)
+            save_draft_btn.click()
+            page.wait_for_timeout(1000)
 
-            # Browse other tabs to simulate user navigating away
-            dashboard.click_notice_storage_tab()
+            # Confirm the modal
+            yes_btn = page.locator('mat-dialog-container button:has-text("Yes")').first
+            yes_btn.wait_for(state="visible", timeout=10_000)
+            yes_btn.click()
             page.wait_for_timeout(2000)
+
+            # Verify green success banner
+            success_banner = page.get_by_text(re.compile(r"draft|saved|success", re.I)).first
+            expect(success_banner).to_be_visible(timeout=15_000)
+
+            # Verify redirect back to dashboard
+            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=15_000)
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 3: Public Portal — Return and verify fields retained
+    # PHASE 2: Public Portal — Resume draft, verify fields, complete submission
     # ========================================================================
-    def test_phase_3_resume_verify_fields(self, public_context: BrowserContext):
-        """Phase 3: [Public Portal] Return to draft LT-260, verify fields retained"""
+    def test_phase_2_resume_verify_and_submit(self, public_context: BrowserContext):
+        """Phase 2: [Public Portal] Open draft, verify pre-filled fields, complete and submit LT-260"""
         page = public_context.new_page()
         try:
             go_to_public_dashboard(page)
+
             dashboard = PublicDashboardPage(page)
-            dashboard.select_business()
+            dashboard.select_business(BUSINESS_NAME)
             dashboard.click_notice_storage_tab()
+            page.wait_for_timeout(1000)
 
-            # Find and resume the draft
-            try:
-                draft_tab = page.locator('[role="tab"]:has-text("Draft")').first
-                draft_tab.wait_for(state="visible", timeout=5_000)
-                draft_tab.click()
-                page.wait_for_timeout(1000)
-            except Exception:
-                pass  # Draft may be in main listing
+            # Search for the same VIN
+            dashboard.search_by_vin(TEST_VIN)
+            page.wait_for_timeout(2000)
+            dashboard.select_application(0)
 
-            try:
-                dashboard.search_by_vin(TEST_VIN)
-                dashboard.select_application(0)
-            except Exception:
-                dashboard.select_application(0)
+            # Verify status is "LT-260 Draft"
+            expect(page.get_by_text(re.compile(r"LT-260 Draft", re.I)).first).to_be_visible(timeout=15_000)
 
-            # Verify VIN field is retained
+            # Verify "Submit LT-260" action button is visible
+            submit_lt260_btn = page.locator('button:has-text("Submit LT-260"), a:has-text("Submit LT-260")').first
+            expect(submit_lt260_btn).to_be_visible(timeout=10_000)
+
+            # Click "Submit LT-260" to open the pre-filled form
+            submit_lt260_btn.click()
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(2000)
+
+            # Verify "LT-260 - Vehicle Details" page opened
+            expect(
+                page.get_by_text(re.compile(r"LT-260.*Vehicle Details|Vehicle Details", re.I)).first
+            ).to_be_visible(timeout=15_000)
+
             lt260 = Lt260FormPage(page)
-            try:
-                vin_field = page.locator(f'input[value="{TEST_VIN}"], text=/{TEST_VIN}/').first
-                vin_field.wait_for(state="visible", timeout=10_000)
-            except Exception:
-                pass  # VIN may be displayed as text rather than in an input
 
-            # Verify vehicle details are retained
+            # ── Verify Vehicle Details (Tab 1) pre-filled ──
+            expect(lt260.vin_input).to_have_value(TEST_VIN, timeout=10_000)
+
+            # Make — when loaded from draft the autocomplete input may be hidden;
+            # fall back to verifying the make text is visible anywhere on the page
             try:
-                vehicle_info = page.locator(
-                    f'text=/{VEHICLE.get("year", "")}/i, '
-                    f'text=/{VEHICLE.get("make", "")}/i'
-                ).first
-                vehicle_info.wait_for(state="visible", timeout=5_000)
+                expect(lt260.make_input).to_have_value(
+                    re.compile(re.escape(VEHICLE["make"]), re.I), timeout=5_000
+                )
             except Exception:
-                pass  # Vehicle details display may vary
+                expect(page.get_by_text(re.compile(re.escape(VEHICLE["make"]), re.I)).first).to_be_visible(timeout=10_000)
+
+            expect(lt260.year_input).to_have_value(VEHICLE["year"], timeout=10_000)
+
+            # Date vehicle left — Angular may reformat YYYY-MM-DD, verify field is not empty
+            date_val = lt260.date_vehicle_left_input.input_value()
+            assert date_val, "Date vehicle left should be pre-filled in the draft"
+
+            expect(lt260.location_input).to_have_value(STORAGE_LOCATION_NAME, timeout=10_000)
+            expect(lt260.address_input).to_have_value(ADDRESS["street"], timeout=10_000)
+
+            # Phone — verify field is not empty (Angular tel input may reformat digits)
+            phone_val = lt260.phone_input.input_value()
+            assert phone_val, "Telephone number should be pre-filled in the draft"
+
+            # Click Next → Authorized Person tab (Tab 2)
+            next_btn = page.locator('button:has-text("Next")').first
+            next_btn.scroll_into_view_if_needed()
+            next_btn.click()
+            page.wait_for_timeout(2000)
+
+            # ── Verify Authorized Person Details (Tab 2) pre-filled ──
+            expect(lt260.auth_person_name_input).to_have_value(PERSON["name"], timeout=10_000)
+            expect(lt260.auth_person_address_input).to_have_value(ADDRESS["street"], timeout=10_000)
+            expect(lt260.auth_person_zip_input).to_have_value(ADDRESS["zip"], timeout=10_000)
+
+            # Accept terms and sign (Tab 3) — internally clicks Next to advance tab
+            lt260.accept_terms_and_sign(PERSON["name"], PERSON["email"])
+
+            # Submit — VIN image modal should appear
+            lt260.submit_with_vin_image()
+            page.wait_for_timeout(2000)
+
+            # Verify redirect back to dashboard
+            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=30_000)
         finally:
             page.close()

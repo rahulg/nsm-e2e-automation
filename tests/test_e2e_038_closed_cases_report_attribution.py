@@ -79,7 +79,6 @@ def submit_lt260(page, vin, vehicle, plate):
 
     lt260 = Lt260FormPage(page)
     lt260.enter_vin(vin)
-    lt260.click_vin_lookup()
     lt260.fill_vehicle_details(vehicle)
     lt260.fill_date_vehicle_left(past_date(30))
     lt260.fill_license_plate(plate)
@@ -88,8 +87,9 @@ def submit_lt260(page, vin, vehicle, plate):
     lt260.fill_storage_location(STORAGE_LOCATION_NAME, ADDRESS["street"], ADDRESS["zip"])
     lt260.fill_authorized_person(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
     lt260.accept_terms_and_sign(PERSON["name"], PERSON["email"])
-    lt260.submit()
+    lt260.submit_with_vin_image()
     page.wait_for_timeout(2000)
+    page.wait_for_url(re.compile(r"dashboard", re.I), timeout=15_000)
 
 
 def process_lt260(page, vin):
@@ -104,10 +104,15 @@ def process_lt260(page, vin):
     lt260_listing.search_by_vin(vin)
     lt260_listing.select_application(0)
     form_processing.expect_detail_page_visible()
-    try:
-        lt260_listing.verify_auto_issuance()
-    except Exception:
-        lt260_listing.issue_lt260c()
+    form_processing.click_edit()
+    form_processing.add_owner(
+        PERSON["name"], ADDRESS["street"], ADDRESS["zip"]
+        )
+    form_processing.select_stolen_no()
+    form_processing.click_save()
+    form_processing.issue_160b_and_260a()
+    form_processing.expect_issued_success_toast()
+    form_processing.expect_status_processed()
 
 
 @pytest.mark.e2e

@@ -3,29 +3,31 @@ E2E-005: Paper Form End-to-End
 Staff Portal only — offline mail → staff enters paper forms.
 
 Workflow: Offline mail → SP: Add from Paper (LT-260) → Record Payment →
-          Process → Paper LT-262 → Paper LT-263 → LT-265
+          LT-260 To Process → Issue LT-260C →
+          LT-262 To Process → Submit → Check DCI → Issue LT-262B →
+          Review Court Hearings → Possessory Lien → Save →
+          LT-263 Add from Paper → fill sale details → Submit →
+          Sold listing → View Correspondence → LT-265
 
 Phases:
-  1. [Staff Portal] Add paper LT-260 via "Add from Paper", select requester type, fill details
-  2. [Staff Portal] Record mailed payment (check/money order)
-  3. [Staff Portal] Process LT-260 → forms auto-issued
-  4. [Staff Portal] Add paper LT-262 via "Add from Paper", fill lien details, record payment, process
-  5. [Staff Portal] Add paper LT-263 via "Add from Paper", fill sale details, process
-  6. [Staff Portal] Issue LT-265 → vehicle in Sold tab
+  1. [Staff Portal] Add paper LT-260 via "Add from Paper", fill details, submit
+  2. [Staff Portal] Record mailed payment — Payments listing → enter VIN → Check → submit
+  3. [Staff Portal] LT-260 To Process → search VIN → Issue LT-260C → confirm → status=Processed
+  4. [Staff Portal] LT-262 To Process → search VIN → Submit → Check DCI → Generate LT-262B →
+                    Review Court Hearings → Possessory Lien → Save → confirm
+  5. [Staff Portal] LT-263 Add from Paper → modal VIN → fill sale details → Submit → Issue → OK
+  6. [Staff Portal] Sold listing → search VIN → click → View Correspondence → LT-265 entry
 """
 
 import re
-from pathlib import Path
+from datetime import datetime, timedelta
 
 import pytest
 from playwright.sync_api import BrowserContext, expect
 
 from src.config.env import ENV
 from src.config.test_data import (
-    STANDARD_LIEN_CHARGES,
     STANDARD_SALE_DATA,
-    APPROX_VEHICLE_VALUE,
-    STORAGE_LOCATION_NAME,
     MAILED_PAYMENT,
 )
 from src.helpers.data_helper import (
@@ -35,7 +37,6 @@ from src.helpers.data_helper import (
     generate_address,
     generate_person,
     past_date,
-    future_date,
 )
 from src.pages.staff_portal.dashboard_page import StaffDashboardPage
 from src.pages.staff_portal.lt260_listing_page import Lt260ListingPage
@@ -44,6 +45,7 @@ from src.pages.staff_portal.lt263_listing_page import Lt263ListingPage
 from src.pages.staff_portal.form_processing_page import FormProcessingPage
 from src.pages.staff_portal.paper_form_page import PaperFormPage
 from src.pages.staff_portal.payments_page import StaffPaymentsPage
+from src.pages.staff_portal.sold_listing_page import SoldListingPage
 
 
 # ─── Shared test data ───
@@ -72,7 +74,11 @@ class TestE2E005PaperFormE2E:
     # PHASE 1: Staff Portal — Add paper LT-260
     # ========================================================================
     def test_phase_1_staff_portal_add_paper_lt260(self, staff_context: BrowserContext):
-        """Phase 1: [Staff Portal] Add paper LT-260 via 'Add from Paper'"""
+        """Phase 1: [Staff Portal] Add paper LT-260 via 'Add from Paper'
+        Flow: LT-260 listing → Add from Paper → modal (VIN + Next) →
+              fill Make, Year, DATE VEHICLE LEFT, SEARCH LOCATION, Stolen=No →
+              Submit → Yes → green banner → redirect to details page
+        """
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
@@ -85,24 +91,24 @@ class TestE2E005PaperFormE2E:
             staff_dashboard.navigate_to_lt260_listing()
             lt260_listing.click_add_from_paper()
 
-            # Paper form entry screen
-            paper_form.expect_paper_form_visible()
+            # Modal: enter VIN and click Next
+            paper_form.fill_modal_vin_and_next(TEST_VIN)
 
-            # Select requester type
-            paper_form.select_requester_type("Individual")
+            # Form: Make (autocomplete) — Year first, then Make
+            paper_form.fill_year("2018")
+            paper_form.fill_make("TOY")
 
-            # Enter VIN and lookup
-            paper_form.enter_vin(TEST_VIN)
-            paper_form.click_vin_lookup()
+            # Date Vehicle Left
+            paper_form.fill_date_vehicle_left(past_date(30))
 
-            # Fill vehicle details (manual if VIN not found in STARS)
-            paper_form.fill_vehicle_details(VEHICLE)
+            # Under "Vehicle Storage Details": SEARCH LOCATION
+            paper_form.fill_search_location("Garage")
 
-            # Fill storage location
-            paper_form.fill_storage_location(STORAGE_LOCATION_NAME, ADDRESS["street"], ADDRESS["zip"])
+            # Stolen → No
+            paper_form.select_stolen_no()
 
-            # Submit paper LT-260
-            paper_form.submit()
+            # Submit → confirm modal (Yes) → green banner → details page
+            paper_form.submit_with_confirmation()
         finally:
             page.close()
 
@@ -110,7 +116,11 @@ class TestE2E005PaperFormE2E:
     # PHASE 2: Staff Portal — Record mailed payment
     # ========================================================================
     def test_phase_2_staff_portal_record_payment(self, staff_context: BrowserContext):
-        """Phase 2: [Staff Portal] Record mailed payment (check/money order)"""
+        """Phase 2: [Staff Portal] Record mailed payment via Payments listing.
+        Flow: Payments listing → Record Mailed Payment → new page → enter VIN → + icon →
+              Payment Type=Check → Business/Payer Name → Date Check Was Received →
+              Check Number → Submit → green banner → back to listing.
+        """
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
@@ -118,22 +128,22 @@ class TestE2E005PaperFormE2E:
             staff_dashboard = StaffDashboardPage(page)
             payments = StaffPaymentsPage(page)
 
-            # Navigate to Payments
             staff_dashboard.navigate_to_payments()
-
-            # Record mailed payment
             payments.record_mailed_payment(
+                vin=TEST_VIN,
+                payer_name=MAILED_PAYMENT["payer_name"],
                 check_number=MAILED_PAYMENT["check_number"],
-                amount=MAILED_PAYMENT["amount"],
             )
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 3: Staff Portal — Process LT-260
+    # PHASE 3: Staff Portal — LT-260 To Process → Issue LT-260C
     # ========================================================================
-    def test_phase_3_staff_portal_process_lt260(self, staff_context: BrowserContext):
-        """Phase 3: [Staff Portal] Process LT-260 → forms auto-issued"""
+    def test_phase_3_staff_portal_issue_lt260c(self, staff_context: BrowserContext):
+        """Phase 3: [Staff Portal] LT-260 listing → search VIN → click → Issue LT-260C →
+        confirm modal (Issue) → green banner → status = Processed.
+        """
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
@@ -148,21 +158,33 @@ class TestE2E005PaperFormE2E:
             lt260_listing.select_application(0)
 
             form_processing.expect_detail_page_visible()
-            lt260_listing.verify_owners_check_visible()
 
-            # Process — auto-issuance or manual depending on owners
-            try:
-                lt260_listing.verify_auto_issuance()
-            except Exception:
-                lt260_listing.issue_lt260c()
+            # Click Issue LT-260C
+            lt260_listing.issue_lt260c()
+
+            # Confirmation modal → Issue
+            issue_btn = page.locator('mat-dialog-container button:has-text("Issue")').first
+            issue_btn.wait_for(state="visible", timeout=10_000)
+            issue_btn.click()
+            page.wait_for_timeout(2000)
+
+            # Verify green banner
+            form_processing.expect_issued_success_toast()
+
+            # Verify status = Processed
+            form_processing.expect_status_processed()
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 4: Staff Portal — Add paper LT-262, record payment, process
+    # PHASE 4: Staff Portal — LT-262 To Process → Submit → Check DCI →
+    #          Generate LT-262B → Review Court Hearings → Possessory Lien → Save
     # ========================================================================
-    def test_phase_4_staff_portal_add_paper_lt262(self, staff_context: BrowserContext):
-        """Phase 4: [Staff Portal] Add paper LT-262, fill lien details, record payment, process"""
+    def test_phase_4_staff_portal_lt262b_court_hearing(self, staff_context: BrowserContext):
+        """Phase 4: [Staff Portal] LT-262 listing → Add from Paper → modal (VIN + Next) →
+        Submit → confirm (Yes) → Check DCI tab → Generate LT-262B → confirm (Issue) →
+        Review Court Hearings → check Possessory Lien → Save → confirm (Yes) → green banner.
+        """
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
@@ -171,26 +193,61 @@ class TestE2E005PaperFormE2E:
             lt262_listing = Lt262ListingPage(page)
             paper_form = PaperFormPage(page)
 
-            # Navigate to LT-262 listing and click "Add from Paper"
             staff_dashboard.navigate_to_lt262_listing()
             lt262_listing.click_add_from_paper()
 
-            # Fill lien charges
-            paper_form.fill_lien_charges(STANDARD_LIEN_CHARGES)
+            # Modal: enter VIN + click Next
+            paper_form.fill_modal_vin_and_next(TEST_VIN)
 
-            # Verify pre-filled fields are editable (paper form feature)
-            paper_form.verify_fields_editable()
+            # Submit button → confirmation modal → Yes
+            submit_btn = page.locator('button:has-text("Submit")').first
+            expect(submit_btn).to_be_visible(timeout=15_000)
+            submit_btn.click()
+            page.wait_for_timeout(1000)
 
-            # Submit paper LT-262
-            paper_form.submit()
+            yes_btn = page.locator('mat-dialog-container button:has-text("Yes")').first
+            yes_btn.wait_for(state="visible", timeout=10_000)
+            yes_btn.click()
+            page.wait_for_timeout(2000)
+
+            # Check DCI AND NMVTIS tab → Generate LT-262B → confirm (Issue)
+            lt262_listing.issue_lt262b()
+            page.wait_for_timeout(1000)
+
+            # REVIEW COURT HEARINGS tab — check "Judgment in action of Possessory Lien"
+            possessory_cb = page.locator('mat-checkbox').first
+            possessory_cb.wait_for(state="visible", timeout=10_000)
+            if "mat-checkbox-checked" not in (possessory_cb.get_attribute("class") or ""):
+                possessory_cb.locator("label").click()
+                page.wait_for_timeout(1000)
+
+            # Save
+            save_btn = page.locator('button:has-text("Save")').first
+            save_btn.wait_for(state="visible", timeout=15_000)
+            save_btn.scroll_into_view_if_needed()
+            save_btn.click()
+            page.wait_for_timeout(1000)
+
+            # Confirmation modal → Yes
+            yes_btn = page.locator('mat-dialog-container button:has-text("Yes")').first
+            yes_btn.wait_for(state="visible", timeout=10_000)
+            yes_btn.click()
+            page.wait_for_timeout(2000)
+
+            # Verify green banner
+            success = page.get_by_text(re.compile(r"success", re.I)).first
+            expect(success).to_be_visible(timeout=15_000)
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 5: Staff Portal — Add paper LT-263, fill sale details
+    # PHASE 5: Staff Portal — LT-263 Add from Paper → fill sale details → Submit
     # ========================================================================
     def test_phase_5_staff_portal_add_paper_lt263(self, staff_context: BrowserContext):
-        """Phase 5: [Staff Portal] Add paper LT-263 — no date restrictions for paper"""
+        """Phase 5: [Staff Portal] LT-263 listing → Add from Paper → modal (VIN + Next) →
+        Vehicle Sale Information: TYPE OF SALE=Public, SALE DATE, Lien Amount, Lien For=LABOR →
+        Submit → confirm (Yes) → Issue modal → Issue → OK modal → OK.
+        """
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
@@ -199,45 +256,52 @@ class TestE2E005PaperFormE2E:
             lt263_listing = Lt263ListingPage(page)
             paper_form = PaperFormPage(page)
 
-            # Navigate to LT-263 listing and click "Add from Paper"
             staff_dashboard.navigate_to_lt263_listing()
             lt263_listing.click_add_from_paper()
 
-            # Fill sale details — paper forms have NO date restrictions
-            paper_form.fill_sale_details(
+            # Modal: enter VIN + click Next
+            paper_form.fill_modal_vin_and_next(TEST_VIN)
+
+            # Fill sale details — skip Sunday (not accepted as a sale date)
+            sale_dt = datetime.now() - timedelta(days=5)
+            if sale_dt.weekday() == 6:  # 6 = Sunday
+                sale_dt += timedelta(days=1)
+            paper_form.fill_lt263_sale_details(
                 sale_type="public",
-                sale_date=future_date(30),
+                sale_date=sale_dt.strftime("%Y-%m-%d"),
                 lien_amount=STANDARD_SALE_DATA["lien_amount"],
             )
 
-            # Submit paper LT-263
-            paper_form.submit()
+            # Submit → Yes → Issue → OK
+            paper_form.submit_paper_lt263()
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 6: Staff Portal — Process LT-263, issue LT-265
+    # PHASE 6: Staff Portal — Sold listing → search VIN → View Correspondence → LT-265
     # ========================================================================
-    def test_phase_6_staff_portal_issue_lt265(self, staff_context: BrowserContext):
-        """Phase 6: [Staff Portal] Process LT-263 → issue LT-265 → Sold"""
+    def test_phase_6_staff_portal_verify_sold_lt265(self, staff_context: BrowserContext):
+        """Phase 6: [Staff Portal] Sold listing → search VIN → click → status=Processed →
+        View Correspondence/Documents → Correspondence History modal → LT-265 entry visible.
+        """
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
 
             staff_dashboard = StaffDashboardPage(page)
-            lt263_listing = Lt263ListingPage(page)
+            sold_listing = SoldListingPage(page)
 
-            staff_dashboard.navigate_to_lt263_listing()
-            lt263_listing.click_to_process_tab()
-            lt263_listing.search_by_vin(TEST_VIN)
-            lt263_listing.expect_applications_visible()
-            lt263_listing.select_application(0)
-            lt263_listing.verify_sale_details_visible()
-            lt263_listing.generate_lt265()
+            staff_dashboard.navigate_to_sold()
+            sold_listing.search_by_vin(TEST_VIN)
+            sold_listing.expect_applications_visible()
+            sold_listing.select_application(0)
 
-            # Verify in Sold tab
-            lt263_listing.click_processed_sold_tab()
-            lt263_listing.search_by_vin(TEST_VIN)
-            lt263_listing.verify_vehicle_sold()
+            # Verify status = Processed
+            expect(
+                page.get_by_text(re.compile(r"Processed", re.I)).first
+            ).to_be_visible(timeout=15_000)
+
+            # View Correspondence/Documents → modal with LT-265 entry
+            sold_listing.verify_lt265_in_correspondence()
         finally:
             page.close()

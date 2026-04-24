@@ -58,6 +58,7 @@ MAILED_PAYMENT = {
     "method": "check",
     "check_number": "12345",
     "amount": "16.75",
+    "payer_name": "Test Garage Inc",
 }
 
 # ─── Sale data ───

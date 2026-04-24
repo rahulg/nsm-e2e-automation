@@ -52,20 +52,38 @@ class PublicDashboardPage:
 
     # ===== E2E-001 ENHANCED METHODS =====
 
-    def select_business(self, name: str = None):
-        """Handle company selection dropdown. Try/catch for single-business users."""
+    def select_business(self, name: str = "G-Car Garages New"):
+        """Select business/garage from the header dropdown near cart/profile.
+        Defaults to 'G-Car Garages New' for all public portal flows.
+        """
+        # Try clicking the business name text in the header (most direct trigger)
         try:
-            dropdown = self.page.locator('mat-select, select, [class*="company-select"], [class*="business-select"]').first
-            dropdown.wait_for(state="visible", timeout=5_000)
-            if name:
-                dropdown.click()
-                self.page.locator(f'mat-option:has-text("{name}"), option:has-text("{name}")').first.click()
-            else:
-                dropdown.click()
-                self.page.locator("mat-option, option").first.click()
-            self.page.wait_for_load_state("networkidle")
+            biz_trigger = self.page.locator(
+                'app-header span:has-text("G-Car"), '
+                'mat-toolbar span:has-text("G-Car"), '
+                'header span:has-text("G-Car")'
+            ).first
+            biz_trigger.wait_for(state="visible", timeout=5_000)
+            biz_trigger.click()
+            self.page.wait_for_timeout(1000)
+            dropdown_item = self.page.get_by_text(name, exact=True).first
+            dropdown_item.wait_for(state="visible", timeout=5_000)
+            dropdown_item.click()
         except Exception:
-            pass  # Single-business user — no dropdown
+            # Fallback: click the last down-arrow in the header
+            # (business selector is always after language selector)
+            down_arrows = self.page.locator('span:has-text("▾"), span:has-text("▼")')
+            count = down_arrows.count()
+            arrow = down_arrows.nth(count - 1) if count > 1 else down_arrows.first
+            arrow.wait_for(state="visible", timeout=30_000)
+            arrow.click()
+            self.page.wait_for_timeout(2000)
+            biz_item = self.page.get_by_text(name, exact=True).first
+            biz_item.wait_for(state="visible", timeout=10_000)
+            biz_item.click()
+
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(2000)
 
     def click_open_requests_tab(self):
         self.page.locator('[role="tab"]:has-text("Open Requests"), button:has-text("Open Requests"), [role="tab"]:has-text("Notice & Storage")').first.click()

@@ -1,17 +1,10 @@
 """
 E2E-015: Fiscal User Access Restriction Validation
-Fiscal User login → Attempt all restricted areas → Only Reports accessible
 
 Phases:
-  1. [Staff Portal] Login as Fiscal User
-  2. [Staff Portal] Attempt to access User Management — Access Denied
-  3. [Staff Portal] Attempt to access Configuration — Access Denied
-  4. [Staff Portal] Attempt to access Facility Management — Access Denied
-  5. [Staff Portal] Attempt to access LT-260 Listing — Access Denied
-  6. [Staff Portal] Attempt to access LT-262 Listing — Access Denied
-  7. [Staff Portal] Attempt to access Global Search — Access Denied
-  8. [Staff Portal] Navigate to Reports — Access Granted
-  9. [Staff Portal] Verify all report types are accessible
+  1. [Staff Portal] Login as Fiscal User → lands on Reports page → sidebar has Reports only
+  2. [Staff Portal] Verify System Generated Reports section → open Daily Deposit Report
+                    → select today's date → Generate → verify table columns
 """
 
 import re
@@ -20,85 +13,151 @@ import pytest
 from playwright.sync_api import BrowserContext, expect
 
 from src.config.env import ENV
-from src.pages.staff_portal.dashboard_page import StaffDashboardPage
-from src.pages.staff_portal.reports_page import ReportsPage
 from src.helpers.data_helper import today_date
 
 SP_DASHBOARD_URL = re.sub(r"/login$", "/pages/ncdot-notice-and-storage/dashboard", ENV.STAFF_PORTAL_URL)
 
 
-def go_to_staff_dashboard(page):
-    page.goto(SP_DASHBOARD_URL, timeout=60_000)
+def go_to_staff_portal(page):
+    """Navigate to staff portal dashboard — fiscal user session redirects to Reports."""
+    page.goto(SP_DASHBOARD_URL, timeout=60_000, wait_until="domcontentloaded")
     page.wait_for_load_state("networkidle")
+    page.wait_for_timeout(2000)
 
 
 @pytest.mark.e2e
 @pytest.mark.multiuser
 @pytest.mark.high
 class TestE2E015FiscalUserRestrictions:
-    """E2E-015: Fiscal User — only Reports accessible, all other features restricted"""
+    """E2E-015: Fiscal User — only Reports accessible, all other areas restricted"""
 
-    def test_phase_1_fiscal_user_dashboard(self, staff_context: BrowserContext):
-        """Phase 1: [Staff Portal] Login as Fiscal User, verify limited dashboard"""
-        page = staff_context.new_page()
+    # ========================================================================
+    # PHASE 1: Login → Reports landing page → sidebar restrictions
+    # ========================================================================
+    def test_phase_1_fiscal_user_reports_only_sidebar(self, fiscal_context: BrowserContext):
+        """Phase 1: Fiscal user lands on Reports page, sidebar shows only Reports"""
+        page = fiscal_context.new_page()
         try:
-            go_to_staff_dashboard(page)
-            staff_dashboard = StaffDashboardPage(page)
-            staff_dashboard.expect_on_dashboard()
+            go_to_staff_portal(page)
+
+            # Fiscal user should be redirected directly to the Reports page
+            expect(page).to_have_url(re.compile(r"reports", re.I), timeout=30_000)
+
+            # ── Sidebar: Reports IS present ──
+            reports_link = page.locator('a:has-text("Reports"), [role="menuitem"]:has-text("Reports")').first
+            expect(reports_link).to_be_visible(timeout=10_000)
+
+            # ── Sidebar: LT-260 is NOT present ──
+            lt260_link = page.locator(
+                'a[href*="LT-260"], a:has-text("LT-260"), [role="menuitem"]:has-text("LT-260")'
+            ).first
+            expect(lt260_link).not_to_be_visible(timeout=5_000)
+
+            # ── Sidebar: User Management is NOT present ──
+            user_mgmt_link = page.locator(
+                'a[href*="user-management"], a:has-text("User Management"), '
+                '[role="menuitem"]:has-text("User Management")'
+            ).first
+            expect(user_mgmt_link).not_to_be_visible(timeout=5_000)
+
         finally:
             page.close()
 
-    def test_phase_2_restricted_areas_not_accessible(self, staff_context: BrowserContext):
-        """Phase 2: [Staff Portal] Verify restricted areas are NOT accessible"""
-        page = staff_context.new_page()
+    # ========================================================================
+    # PHASE 2: System Generated Reports → Daily Deposit → Generate → verify columns
+    # ========================================================================
+    def test_phase_2_daily_deposit_report_columns(self, fiscal_context: BrowserContext):
+        """Phase 2: System Generated Reports visible → open Daily Deposit → generate → verify columns"""
+        page = fiscal_context.new_page()
         try:
-            go_to_staff_dashboard(page)
+            go_to_staff_portal(page)
+            expect(page).to_have_url(re.compile(r"reports", re.I), timeout=30_000)
+            page.wait_for_load_state("networkidle")
 
-            # Check sidebar — restricted items should not be visible or should be disabled
-            restricted_links = [
-                'a[href*="user-management"]',
-                'a[href*="configuration"]',
-                'a[href*="facility"]',
+            # ── Verify "System Generated Reports" section heading ──
+            system_reports_heading = page.locator(
+                ':has-text("System Generated Reports")'
+            ).last
+            expect(system_reports_heading).to_be_visible(timeout=10_000)
+
+            # ── Verify Daily Revenue Report is present ──
+            daily_revenue = page.locator(
+                'a:has-text("Daily Revenue"), button:has-text("Daily Revenue"), '
+                '[class*="report"]:has-text("Daily Revenue"), td:has-text("Daily Revenue"), '
+                'li:has-text("Daily Revenue"), span:has-text("Daily Revenue")'
+            ).first
+            expect(daily_revenue).to_be_visible(timeout=10_000)
+
+            # ── Verify Daily Deposit Report is present ──
+            daily_deposit = page.locator(
+                'a:has-text("Daily Deposit"), button:has-text("Daily Deposit"), '
+                '[class*="report"]:has-text("Daily Deposit"), td:has-text("Daily Deposit"), '
+                'li:has-text("Daily Deposit"), span:has-text("Daily Deposit")'
+            ).first
+            expect(daily_deposit).to_be_visible(timeout=10_000)
+
+            # ── Click Daily Deposit Report ──
+            daily_deposit.click()
+            page.wait_for_load_state("networkidle")
+
+            # Wait for the loading spinner to disappear before interacting
+            try:
+                page.locator('mat-spinner, [class*="spinner"], [class*="loading"]').first.wait_for(
+                    state="hidden", timeout=20_000
+                )
+            except Exception:
+                pass
+            page.wait_for_timeout(2000)
+
+            # ── Select today's date in the date selector ──
+            today = today_date()
+            # Click the calendar icon (mat-datepicker-toggle) to open the date picker
+            cal_toggle = page.locator('mat-datepicker-toggle button, button[aria-label*="calendar" i], button[aria-label*="date" i]').first
+            cal_toggle.wait_for(state="visible", timeout=10_000)
+            cal_toggle.click()
+            page.wait_for_timeout(1000)
+
+            # Click "Today" button in the open calendar overlay if present, else type date directly
+            today_btn = page.locator('button:has-text("Today"), .mat-calendar-body-today').first
+            try:
+                today_btn.wait_for(state="visible", timeout=3_000)
+                today_btn.click()
+                page.wait_for_timeout(500)
+            except Exception:
+                # No "Today" button — close calendar and type date into the input directly
+                page.keyboard.press("Escape")
+                page.wait_for_timeout(300)
+                date_input = page.locator('input[matInput]').first
+                date_input.fill(today, force=True)
+                page.wait_for_timeout(300)
+                page.keyboard.press("Enter")
+            page.wait_for_timeout(500)
+
+            # ── Click Generate Report button ──
+            generate_btn = page.locator(
+                'button:has-text("Generate"), button:has-text("Generate Report")'
+            ).first
+            generate_btn.wait_for(state="visible", timeout=10_000)
+            generate_btn.click()
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(3000)
+
+            # ── Verify required table columns ──
+            expected_columns = [
+                "Branch",
+                "Branch Description",
+                "Cash",
+                "Checks",
+                "Credit/Debit",
+                "PrePay",
+                "Total",
             ]
+            for col in expected_columns:
+                col_header = page.locator(
+                    f'th:has-text("{col}"), mat-header-cell:has-text("{col}"), '
+                    f'td:has-text("{col}"), [role="columnheader"]:has-text("{col}")'
+                ).first
+                expect(col_header).to_be_visible(timeout=10_000), f"Column '{col}' not found in report"
 
-            for selector in restricted_links:
-                link = page.locator(selector).first
-                try:
-                    # Either not visible or clicking leads to access denied
-                    if link.is_visible():
-                        link.click()
-                        page.wait_for_load_state("networkidle")
-                        page.wait_for_timeout(1000)
-                        # Should see access denied or be redirected
-                        access_denied = page.get_by_text(
-                            re.compile(r"access denied|unauthorized|forbidden|not authorized", re.I)
-                        ).first
-                        try:
-                            expect(access_denied).to_be_visible(timeout=5_000)
-                        except Exception:
-                            pass  # May redirect back to dashboard
-                except Exception:
-                    pass  # Link not visible — that's acceptable for restricted area
-        finally:
-            page.close()
-
-    def test_phase_3_reports_accessible(self, staff_context: BrowserContext):
-        """Phase 3: [Staff Portal] Reports section IS accessible"""
-        page = staff_context.new_page()
-        try:
-            go_to_staff_dashboard(page)
-            staff_dashboard = StaffDashboardPage(page)
-            reports = ReportsPage(page)
-
-            # Navigate to Reports
-            staff_dashboard.navigate_to_reports()
-
-            # Verify reports section is accessible
-            reports.expect_reports_section_accessible()
-
-            # Try generating a report
-            reports.click_daily_deposit_report()
-            reports.set_date_range(today_date(), today_date())
-            reports.generate_report()
         finally:
             page.close()

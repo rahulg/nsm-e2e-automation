@@ -1,12 +1,16 @@
 """
-E2E-028: Payment Completion Cart Clearance
-PP: Submit LT-260 → SP: Process LT-260 → PP: Submit LT-262 + pay →
-verify no action buttons for VIN → cart icon → cart is empty ($0.00)
+E2E-010: No Court Judgment
+PP: LT-260 → SP: Process LT-260 → PP: LT-262 → SP: LT-264 →
+SP: Track LT-264 → REVIEW COURT HEARINGS (no judgment recorded) →
+PP: Verify status = LT-260 Submitted, no action button
 
 Phases:
   1. [Public Portal]  Submit LT-260
   2. [Staff Portal]   Process LT-260
-  3. [Public Portal]  Submit LT-262 + pay → verify no action buttons → cart empty ($0.00)
+  3. [Public Portal]  Submit LT-262 with payment
+  4. [Staff Portal]   Process LT-262, issue LT-264
+  5. [Staff Portal]   Track LT-264 → redirected to REVIEW COURT HEARINGS (no judgment submitted)
+  6. [Public Portal]  Verify status = LT-260 Submitted, no action button present
 """
 
 import re
@@ -21,14 +25,15 @@ from src.helpers.data_helper import (
     random_vehicle,
     generate_license_plate,
     generate_address,
-    past_date,
     generate_person,
+    past_date,
 )
 from src.pages.public_portal.dashboard_page import PublicDashboardPage
 from src.pages.public_portal.lt260_form_page import Lt260FormPage
 from src.pages.public_portal.lt262_form_page import Lt262FormPage
 from src.pages.staff_portal.dashboard_page import StaffDashboardPage
 from src.pages.staff_portal.lt260_listing_page import Lt260ListingPage
+from src.pages.staff_portal.lt262_listing_page import Lt262ListingPage
 from src.pages.staff_portal.form_processing_page import FormProcessingPage
 
 
@@ -57,16 +62,15 @@ def go_to_staff_dashboard(page):
 
 
 @pytest.mark.e2e
-@pytest.mark.edge
-@pytest.mark.critical
-@pytest.mark.payment
-class TestE2E028CartClearanceDuplicates:
-    """E2E-028: Cart cleared after payment — no action buttons, cart shows $0.00"""
+@pytest.mark.alternate
+@pytest.mark.high
+class TestE2E010NoCourtJudgment:
+    """E2E-010: No court judgment — application stays locked, no action available on public portal"""
 
     # ========================================================================
     # PHASE 1: Public Portal — Create & Submit LT-260
     # ========================================================================
-    def test_phase_1_public_portal_create_lt260(self, public_context: BrowserContext):
+    def test_phase_1_public_portal_submit_lt260(self, public_context: BrowserContext):
         """Phase 1: [Public Portal] Login, create LT-260, VIN lookup, fill form, submit"""
         page = public_context.new_page()
         try:
@@ -89,6 +93,7 @@ class TestE2E028CartClearanceDuplicates:
             lt260.submit_with_vin_image()
             page.wait_for_timeout(2000)
 
+            # Verify redirect back to dashboard
             page.wait_for_url(re.compile(r"dashboard", re.I), timeout=15_000)
         finally:
             page.close()
@@ -117,16 +122,17 @@ class TestE2E028CartClearanceDuplicates:
             form_processing.select_stolen_no()
             form_processing.click_save()
             form_processing.issue_160b_and_260a()
+
             form_processing.expect_issued_success_toast()
             form_processing.expect_status_processed()
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 3: Public Portal — Submit LT-262 + pay → verify no action buttons → cart empty
+    # PHASE 3: Public Portal — Submit LT-262
     # ========================================================================
-    def test_phase_3_public_portal_submit_lt262_and_verify_cart(self, public_context: BrowserContext):
-        """Phase 3: [Public Portal] Submit LT-262 + pay → no action buttons for VIN → cart shows $0.00"""
+    def test_phase_3_public_portal_submit_lt262(self, public_context: BrowserContext):
+        """Phase 3: [Public Portal] Verify LT-260 processed, submit LT-262 with lien/charges/docs, pay"""
         page = public_context.new_page()
         try:
             go_to_public_dashboard(page)
@@ -167,43 +173,129 @@ class TestE2E028CartClearanceDuplicates:
             success_banner = page.get_by_text("Your payment has been completed successfully")
             expect(success_banner).to_be_visible(timeout=15_000)
 
-            # Verify redirect to dashboard with VIN showing "LT-262 Submitted"
             page.wait_for_url(re.compile(r"dashboard", re.I), timeout=15_000)
-            page.wait_for_load_state("networkidle")
+        finally:
+            page.close()
 
-            # ── Verify no action buttons are present for this VIN's entry ──
+    # ========================================================================
+    # PHASE 4: Staff Portal — Process LT-262 → Issue LT-264
+    # ========================================================================
+    def test_phase_4_staff_portal_process_lt262(self, staff_context: BrowserContext):
+        """Phase 4: [Staff Portal] Open LT-262, verify details, CHECK DCI → Issue LT-264"""
+        page = staff_context.new_page()
+        try:
+            go_to_staff_dashboard(page)
+
+            staff_dashboard = StaffDashboardPage(page)
+            lt262_listing = Lt262ListingPage(page)
+
+            staff_dashboard.navigate_to_lt262_listing()
+            lt262_listing.click_to_process_tab()
+            lt262_listing.search_by_vin(TEST_VIN)
+            lt262_listing.select_application(0)
+
+            lt262_listing.verify_lien_details_visible()
+            lt262_listing.verify_owner_details_visible()
+            lt262_listing.issue_lt264()
+
+            success_banner = page.get_by_text("The form has been issued successfully.")
+            expect(success_banner).to_be_visible(timeout=15_000)
+
+            track_tab = page.locator('[role="tab"]:has-text("TRACK LT-264")')
+            expect(track_tab).to_be_visible(timeout=10_000)
+        finally:
+            page.close()
+
+    # ========================================================================
+    # PHASE 5: Staff Portal — Track LT-264 → Redirect to REVIEW COURT HEARINGS
+    # ========================================================================
+    def test_phase_5_staff_portal_track_lt264(self, staff_context: BrowserContext):
+        """Phase 5: [Staff Portal] Track LT-264 — log receipt, navigate to REVIEW COURT HEARINGS tab
+        (no judgment submitted)"""
+        page = staff_context.new_page()
+        try:
+            go_to_staff_dashboard(page)
+
+            staff_dashboard = StaffDashboardPage(page)
+            lt262_listing = Lt262ListingPage(page)
+
+            staff_dashboard.navigate_to_lt262_listing()
+            lt262_listing.click_aging_tab()
+            lt262_listing.search_by_vin(TEST_VIN)
+
+            if lt262_listing.application_rows.count() == 0:
+                lt262_listing.court_hearing_tab.click()
+                page.wait_for_load_state("networkidle")
+                lt262_listing.search_by_vin(TEST_VIN)
+
+            lt262_listing.select_application(0)
+
+            # Go to TRACK LT-264 tab
+            lt262_listing.click_track_lt264_tab()
+            page.wait_for_timeout(2000)
+
+            # Check "Log Receipt of Signed LT-264 Letters" checkbox
+            log_receipt_cb = page.locator('mat-checkbox').first
+            if "mat-checkbox-checked" not in (log_receipt_cb.get_attribute("class") or ""):
+                log_receipt_cb.locator("label").click()
+                page.wait_for_timeout(1000)
+
+            # Check "Select recipients requesting judicial hearing" checkbox
+            hearing_cb = page.locator('mat-checkbox').nth(1)
+            hearing_cb.wait_for(state="visible", timeout=10_000)
+            if "mat-checkbox-checked" not in (hearing_cb.get_attribute("class") or ""):
+                hearing_cb.locator("label").click()
+                page.wait_for_timeout(500)
+
+            # Save
+            save_btn = page.locator('button:has-text("Save")').first
+            save_btn.wait_for(state="visible", timeout=15_000)
+            save_btn.scroll_into_view_if_needed()
+            save_btn.click()
+            page.wait_for_timeout(2000)
+
+            # Confirm modal — click Yes
+            yes_btn = page.locator('mat-dialog-container button:has-text("Yes")').first
+            yes_btn.wait_for(state="visible", timeout=10_000)
+            yes_btn.click()
+            page.wait_for_timeout(3000)
+
+            # Verify redirected to REVIEW COURT HEARINGS tab
+            possessory_text = page.get_by_text(re.compile(r"Judgment in action of Possessory Lien", re.I)).first
+            possessory_text.wait_for(state="visible", timeout=30_000)
+            page.wait_for_timeout(2000)
+        finally:
+            page.close()
+
+    # ========================================================================
+    # PHASE 6: Public Portal — Verify status + no action button
+    # ========================================================================
+    def test_phase_6_public_portal_verify_no_action(self, public_context: BrowserContext):
+        """Phase 6: [Public Portal] Search VIN → status = LT-262 Submitted, no action button visible"""
+        page = public_context.new_page()
+        try:
+            go_to_public_dashboard(page)
+
+            dashboard = PublicDashboardPage(page)
+            dashboard.select_business(BUSINESS_NAME)
+
+            dashboard.click_notice_storage_tab()
+            page.wait_for_timeout(1000)
             dashboard.search_by_vin(TEST_VIN)
             page.wait_for_timeout(2000)
             dashboard.select_application(0)
-            page.wait_for_timeout(1000)
 
-            action_buttons = page.locator(
+            # Verify status = LT-262 Submitted
+            expect(
+                page.get_by_text(re.compile(r"LT-262 Submitted", re.I)).first
+            ).to_be_visible(timeout=15_000)
+
+            # Verify no action button is present
+            action_btn = page.locator(
                 'button:has-text("Submit LT-262"), '
                 'button:has-text("Submit LT-263"), '
-                'button:has-text("Vehicle Reclaimed"), '
-                'button:has-text("Add to Cart")'
+                'button:has-text("Vehicle Reclaim")'
             )
-            expect(action_buttons).to_have_count(0, timeout=5_000)
-
-            # ── Navigate to cart — try cart icon first, fall back to direct URL ──
-            cart_icon = page.locator(
-                'mat-icon:has-text("shopping_cart"), '
-                '[aria-label*="cart" i], '
-                'button:has-text("Cart"), '
-                'a[href*="finish-and-pay"]'
-            ).first
-            try:
-                cart_icon.wait_for(state="visible", timeout=5_000)
-                cart_icon.click()
-            except Exception:
-                cart_url = re.sub(r"/dashboard.*$", "/finish-and-pay", page.url)
-                page.goto(cart_url, timeout=30_000)
-
-            page.wait_for_load_state("networkidle")
-            page.wait_for_timeout(2000)
-
-            # ── Verify cart is empty: $0.00 present ──
-            zero_amount = page.locator("//span[contains(text(),'$0.00')]").first
-            expect(zero_amount).to_be_visible(timeout=10_000)
+            expect(action_btn).to_have_count(0, timeout=5_000)
         finally:
             page.close()

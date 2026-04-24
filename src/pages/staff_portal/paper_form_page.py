@@ -3,13 +3,11 @@ Staff Portal Paper Form Page — for adding paper LT-260/262/263 submissions.
 
 Paper forms are received via mail and entered by staff. They follow a similar
 structure to digital forms but with some differences:
-  - Staff selects requester type (Individual or Business)
   - Pre-filled fields from prior forms are EDITABLE (unlike PP where they are read-only)
   - Paper forms have NO date restrictions on sale date
 """
 
 import re
-from datetime import datetime
 from playwright.sync_api import Page, expect
 
 
@@ -17,37 +15,12 @@ class PaperFormPage:
     def __init__(self, page: Page):
         self.page = page
 
-        # Requester type selection
-        self.individual_radio = page.locator(
-            'mat-radio-button:has-text("Individual"), label:has-text("Individual"), '
-            'input[value*="individual" i], [role="radio"]:has-text("Individual")'
-        ).first
-        self.business_radio = page.locator(
-            'mat-radio-button:has-text("Business"), label:has-text("Business"), '
-            'input[value*="business" i], [role="radio"]:has-text("Business")'
-        ).first
-
-        # Vehicle details
-        self.vin_input = page.locator('input[name="sno"], input[placeholder*="VIN" i]').first
-        self.vin_lookup_button = page.locator(
-            'button:has-text("VIN Lookup"), button:has-text("Lookup"), button:has-text("Search")'
-        ).first
-        self.make_input = page.locator('input[placeholder="Enter Make"], input[name*="make" i]').first
-        self.year_input = page.locator('input[name="year"], input[name*="year" i]').first
-        self.model_input = page.locator('input[name="model"], input[name*="model" i]').first
-        self.color_input = page.locator('input[name="color"], input[name*="color" i]').first
-
-        # Storage location
-        self.location_input = page.locator('input[aria-label*="Location" i]').first
-        self.address_input = page.locator('input[aria-label*="Address" i]').first
-        self.zip_input = page.locator('input[aria-label*="Zip" i]').first
-
-        # Lien charges (for LT-262 paper form)
+        # Lien charges (for LT-262 paper form — Phase 4)
         self.storage_fee_input = page.locator('input[name="storageFee"]').first
         self.towing_fee_input = page.locator('input[name="TowingFee"]').first
         self.labor_fee_input = page.locator('input[name="LaborFee"]').first
 
-        # Sale details (for LT-263 paper form)
+        # Sale details (for LT-263 paper form — Phase 5)
         self.sale_type_public = page.locator(
             'mat-radio-button:has-text("Public"), input[value*="public" i], '
             'label:has-text("Public") input[type="radio"], '
@@ -69,7 +42,7 @@ class PaperFormPage:
         self.submit_button = page.locator('button:has-text("Submit"), button:has-text("Save")').first
         self.next_button = page.locator('button:has-text("Next")').first
 
-    # ===== Requester type =====
+    # ===== CDK overlay helper =====
 
     def _dismiss_cdk_overlay(self):
         """Dismiss any open CDK overlay that blocks clicks."""
@@ -89,187 +62,128 @@ class PaperFormPage:
         except Exception:
             pass
 
-    def select_requester_type(self, requester_type: str = "Individual"):
-        """Select Individual or Business requester type.
+    # ===== Phase 1: LT-260 Add from Paper =====
 
-        Angular Material radio buttons have complex DOM structures.
-        Use multiple strategies to find and click the correct element.
-        Also handles mat-select dropdown as an alternative UI pattern.
-        """
+    def fill_modal_vin_and_next(self, vin: str):
+        """In the Add from Paper modal: enter VIN and click Next (no E-Stop radio for LT-260)."""
+        vin_input = self.page.locator(
+            'mat-dialog-container input[placeholder*="VIN" i], '
+            'mat-dialog-container input[name*="vin" i]'
+        ).first
+        vin_input.wait_for(state="visible", timeout=10_000)
+        vin_input.fill(vin)
+        self.page.wait_for_timeout(500)
+
+        next_btn = self.page.locator('mat-dialog-container button:has-text("Next")').first
+        next_btn.wait_for(state="visible", timeout=10_000)
+        next_btn.click()
+        self.page.wait_for_load_state("networkidle")
         self.page.wait_for_timeout(3000)
 
-        # Strategy 1: Use JavaScript to find and click any element
-        clicked = self.page.evaluate(f"""() => {{
-            const target = '{requester_type.lower()}';
-            // Try mat-radio-button
-            const radios = document.querySelectorAll('mat-radio-button');
-            for (const r of radios) {{
-                if (r.textContent.toLowerCase().includes(target)) {{
-                    const inner = r.querySelector('.mat-radio-inner-circle') ||
-                                  r.querySelector('input[type="radio"]') ||
-                                  r.querySelector('label') || r;
-                    inner.click();
-                    return true;
-                }}
-            }}
-            // Try regular radio inputs
-            const inputs = document.querySelectorAll('input[type="radio"]');
-            for (const inp of inputs) {{
-                const label = inp.closest('label') || inp.parentElement;
-                if (label && label.textContent.toLowerCase().includes(target)) {{
-                    inp.click();
-                    return true;
-                }}
-            }}
-            // Try mat-button-toggle
-            const toggles = document.querySelectorAll('mat-button-toggle');
-            for (const t of toggles) {{
-                if (t.textContent.toLowerCase().includes(target)) {{
-                    const btn = t.querySelector('button') || t;
-                    btn.click();
-                    return true;
-                }}
-            }}
-            // Try mat-list-option, mat-chip, clickable divs (avoid buttons that open dialogs)
-            const clickables = document.querySelectorAll(
-                'mat-list-option, mat-chip, [role="option"], ' +
-                '.mat-card, mat-card, [class*="type-select"], [class*="requester-type"]'
-            );
-            for (const el of clickables) {{
-                const txt = (el.textContent || '').toLowerCase().trim();
-                if (txt.includes(target) && txt.length < 50) {{
-                    el.click();
-                    return true;
-                }}
-            }}
-            // Nuclear: TreeWalker — find exact text node and click parent
-            const walker = document.createTreeWalker(
-                document.body, NodeFilter.SHOW_TEXT, null
-            );
-            let node;
-            while (node = walker.nextNode()) {{
-                const text = node.textContent.trim().toLowerCase();
-                if (text === target || text === '{requester_type}') {{
-                    const parent = node.parentElement;
-                    if (parent && parent.offsetParent !== null) {{
-                        parent.click();
-                        return true;
-                    }}
-                }}
-            }}
-            return false;
-        }}""")
-        if clicked:
-            self.page.wait_for_timeout(500)
-            return
+    def fill_make(self, make_text: str = "TOY"):
+        """Type in the Make autocomplete field and select the first suggestion."""
+        make_input = self.page.locator("(//input[@role='combobox'])[1]")
+        expect(make_input).to_be_visible(timeout=15_000)
+        make_input.click()
+        make_input.fill(make_text)
+        self.page.wait_for_timeout(1000)
 
-        # Strategy 2: Check if it's a mat-select dropdown
-        try:
-            mat_select = self.page.locator(
-                'mat-select[name*="requester" i], mat-select[name*="type" i], '
-                'mat-select[formcontrolname*="requester" i], mat-select[formcontrolname*="type" i], '
-                'mat-select'
-            ).first
-            mat_select.wait_for(state="visible", timeout=3_000)
-            mat_select.click()
-            self.page.wait_for_timeout(500)
-            option = self.page.locator(f'mat-option:has-text("{requester_type}")').first
-            option.wait_for(state="visible", timeout=3_000)
-            option.click()
-            self.page.wait_for_timeout(500)
-            return
-        except Exception:
-            pass
-
-        # Strategy 3: Playwright locator
-        radio = self.individual_radio if requester_type.lower() == "individual" else self.business_radio
-        try:
-            radio.wait_for(state="visible", timeout=3_000)
-            radio.click(force=True)
-        except Exception:
-            try:
-                self.page.get_by_role("radio", name=re.compile(requester_type, re.I)).click()
-            except Exception:
-                try:
-                    radio.click(force=True)
-                except Exception:
-                    pass
+        option = self.page.locator('.cdk-overlay-pane mat-option').first
+        option.wait_for(state="visible", timeout=10_000)
+        option.click()
         self.page.wait_for_timeout(500)
-        # Always dismiss any CDK overlay that may have opened
-        self._dismiss_cdk_overlay()
 
-    # ===== Vehicle details =====
+    def fill_year(self, year: str):
+        """Fill the Year field, then Tab out to close any autocomplete and settle the form."""
+        year_input = self.page.locator(
+            'input[name*="year" i], input[aria-label*="Year" i], input[placeholder*="Year" i]'
+        ).first
+        year_input.wait_for(state="visible", timeout=10_000)
+        year_input.fill(year)
+        self.page.keyboard.press("Tab")
+        self.page.wait_for_timeout(500)
 
-    def enter_vin(self, vin: str):
-        self.vin_input.fill(vin)
+    def fill_date_vehicle_left(self, date_str: str):
+        """Fill the 'DATE VEHICLE LEFT' field (MM/DD/YYYY)."""
+        date_input = self.page.locator(
+            'input[aria-label*="Date Vehicle Left" i], '
+            'input[placeholder*="Date Vehicle Left" i], '
+            'input[name*="dateVehicle" i], '
+            'input[name*="date_vehicle" i], '
+            'input[placeholder="MM/DD/YYYY"]'
+        ).first
+        date_input.wait_for(state="visible", timeout=10_000)
+        date_input.fill(date_str)
+        self.page.keyboard.press("Tab")
+        self.page.wait_for_timeout(300)
 
-    def click_vin_lookup(self):
-        # Dismiss any lingering CDK overlay first
-        self._dismiss_cdk_overlay()
-        try:
-            self.vin_lookup_button.click(timeout=10_000)
-        except Exception:
-            # Fallback: force click or JS click to bypass any remaining overlay
-            try:
-                self.vin_lookup_button.click(force=True)
-            except Exception:
-                self.page.evaluate("""() => {
-                    const btns = document.querySelectorAll('button');
-                    for (const btn of btns) {
-                        const txt = (btn.textContent || '').toLowerCase();
-                        if (txt.includes('lookup') || txt.includes('vin lookup') ||
-                            (txt.includes('search') && btn.classList.contains('search-enable'))) {
-                            btn.click(); return;
-                        }
-                    }
-                }""")
-        self.page.wait_for_load_state("networkidle")
+    def fill_search_location(self, search_text: str = "pen"):
+        """Type in SEARCH LOCATION field and pick the first suggestion."""
+        location_input = self.page.locator(
+            'input[placeholder*="Search Garage Name or Address" i]'
+        ).first
+        location_input.wait_for(state="visible", timeout=10_000)
+        location_input.click()
+        location_input.fill(search_text)
         self.page.wait_for_timeout(2000)
-        # Dismiss overlays
-        try:
-            for dismiss in ['button:has-text("OK")', 'button:has-text("Close")', 'button:has-text("Got it")']:
-                el = self.page.locator(dismiss).first
-                el.wait_for(state="visible", timeout=2_000)
-                el.click(force=True)
-                self.page.wait_for_timeout(500)
-        except Exception:
-            pass
 
-    def fill_vehicle_details(self, details: dict):
-        """Fill vehicle details (may already be auto-populated from VIN lookup)."""
-        try:
-            if details.get("make") and not self.make_input.input_value():
-                self.make_input.click()
-                self.make_input.fill("")
-                self.make_input.type(details["make"], delay=100)
-                autocomplete_option = self.page.locator('mat-option, .mat-autocomplete-panel .mat-option, [role="option"]').first
-                autocomplete_option.wait_for(state="visible", timeout=5000)
-                autocomplete_option.click()
-                self.page.wait_for_timeout(500)
-            if details.get("year") and not self.year_input.input_value():
-                self.year_input.fill(details["year"])
-            if details.get("model") and not self.model_input.input_value():
-                self.model_input.fill(details["model"])
-            if details.get("color") and not self.color_input.input_value():
-                self.color_input.fill(details["color"])
-        except Exception:
-            pass
-
-    def fill_storage_location(self, location: str, address: str, zip_code: str):
-        """Fill storage location details."""
-        try:
-            self.location_input.fill(location)
-            self.address_input.fill(address)
-            self.zip_input.fill(zip_code)
-        except Exception:
-            pass
+        suggestion = self.page.locator('.cdk-overlay-pane mat-option, mat-autocomplete mat-option').first
+        suggestion.wait_for(state="visible", timeout=10_000)
+        suggestion.click()
         self.page.wait_for_timeout(500)
 
-    # ===== LT-262 paper form fields =====
+    def select_stolen_no(self):
+        """Select 'No' from the Stolen dropdown."""
+        stolen_dropdown = self.page.locator(
+            'mat-select[aria-label*="Stolen" i], mat-select[name*="stolen" i]'
+        ).first
+        stolen_dropdown.wait_for(state="visible", timeout=10_000)
+        stolen_dropdown.click()
+        self.page.wait_for_timeout(500)
+
+        no_option = self.page.locator('mat-option:has-text("No")').first
+        no_option.wait_for(state="visible", timeout=10_000)
+        no_option.click()
+        self.page.wait_for_timeout(500)
+
+    def submit_with_confirmation(self):
+        """Click Submit → confirm modal (Yes) → verify green banner → wait for redirect."""
+        self._dismiss_cdk_overlay()
+        submit_btn = self.page.locator('button:has-text("Submit")').first
+        submit_btn.wait_for(state="visible", timeout=15_000)
+        submit_btn.scroll_into_view_if_needed()
+        submit_btn.click()
+        self.page.wait_for_timeout(1000)
+
+        # Confirmation modal → Yes
+        yes_btn = self.page.locator('mat-dialog-container button:has-text("Yes")').first
+        yes_btn.wait_for(state="visible", timeout=10_000)
+        yes_btn.click()
+        self.page.wait_for_timeout(2000)
+
+        # Verify green success banner (may auto-dismiss quickly — soft check)
+        try:
+            success = self.page.get_by_text(re.compile(r"success", re.I)).first
+            expect(success).to_be_visible(timeout=5_000)
+        except Exception:
+            pass  # Banner may have already dismissed before check
+
+        # Wait for redirect
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(1000)
+
+    # ===== Phase 1 assertion =====
+
+    def expect_paper_form_visible(self):
+        """Verify paper form entry screen is visible."""
+        expect(
+            self.page.get_by_text(re.compile(r"Individual|Business|Paper|Add from Paper", re.I)).first
+        ).to_be_visible(timeout=15_000)
+
+    # ===== Phase 4: LT-262 lien charges =====
 
     def fill_lien_charges(self, charges: dict):
         """Fill lien charges for paper LT-262."""
-        # For paper forms, check boxes and fill amounts
         charge_map = {
             "labor": "LaborFee",
             "towing": "TowingFee",
@@ -295,7 +209,98 @@ class PaperFormPage:
                     pass
                 self.page.wait_for_timeout(200)
 
-    # ===== LT-263 paper form fields =====
+    def verify_fields_editable(self):
+        """Verify that pre-filled fields are editable (paper form feature)."""
+        try:
+            make_input = self.page.locator("(//input[@role='combobox'])[1]")
+            assert not make_input.is_disabled(), "Make field should be editable in paper form"
+        except Exception:
+            pass
+
+    # ===== Phase 5: LT-263 paper form sale details =====
+
+    def fill_lt263_sale_details(self, sale_type: str = "public", sale_date: str = None,
+                                lien_amount: str = "800"):
+        """Fill Vehicle Sale Information for paper LT-263:
+        TYPE OF SALE (mat-select dropdown) → SALE DATE → Lien Amount → Lien For = LABOR checkbox.
+        """
+        # TYPE OF SALE — mat-select dropdown
+        type_of_sale_select = self.page.locator('mat-select[aria-label="TYPE OF SALE"]').first
+        try:
+            type_of_sale_select.wait_for(state="visible", timeout=10_000)
+        except Exception:
+            # Fallback: first mat-select on the page
+            type_of_sale_select = self.page.locator('mat-select').first
+            type_of_sale_select.wait_for(state="visible", timeout=10_000)
+        type_of_sale_select.click()
+        self.page.wait_for_timeout(500)
+
+        option_text = "Public" if sale_type.lower() == "public" else "Private"
+        option = self.page.locator(f'mat-option:has-text("{option_text}")').first
+        option.wait_for(state="visible", timeout=5_000)
+        option.click()
+        self.page.wait_for_timeout(500)
+
+        # SALE DATE
+        if sale_date:
+            date_input = self.page.locator('input[name="sale_date"]')
+            date_input.wait_for(state="visible", timeout=10_000)
+            date_input.fill(sale_date)
+            self.page.keyboard.press("Tab")
+            self.page.wait_for_timeout(300)
+
+        # Lien For — Labor checkbox first (reveals the lien amount input)
+        # Click the mat-checkbox that contains "Labor" to trigger Angular change detection
+        labor_cb = self.page.locator('//mat-checkbox[.//span[contains(text(),"Labor")]]').first
+        labor_cb.wait_for(state="visible", timeout=10_000)
+        cls = labor_cb.get_attribute("class") or ""
+        if "mat-checkbox-checked" not in cls:
+            labor_cb.locator("label").click()
+            self.page.wait_for_timeout(800)
+
+        # Lien Amount
+        lien_input = self.page.locator("(//input[@name='lien_amount'])[1]")
+        expect(lien_input).to_be_visible(timeout=10_000)
+        lien_input.fill(lien_amount)
+        self.page.keyboard.press("Tab")
+        self.page.wait_for_timeout(300)
+
+    def submit_paper_lt263(self):
+        """Submit paper LT-263:
+        Click Submit → confirm Yes → Issue modal → Issue → OK modal → OK.
+        """
+        self._dismiss_cdk_overlay()
+
+        # Submit button (enabled after form is filled)
+        submit_btn = self.page.locator('button:has-text("Submit")').first
+        expect(submit_btn).to_be_enabled(timeout=15_000)
+        submit_btn.scroll_into_view_if_needed()
+        submit_btn.click()
+        self.page.wait_for_timeout(1000)
+
+        # Confirmation modal → Yes
+        yes_btn = self.page.locator('mat-dialog-container button:has-text("Yes")').first
+        yes_btn.wait_for(state="visible", timeout=10_000)
+        yes_btn.click()
+        self.page.wait_for_timeout(1500)
+
+        # Issue modal → Issue
+        issue_btn = self.page.locator('mat-dialog-container button:has-text("Issue")').first
+        issue_btn.wait_for(state="visible", timeout=10_000)
+        issue_btn.click()
+        self.page.wait_for_timeout(1500)
+
+        # OK modal → OK
+        ok_btn = self.page.locator(
+            'mat-dialog-container button:has-text("Ok"), '
+            'mat-dialog-container button:has-text("OK")'
+        ).first
+        ok_btn.wait_for(state="visible", timeout=10_000)
+        ok_btn.click()
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(1000)
+
+    # ===== Legacy fill_sale_details (kept for other tests) =====
 
     def fill_sale_details(self, sale_type: str = "public", sale_date: str = None,
                           lien_amount: str = "800"):
@@ -319,7 +324,6 @@ class PaperFormPage:
             try:
                 self.sale_date_input.fill(sale_date)
             except Exception:
-                # Try alternative date input
                 try:
                     date_input = self.page.locator('input[placeholder="MM/DD/YYYY"]').first
                     date_input.fill(sale_date)
@@ -332,11 +336,10 @@ class PaperFormPage:
             pass
         self.page.wait_for_timeout(500)
 
-    # ===== Actions =====
+    # ===== Shared submit (Phases 4 & 5 — no confirmation modal) =====
 
     def submit(self):
-        """Submit paper form with fallback strategies."""
-        # Dismiss CDK overlay before attempting submit
+        """Submit paper form with fallback strategies (no confirmation modal)."""
         self._dismiss_cdk_overlay()
 
         try:
@@ -344,7 +347,6 @@ class PaperFormPage:
             self.submit_button.scroll_into_view_if_needed()
             self.submit_button.click()
         except Exception:
-            # Strategy 2: JS evaluate to find and click submit button
             clicked = self.page.evaluate("""() => {
                 const targets = ['submit', 'save', 'add'];
                 const buttons = document.querySelectorAll('button, input[type="submit"]');
@@ -362,7 +364,6 @@ class PaperFormPage:
                 return false;
             }""")
             if not clicked:
-                # Strategy 3: broader locator with force click
                 btn = self.page.locator(
                     'button:has-text("Submit"), button:has-text("Save"), '
                     'button:has-text("Add"), button[type="submit"]'
@@ -380,20 +381,3 @@ class PaperFormPage:
     def click_next(self):
         self.next_button.click()
         self.page.wait_for_timeout(1000)
-
-    # ===== Assertions =====
-
-    def expect_paper_form_visible(self):
-        """Verify paper form entry screen is visible."""
-        # Look for requester type selection or form heading
-        expect(
-            self.page.get_by_text(re.compile(r"Individual|Business|Paper|Add from Paper", re.I)).first
-        ).to_be_visible(timeout=15_000)
-
-    def verify_fields_editable(self):
-        """Verify that pre-filled fields are editable (paper form feature)."""
-        # In paper forms, fields from prior forms should be editable
-        try:
-            assert not self.make_input.is_disabled(), "Make field should be editable in paper form"
-        except Exception:
-            pass

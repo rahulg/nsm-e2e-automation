@@ -60,7 +60,7 @@ class StaffDashboardPage:
 
     def _wait_for_sidebar(self):
         self._dismiss_cdk_overlay()
-        self.lt260_nav_link.wait_for(state="visible", timeout=15_000)
+        expect(self.lt260_nav_link).to_be_visible(timeout=20_000)
 
     def _click_nav_link(self, link_locator, href_pattern: str = None):
         """Click a sidebar nav link with CDK overlay fallback."""

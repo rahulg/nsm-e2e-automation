@@ -1,21 +1,25 @@
 """
-E2E-025: Paper Form Submitted Date Pipeline
-Add paper LT-260, verify submitted date recorded, process and verify pipeline not blocked.
+E2E-025: Paper Form Submitted Date
+SP: Add from Paper LT-260 → Record Mailed Payment →
+SP: LT-260 To Process → verify "Date Submitted" = today → Issue LT-260C → Processed
 
 Phases:
-  1. [Staff Portal] Add paper LT-260, verify submitted date is recorded
-  2. [Staff Portal] Process paper LT-260, verify pipeline is not blocked by date
+  1. [Staff Portal] Add paper LT-260 via "Add from Paper"
+  2. [Staff Portal] Record mailed payment
+  3. [Staff Portal] LT-260 To Process → search VIN → verify Date Submitted = today →
+                    Issue LT-260C → confirm → status=Processed
 """
 
 import re
+from datetime import datetime
 
 import pytest
 from playwright.sync_api import BrowserContext, expect
 
 from src.config.env import ENV
 from src.config.test_data import (
-    APPROX_VEHICLE_VALUE,
-    STORAGE_LOCATION_NAME,
+    STANDARD_SALE_DATA,
+    MAILED_PAYMENT,
 )
 from src.helpers.data_helper import (
     generate_vin,
@@ -24,12 +28,12 @@ from src.helpers.data_helper import (
     generate_address,
     generate_person,
     past_date,
-    today_date,
 )
 from src.pages.staff_portal.dashboard_page import StaffDashboardPage
 from src.pages.staff_portal.lt260_listing_page import Lt260ListingPage
 from src.pages.staff_portal.form_processing_page import FormProcessingPage
 from src.pages.staff_portal.paper_form_page import PaperFormPage
+from src.pages.staff_portal.payments_page import StaffPaymentsPage
 
 
 # ─── Shared test data ───
@@ -43,7 +47,6 @@ SP_DASHBOARD_URL = re.sub(r"/login$", "/pages/ncdot-notice-and-storage/dashboard
 
 
 def go_to_staff_dashboard(page):
-    """Navigate to Staff Portal dashboard."""
     page.goto(SP_DASHBOARD_URL, timeout=60_000)
     page.wait_for_load_state("networkidle")
 
@@ -53,66 +56,74 @@ def go_to_staff_dashboard(page):
 @pytest.mark.high
 @pytest.mark.paper_form
 class TestE2E025PaperFormSubmittedDate:
-    """E2E-025: Paper form submitted date — verify date recorded and pipeline unblocked"""
+    """E2E-025: Paper form — verify Date Submitted column = today after Add from Paper"""
 
     # ========================================================================
-    # PHASE 1: Staff Portal — Add paper LT-260 and verify submitted date
+    # PHASE 1: Staff Portal — Add paper LT-260
     # ========================================================================
-    def test_phase_1_add_paper_lt260_verify_date(self, staff_context: BrowserContext):
-        """Phase 1: [Staff Portal] Add paper LT-260, verify submitted date recorded"""
+    def test_phase_1_staff_portal_add_paper_lt260(self, staff_context: BrowserContext):
+        """Phase 1: [Staff Portal] Add paper LT-260 via 'Add from Paper'
+        Flow: LT-260 listing → Add from Paper → modal (VIN + Next) →
+              fill Make, Year, DATE VEHICLE LEFT, SEARCH LOCATION, Stolen=No →
+              Submit → Yes → green banner → redirect to details page
+        """
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
+
             staff_dashboard = StaffDashboardPage(page)
             lt260_listing = Lt260ListingPage(page)
             paper_form = PaperFormPage(page)
 
-            # Navigate to LT-260 listing and click "Add from Paper"
             staff_dashboard.navigate_to_lt260_listing()
             lt260_listing.click_add_from_paper()
 
-            # Paper form entry screen
-            paper_form.expect_paper_form_visible()
-            paper_form.select_requester_type("Individual")
+            paper_form.fill_modal_vin_and_next(TEST_VIN)
 
-            # Enter VIN and lookup
-            paper_form.enter_vin(TEST_VIN)
-            paper_form.click_vin_lookup()
-
-            # Fill vehicle details
-            paper_form.fill_vehicle_details(VEHICLE)
-
-            # Fill storage location
-            paper_form.fill_storage_location(STORAGE_LOCATION_NAME, ADDRESS["street"], ADDRESS["zip"])
-
-            # Submit paper LT-260
-            paper_form.submit()
-            page.wait_for_timeout(2000)
-
-            # Verify submitted date is recorded on the listing
-            staff_dashboard.navigate_to_lt260_listing()
-            lt260_listing.click_to_process_tab()
-            lt260_listing.search_by_vin(TEST_VIN)
-
-            # Check that submitted date column shows today's date
-            try:
-                date_cell = page.locator(
-                    f'text=/{today_date()}/i, td:has-text("{today_date()}")'
-                ).first
-                date_cell.wait_for(state="visible", timeout=5_000)
-            except Exception:
-                pass  # Date format may differ
+            paper_form.fill_year("2018")
+            paper_form.fill_make("TOY")
+            paper_form.fill_date_vehicle_left(past_date(30))
+            paper_form.fill_search_location("Garage")
+            paper_form.select_stolen_no()
+            paper_form.submit_with_confirmation()
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 2: Staff Portal — Process and verify pipeline not blocked
+    # PHASE 2: Staff Portal — Record mailed payment
     # ========================================================================
-    def test_phase_2_process_verify_pipeline(self, staff_context: BrowserContext):
-        """Phase 2: [Staff Portal] Process paper LT-260 — pipeline should not be blocked"""
+    def test_phase_2_staff_portal_record_payment(self, staff_context: BrowserContext):
+        """Phase 2: [Staff Portal] Record mailed payment via Payments listing.
+        Flow: Payments listing → Record Mailed Payment → enter VIN → Check → submit
+        """
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
+
+            staff_dashboard = StaffDashboardPage(page)
+            payments = StaffPaymentsPage(page)
+
+            staff_dashboard.navigate_to_payments()
+            payments.record_mailed_payment(
+                vin=TEST_VIN,
+                payer_name=MAILED_PAYMENT["payer_name"],
+                check_number=MAILED_PAYMENT["check_number"],
+            )
+        finally:
+            page.close()
+
+    # ========================================================================
+    # PHASE 3: Staff Portal — LT-260 To Process → verify Date Submitted → Issue LT-260C
+    # ========================================================================
+    def test_phase_3_staff_portal_issue_lt260c(self, staff_context: BrowserContext):
+        """Phase 3: [Staff Portal] LT-260 listing → search VIN →
+        verify Date Submitted column = today → click → Issue LT-260C →
+        confirm modal (Issue) → green banner → status = Processed.
+        """
+        page = staff_context.new_page()
+        try:
+            go_to_staff_dashboard(page)
+
             staff_dashboard = StaffDashboardPage(page)
             lt260_listing = Lt260ListingPage(page)
             form_processing = FormProcessingPage(page)
@@ -120,24 +131,29 @@ class TestE2E025PaperFormSubmittedDate:
             staff_dashboard.navigate_to_lt260_listing()
             lt260_listing.click_to_process_tab()
             lt260_listing.search_by_vin(TEST_VIN)
+
+            # Verify "Date Submitted" column shows today's date (MM-DD-YYYY format)
+            today = datetime.now().strftime("%m-%d-%Y")
+            date_submitted = page.locator(
+                f"//td[contains(@class,'datesubmitted') or contains(@class,'submittedDate') or "
+                f"contains(@class,'date')]//span[contains(text(),'{today}')] | "
+                f"//td//span[contains(text(),'{today}')]"
+            ).first
+            expect(date_submitted).to_be_visible(timeout=10_000)
+
             lt260_listing.select_application(0)
             form_processing.expect_detail_page_visible()
 
-            # Verify owners check is visible (pipeline not blocked)
-            lt260_listing.verify_owners_check_visible()
+            # Click Issue LT-260C
+            lt260_listing.issue_lt260c()
 
-            # Process — auto-issuance or manual
-            try:
-                lt260_listing.verify_auto_issuance()
-            except Exception:
-                lt260_listing.issue_lt260c()
+            # Confirmation modal → Issue
+            issue_btn = page.locator('mat-dialog-container button:has-text("Issue")').first
+            issue_btn.wait_for(state="visible", timeout=10_000)
+            issue_btn.click()
+            page.wait_for_timeout(2000)
 
-            # Verify no pipeline-blocked errors
-            try:
-                error = page.locator('text=/blocked|pipeline.*error|cannot.*process/i').first
-                error.wait_for(state="visible", timeout=3_000)
-                pytest.fail("Pipeline should not be blocked for paper form LT-260")
-            except Exception:
-                pass  # Expected: no blocking errors
+            form_processing.expect_issued_success_toast()
+            form_processing.expect_status_processed()
         finally:
             page.close()

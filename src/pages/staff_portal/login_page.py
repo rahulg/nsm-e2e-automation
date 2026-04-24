@@ -1,3 +1,5 @@
+import re
+
 from playwright.sync_api import Page
 from src.config.env import ENV
 
@@ -13,9 +15,13 @@ class StaffLoginPage:
     def login(self, username: str = None, password: str = None):
         self.goto()
 
-        # Step 1: Click "Log in with" button
+        # Step 1: Click "Log in with" button — leads to IC Login intermediate page
         self.page.locator('button:has-text("Log in with")').click()
-        self.page.wait_for_timeout(1000)
+        self.page.wait_for_load_state("networkidle")
+
+        # Step 2: Click Expertly login image on intermediate page
+        self.page.locator("(//img[@alt='Expertly'])[2]").click()
+        self.page.locator("input#loginId").wait_for(state="visible", timeout=30_000)
 
         # Step 2: Enter username
         self.page.locator("input#loginId").fill(username or ENV.STAFF_PORTAL_USERNAME)
@@ -23,6 +29,7 @@ class StaffLoginPage:
         # Step 3: Enter password
         self.page.locator("input#password-box-id").fill(password or ENV.STAFF_PORTAL_PASSWORD)
 
-        # Step 4: Click "Log In"
+        # Step 4: Click "Log In" — wait for redirect back to the portal
         self.page.locator('button:has-text("Log In")').click()
-        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_url(re.compile(r"verifi\.dev", re.I), timeout=60_000)
+        self.page.wait_for_load_state("domcontentloaded")

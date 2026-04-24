@@ -126,36 +126,34 @@ class Lt263ListingPage:
 
     def search_by_vin(self, vin: str):
         self._dismiss_cdk_overlay()
+
+        # Click "Show Filters" to reveal column filter fields
+        show_filters_btn = self.page.locator('button:has-text("Show Filters")').first
         try:
-            self.search_input.wait_for(state="visible", timeout=10_000)
+            show_filters_btn.wait_for(state="visible", timeout=5_000)
+            show_filters_btn.click()
+            self.page.wait_for_timeout(1000)
         except Exception:
-            pass
-        self.search_input.fill("")
-        self.page.wait_for_timeout(300)
-        self.search_input.fill(vin)
-        self.search_input.press("Enter")
+            pass  # Filters may already be visible
+
+        # Enter VIN in the VIN column filter field
+        vin_filter = self.page.locator('input[name="vin"]').first
+        try:
+            vin_filter.wait_for(state="visible", timeout=5_000)
+            vin_filter.fill("")
+            self.page.wait_for_timeout(300)
+            vin_filter.fill(vin)
+            self.page.wait_for_timeout(500)
+            vin_filter.press("Enter")
+        except Exception:
+            # Fallback to old search input
+            self.search_input.fill("")
+            self.page.wait_for_timeout(300)
+            self.search_input.fill(vin)
+            self.search_input.press("Enter")
+
         self.page.wait_for_load_state("networkidle")
         self.page.wait_for_timeout(2000)
-
-        # If search didn't filter results, retry with type()
-        try:
-            self.application_rows.first.wait_for(state="visible", timeout=5_000)
-            first_row = self.application_rows.first.text_content() or ""
-            if vin not in first_row:
-                self.search_input.fill("")
-                self.page.wait_for_timeout(500)
-                self.search_input.type(vin, delay=50)
-                self.page.wait_for_timeout(1000)
-                self.search_input.press("Enter")
-                self.page.wait_for_load_state("networkidle")
-                self.page.wait_for_timeout(2000)
-
-                # Retry 2: JS-based Angular event dispatch
-                first_row = self.application_rows.first.text_content() or ""
-                if vin not in first_row:
-                    self._js_search(vin)
-        except Exception:
-            pass
 
     # ===== Detail page assertions =====
 
@@ -179,15 +177,43 @@ class Lt263ListingPage:
 
     # ===== Actions =====
 
-    def generate_lt265(self):
-        """Click 'Generate LT-265' button on the detail page."""
+    def generate_lt265(self, expected_vin: str = None):
+        """Click 'Generate LT-265' under 'Description Of Vehicle' section (not the header button),
+        then handle the Issue modal and the confirmation modal."""
         self._dismiss_cdk_overlay()
-        expect(self.generate_lt265_button).to_be_visible(timeout=10_000)
+
+        # Target the button that appears AFTER the "Description Of Vehicle" heading.
+        # Use the last occurrence to avoid clicking the sticky header button.
+        btn = self.page.locator('button:has-text("Generate LT-265")').last
+        btn.wait_for(state="visible", timeout=10_000)
+        btn.scroll_into_view_if_needed()
         try:
-            self.generate_lt265_button.click(timeout=10_000)
+            btn.click(timeout=10_000)
         except Exception:
             self._dismiss_cdk_overlay()
-            self.generate_lt265_button.click(force=True)
+            btn.click(force=True)
+        self.page.wait_for_timeout(1500)
+
+        # First modal — click "Issue" button
+        issue_btn = self.page.locator('mat-dialog-container button:has-text("Issue")').first
+        issue_btn.wait_for(state="visible", timeout=10_000)
+        issue_btn.click()
+        self.page.wait_for_timeout(1500)
+
+        # Second modal — "LT-265 form is issued and VIN ... is approved for sale."
+        if expected_vin:
+            pattern = re.compile(
+                rf"LT-265 form is issued and VIN\s+{re.escape(expected_vin)}", re.I
+            )
+        else:
+            pattern = re.compile(r"LT-265 form is issued and VIN", re.I)
+        msg = self.page.get_by_text(pattern).first
+        msg.wait_for(state="visible", timeout=15_000)
+
+        ok_btn = self.page.locator('mat-dialog-container button:has-text("Ok"), '
+                                   'mat-dialog-container button:has-text("OK")').first
+        ok_btn.wait_for(state="visible", timeout=10_000)
+        ok_btn.click()
         self.page.wait_for_load_state("networkidle")
         self.page.wait_for_timeout(2000)
 

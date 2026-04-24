@@ -96,10 +96,11 @@ class TestE2E008StolenVehicleLockout:
             page.close()
 
     # ========================================================================
-    # PHASE 2: Staff Portal — Verify stolen, save as stolen, download CMS
+    # PHASE 2: Staff Portal — Edit LT-260, set Stolen=Yes, save, download CMS
     # ========================================================================
     def test_phase_2_staff_portal_mark_stolen(self, staff_context: BrowserContext):
-        """Phase 2: [Staff Portal] Verify stolen indicator = Yes, save as stolen"""
+        """Phase 2: [Staff Portal] LT-260 listing → search VIN → open → Edit →
+        select Stolen=Yes → Save → verify status=Stolen → Download for CMS → green banner"""
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
@@ -114,50 +115,72 @@ class TestE2E008StolenVehicleLockout:
             lt260_listing.select_application(0)
             form_processing.expect_detail_page_visible()
 
-            # Verify stolen indicator shows "Yes"
-            lt260_listing.verify_stolen_indicator_yes()
+            # Edit → select Stolen = Yes → Save
+            form_processing.click_edit()
+            form_processing.select_stolen_yes()
+            form_processing.click_save()
 
-            # Save as stolen
-            lt260_listing.save_as_stolen()
+            # Verify status = Stolen on detail page
+            form_processing.expect_status_stolen()
 
-            # Download for CMS
+            # Download for CMS → green banner
             lt260_listing.download_for_cms()
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 3: Staff Portal — Verify in Stolen tab
+    # PHASE 3: Staff Portal — Stolen tab → verify status + Correspondence History LT-260D
     # ========================================================================
     def test_phase_3_staff_portal_verify_stolen_tab(self, staff_context: BrowserContext):
-        """Phase 3: [Staff Portal] Verify application in Stolen tab"""
+        """Phase 3: [Staff Portal] LT-260 listing → Stolen tab → search VIN → open →
+        verify status=Stolen → View Correspondence/Documents → Correspondence History
+        modal → LT-260D entry"""
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
 
             staff_dashboard = StaffDashboardPage(page)
             lt260_listing = Lt260ListingPage(page)
+            form_processing = FormProcessingPage(page)
 
             staff_dashboard.navigate_to_lt260_listing()
             lt260_listing.click_stolen_tab()
             lt260_listing.search_by_vin(TEST_VIN)
             lt260_listing.expect_applications_visible()
+            lt260_listing.select_application(0)
+
+            # Verify status = Stolen on detail page
+            form_processing.expect_status_stolen()
+
+            # Verify Correspondence History modal has LT-260D entry
+            lt260_listing.verify_correspondence_lt260d()
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 4: Public Portal — Verify file locked
+    # PHASE 4: Public Portal — Search VIN, verify status=Stolen, no action buttons
     # ========================================================================
     def test_phase_4_public_portal_verify_locked(self, public_context: BrowserContext):
-        """Phase 4: [Public Portal] File locked — no LT-262 or further action available"""
+        """Phase 4: [Public Portal] Search same VIN → status=Stolen →
+        no action buttons (no Submit LT-262 / LT-263)"""
         page = public_context.new_page()
         try:
             go_to_public_dashboard(page)
 
             dashboard = PublicDashboardPage(page)
+            dashboard.select_business()
+
             dashboard.click_notice_storage_tab()
+            page.wait_for_timeout(1000)
+            dashboard.search_by_vin(TEST_VIN)
+            page.wait_for_timeout(2000)
             dashboard.select_application(0)
 
-            # File should be locked — no submit buttons for LT-262/LT-263
-            dashboard.expect_file_locked()
+            # Verify status = Stolen
+            expect(page.get_by_text(re.compile(r"\bStolen\b", re.I)).first).to_be_visible(timeout=15_000)
+
+            # Verify no action buttons present
+            expect(page.locator('button:has-text("Submit LT-262"), a:has-text("Submit LT-262")')).to_have_count(0, timeout=5_000)
+            expect(page.locator('button:has-text("Submit LT-263"), a:has-text("Submit LT-263")')).to_have_count(0, timeout=5_000)
         finally:
             page.close()

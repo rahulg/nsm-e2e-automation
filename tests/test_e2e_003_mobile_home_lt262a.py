@@ -12,16 +12,12 @@ Phases:
 """
 
 import re
-from pathlib import Path
 
 import pytest
 from playwright.sync_api import BrowserContext, expect
 
 from src.config.env import ENV
 from src.config.test_data import (
-    VIN_MANUFACTURED_HOME,
-    STANDARD_LIEN_CHARGES,
-    SAMPLE_DOC_PATH,
     APPROX_VEHICLE_VALUE,
     STORAGE_LOCATION_NAME,
 )
@@ -43,9 +39,9 @@ from src.pages.staff_portal.form_processing_page import FormProcessingPage
 
 # ─── Shared test data ───
 # Manufactured Home vehicle — body type must be "Manufactured Home" for LT-262A path
-TEST_VIN = VIN_MANUFACTURED_HOME if VIN_MANUFACTURED_HOME != "PLACEHOLDER_MFH" else generate_vin()
+TEST_VIN = generate_vin()
 VEHICLE = {
-    "make": "Clayton",
+    "make": "Ford",
     "year": "2010",
     "model": "Modular",
     "color": "Beige",
@@ -80,7 +76,9 @@ class TestE2E003MobileHomeLt262a:
     # PHASE 1: Public Portal — Submit LT-260 for manufactured home
     # ========================================================================
     def test_phase_1_public_portal_submit_lt260(self, public_context: BrowserContext):
-        """Phase 1: [Public Portal] Submit LT-260 with body type = Manufactured Home"""
+        """Phase 1: [Public Portal] Submit LT-260 with body type = Manufactured Home.
+        Same as E2E-001 Phase 1 — VIN modal handled at submit via submit_with_vin_image().
+        """
         page = public_context.new_page()
         try:
             go_to_public_dashboard(page)
@@ -91,7 +89,6 @@ class TestE2E003MobileHomeLt262a:
 
             lt260 = Lt260FormPage(page)
             lt260.enter_vin(TEST_VIN)
-            lt260.click_vin_lookup()
             lt260.fill_vehicle_details(VEHICLE)
             lt260.fill_date_vehicle_left(past_date(30))
             lt260.fill_license_plate(PLATE)
@@ -100,16 +97,19 @@ class TestE2E003MobileHomeLt262a:
             lt260.fill_storage_location(STORAGE_LOCATION_NAME, ADDRESS["street"], ADDRESS["zip"])
             lt260.fill_authorized_person(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
             lt260.accept_terms_and_sign(PERSON["name"], PERSON["email"])
-            lt260.submit()
+            lt260.submit_with_vin_image()
             page.wait_for_timeout(2000)
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 2: Staff Portal — Process LT-260
+    # PHASE 2: Staff Portal — Process LT-260 (Rented Mobile Home)
     # ========================================================================
     def test_phase_2_staff_portal_process_lt260(self, staff_context: BrowserContext):
-        """Phase 2: [Staff Portal] Process LT-260 — auto-issuance or manual based on owners"""
+        """Phase 2: [Staff Portal] Process LT-260 — same as E2E-001 Phase 2 but select
+        RENTED radio for Rented Mobile Home before saving.
+        Edit → select RENTED → add owner → stolen=No → save → Issue 160B and 260A.
+        """
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
@@ -120,18 +120,38 @@ class TestE2E003MobileHomeLt262a:
 
             staff_dashboard.navigate_to_lt260_listing()
             lt260_listing.click_to_process_tab()
-            lt260_listing.search_by_vin(TEST_VIN)
+
+            # Retry search up to 3 times — new submission may not be indexed immediately
+            for attempt in range(3):
+                lt260_listing.search_by_vin(TEST_VIN)
+                try:
+                    lt260_listing.vin_links.first.wait_for(state="visible", timeout=8_000)
+                    break
+                except Exception:
+                    if attempt < 2:
+                        page.wait_for_timeout(5000)
+                        page.reload()
+                        page.wait_for_load_state("networkidle")
+                        lt260_listing.click_to_process_tab()
+
             lt260_listing.select_application(0)
 
             form_processing.expect_detail_page_visible()
-            lt260_listing.verify_owners_check_visible()
+            form_processing.click_edit()
 
-            # Verify auto-issuance happened (or manually process)
-            try:
-                lt260_listing.verify_auto_issuance()
-            except Exception:
-                # If no auto-issuance, manually issue LT-260C
-                lt260_listing.issue_lt260c()
+            # Select RENTED radio for Rented Mobile Home (mobile home specific field)
+            form_processing.select_rented_mobile_home()
+
+            # Add owner → stolen=No → save
+            form_processing.add_owner(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
+            form_processing.select_stolen_no()
+            form_processing.click_save()
+
+            # Issue 160B and 260A
+            form_processing.issue_160b_and_260a()
+
+            form_processing.expect_issued_success_toast()
+            form_processing.expect_status_processed()
         finally:
             page.close()
 
@@ -139,109 +159,112 @@ class TestE2E003MobileHomeLt262a:
     # PHASE 3: Public Portal — Submit LT-262A (mobile home form)
     # ========================================================================
     def test_phase_3_public_portal_submit_lt262a(self, public_context: BrowserContext):
-        """Phase 3: [Public Portal] Verify LT-262A available (not LT-262), submit with payment.
+        """Phase 3: [Public Portal] Search VIN → Submit LT-262A → navigate sections via Next.
 
-        With random VINs (no STARS 'Manufactured Home' body type), the system may
-        show standard LT-262 instead. In that case, fall back to LT-262 flow.
+        Sections A–D : Next (no data entry)
+        Section E    : Notice of Sale — date (+21 days), address, place of sale → Next
+        Section F    : Phone → Next
+        Section G    : Next
+        Terms        : check all → name → date → Submit
+        Verify green banner and status = 'LT-262A Submitted' on dashboard.
         """
         page = public_context.new_page()
         try:
             go_to_public_dashboard(page)
 
             dashboard = PublicDashboardPage(page)
+            dashboard.select_business()
             dashboard.click_notice_storage_tab()
+            dashboard.search_by_vin(TEST_VIN)
+            page.wait_for_timeout(1000)
             dashboard.select_application(0)
-            dashboard.expect_application_processed()
 
-            # Check if LT-262A is available
-            lt262a_btn = page.locator('button:has-text("Submit LT-262A"), a:has-text("Submit LT-262A")').first
-            use_lt262a = False
-            try:
-                lt262a_btn.wait_for(state="visible", timeout=5_000)
-                use_lt262a = True
-            except Exception:
-                pass
+            # Click Submit LT-262A
+            dashboard.click_submit_lt262a()
 
-            if use_lt262a:
-                dashboard.click_submit_lt262a()
-                lt262a = Lt262aFormPage(page)
-                lt262a.expect_form_visible()
-                lt262a.fill_mobile_home_details(
-                    lot_number="42",
-                    park_name="Sunny Acres Mobile Park",
-                    landlord_name="John Landlord",
-                )
-                lt262a.fill_lien_charges(STANDARD_LIEN_CHARGES)
-                lt262a.fill_additional_details(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
-                lt262a.upload_documents([SAMPLE_DOC_PATH])
-                lt262a.accept_terms_and_sign(PERSON["name"])
-                lt262a.finish_and_pay()
-            else:
-                # Fallback to standard LT-262 for random VINs
-                from src.pages.public_portal.lt262_form_page import Lt262FormPage
-                dashboard.click_submit_lt262()
-                lt262 = Lt262FormPage(page)
-                lt262.expect_form_tabs_visible()
-                lt262.fill_lien_charges(STANDARD_LIEN_CHARGES)
-                lt262.fill_date_of_storage(past_date(30))
-                lt262.fill_person_authorizing(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
-                lt262.fill_additional_details(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
-                lt262.upload_documents([SAMPLE_DOC_PATH])
-                lt262.accept_terms_and_sign(PERSON["name"])
-                lt262.finish_and_pay()
+            lt262a = Lt262aFormPage(page)
+            lt262a.expect_form_visible()
+
+            # Sections A–D: click Next 4 times (no data entry)
+            lt262a.click_next_sections(4)
+
+            # Section E: Notice of Sale — date (+21 days), address, zip, place of sale
+            lt262a.fill_section_e_notice_of_sale(
+                address=ADDRESS["street"],
+                place_of_sale="Test Storage Facility",
+                zip_code=ADDRESS["zip"],
+            )
+
+            # Section F: Phone → Next
+            lt262a.fill_phone(PERSON["phone"])
+
+            # Section G: Next
+            lt262a.click_next_sections(1)
+
+            # Terms & Conditions: check all → name → date → Submit
+            lt262a.accept_terms_and_submit(PERSON["name"])
+
+            # Verify green banner
+            lt262a.expect_success_banner()
+
+            # Verify status on dashboard
             page.wait_for_timeout(2000)
+            expect(page.get_by_text(re.compile(r"LT-262A Submitted|262A Submitted", re.I)).first).to_be_visible(timeout=15_000)
         finally:
             page.close()
 
     # ========================================================================
     # PHASE 4: Staff Portal — Process LT-262A → issue LT-265 directly
     # ========================================================================
+    # PHASE 4: Staff Portal — Issue LT-265 and LT-265A from LT-262A listing
+    # ========================================================================
     def test_phase_4_staff_portal_process_lt262a(self, staff_context: BrowserContext):
-        """Phase 4: [Staff Portal] Process LT-262A → directly issue LT-265 (skip LT-263).
-
-        With random VINs, Phase 3 may have fallen back to standard LT-262.
-        In that case, process via LT-262 listing instead of LT-262A.
+        """Phase 4: [Staff Portal] LT-262A listing → filter by VIN → click application →
+        Issue LT-265 and LT-265A → confirm modal → green banner → status = Processed.
         """
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
 
             staff_dashboard = StaffDashboardPage(page)
+            lt262a_listing = Lt262aListingPage(page)
 
-            # Try LT-262A listing first
-            try:
-                lt262a_listing = Lt262aListingPage(page)
-                staff_dashboard.navigate_to_lt262a_listing()
-                lt262a_listing.click_to_process_tab()
-                lt262a_listing.search_by_vin(TEST_VIN)
-                lt262a_listing.select_application(0)
-                lt262a_listing.verify_vehicle_details_visible()
-                lt262a_listing.issue_lt265()
-            except Exception:
-                # Fallback: process via standard LT-262 listing
-                from src.pages.staff_portal.lt262_listing_page import Lt262ListingPage
-                lt262_listing = Lt262ListingPage(page)
-                staff_dashboard.navigate_to_lt262_listing()
-                lt262_listing.click_to_process_tab()
-                lt262_listing.search_by_vin(TEST_VIN)
-                lt262_listing.select_application(0)
-                lt262_listing.verify_lien_details_visible()
-                lt262_listing.verify_owner_details_visible()
-                lt262_listing.issue_lt264()
+            staff_dashboard.navigate_to_lt262a_listing()
+            lt262a_listing.search_by_vin(TEST_VIN)
+            lt262a_listing.select_application(0)
+
+            lt262a_listing.issue_lt265_and_lt265a()
+
+            lt262a_listing.expect_success_banner()
+            lt262a_listing.expect_status_processed()
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 5: Public Portal — Verify vehicle in Sold tab
+    # PHASE 5: Staff Portal — Verify in Sold listing + LT-265A in correspondence
     # ========================================================================
-    def test_phase_5_public_portal_verify_sold(self, public_context: BrowserContext):
-        """Phase 5: [Public Portal] Vehicle in Sold tab, LT-265 downloadable, no LT-263 step"""
-        page = public_context.new_page()
+    def test_phase_5_staff_portal_verify_sold(self, staff_context: BrowserContext):
+        """Phase 5: [Staff Portal] Sold listing → filter by VIN → click → status = Processed
+        → View Correspondence/Documents → Correspondence History modal → LT-265A entry.
+        """
+        page = staff_context.new_page()
         try:
-            go_to_public_dashboard(page)
+            go_to_staff_dashboard(page)
 
-            dashboard = PublicDashboardPage(page)
-            dashboard.expect_vehicle_in_sold_tab()
-            dashboard.expect_lt265_downloadable()
+            staff_dashboard = StaffDashboardPage(page)
+            from src.pages.staff_portal.sold_listing_page import SoldListingPage
+            sold_listing = SoldListingPage(page)
+
+            staff_dashboard.navigate_to_sold()
+            sold_listing.search_by_vin(TEST_VIN)
+            sold_listing.select_application(0)
+
+            # Verify Processed status
+            expect(
+                page.get_by_text(re.compile(r"Processed", re.I)).first
+            ).to_be_visible(timeout=15_000)
+
+            # View Correspondence/Documents → verify LT-265A entry (mobile home path)
+            sold_listing.verify_lt265_in_correspondence(entry="LT-265A")
         finally:
             page.close()
