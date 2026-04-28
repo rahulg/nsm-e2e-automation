@@ -74,6 +74,7 @@ jobs:
 
       - name: Authenticate all portals
         run: |
+          mkdir -p auth
           python scripts/save_public_auth.py
           python scripts/save_public_user_b_auth.py
           python scripts/save_staff_auth.py
@@ -95,7 +96,12 @@ jobs:
 
       - name: Generate HTML report
         if: always()
-        run: python scripts/generate_report.py results.json report.html
+        run: |
+          if [ -f results.json ]; then
+            python scripts/generate_report.py results.json report.html
+          else
+            echo "<html><body><h1>No test results — auth or setup failed.</h1></body></html>" > report.html
+          fi
 
       - name: Extract test summary
         if: always()
