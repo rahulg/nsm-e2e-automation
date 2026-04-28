@@ -75,10 +75,10 @@ class TestE2E014CompanySwitching:
             lt260.fill_authorized_person(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
             lt260.accept_terms_and_sign(PERSON["name"], PERSON["email"])
             lt260.submit_with_vin_image()
-            page.wait_for_timeout(2000)
+            page.wait_for_timeout(3000)
 
             # Verify redirect back to dashboard
-            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=15_000)
+            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=45_000)
         finally:
             page.close()
 

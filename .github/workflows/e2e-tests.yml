@@ -29,6 +29,10 @@ env:
   STAFF_USER_B_PASSWORD: ${{ secrets.STAFF_USER_B_PASSWORD }}
   PUBLIC_USER_B_USERNAME: ${{ secrets.PUBLIC_USER_B_USERNAME }}
   PUBLIC_USER_B_PASSWORD: ${{ secrets.PUBLIC_USER_B_PASSWORD }}
+  FISCAL_USER_USERNAME: ${{ secrets.FISCAL_USER_USERNAME }}
+  FISCAL_USER_PASSWORD: ${{ secrets.FISCAL_USER_PASSWORD }}
+  INDIVIDUAL_PUBLIC_USERNAME: ${{ secrets.INDIVIDUAL_PUBLIC_USERNAME }}
+  INDIVIDUAL_PUBLIC_PASSWORD: ${{ secrets.INDIVIDUAL_PUBLIC_PASSWORD }}
 
 permissions:
   contents: write
@@ -67,6 +71,15 @@ jobs:
           fi
           echo "scope=$SCOPE" >> $GITHUB_OUTPUT
           echo "Running test scope: $SCOPE"
+
+      - name: Authenticate all portals
+        run: |
+          python scripts/save_public_auth.py
+          python scripts/save_public_user_b_auth.py
+          python scripts/save_staff_auth.py
+          python scripts/save_lsa_auth.py
+          python scripts/save_fiscal_auth.py
+          python scripts/save_individual_auth.py
 
       - name: Run tests
         id: tests
