@@ -76,7 +76,7 @@
     <h1>NSM E2E Test Report — QA</h1>
     <div class="subtitle">Automated end-to-end test results for NCDOT Notice & Storage Management</div>
     <div class="header-meta">
-      <div class="meta-item"><div class="label">Run Date</div><div class="value">April 29, 2026 at 09:03 AM UTC</div></div>
+      <div class="meta-item"><div class="label">Run Date</div><div class="value">April 30, 2026 at 09:06 AM UTC</div></div>
       <div class="meta-item"><div class="label">Environment</div><div class="value">QA</div></div>
       <div class="meta-item"><div class="label">Duration</div><div class="value">0m 0s</div></div>
       <div class="meta-item"><div class="label">Tests Collected</div><div class="value">42</div></div>
@@ -84,17 +84,17 @@
   </div>
 
   <div class="summary-row">
-    <div class="summary-card pass"><div class="number">42</div><div class="label">Passed</div></div>
-    <div class="summary-card fail"><div class="number">0</div><div class="label">Failed</div></div>
+    <div class="summary-card pass"><div class="number">39</div><div class="label">Passed</div></div>
+    <div class="summary-card fail"><div class="number">3</div><div class="label">Failed</div></div>
     <div class="summary-card warn"><div class="number">172</div><div class="label">Skipped</div></div>
     <div class="summary-card total"><div class="number">42</div><div class="label">Total</div></div>
   </div>
 
-  <div class="result-banner pass">
-    <div class="icon">&#x2705;</div>
+  <div class="result-banner fail">
+    <div class="icon">&#x274C;</div>
     <div>
-      <div class="text">ALL TESTS PASSED</div>
-      <div class="subtext">42 passed, 172 skipped in 0.0s</div>
+      <div class="text">3 TEST(S) FAILED</div>
+      <div class="subtext">39 passed, 172 skipped in 0.0s</div>
     </div>
   </div>
 
@@ -250,26 +250,48 @@
           <td class="num">0.0s</td>
           <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr>
+        <tr class="red-row">
           <td class="num">22</td>
-          <td><strong>Phase 3 Public Portal Submit Lt262A[Chromium]</strong></td>
+          <td><strong>Phase 3 Public Portal Submit Lt262A[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_003_mobile_home_lt262a.py:199: in test_phase_3_public_portal_submit_lt262a
+    lt262a.fill_phone(PERSON[&quot;phone&quot;])
+src/pages/public_portal/lt262a_form_page.py:109: in fill_phone
+    self._click_next()
+src/pages/public_portal/lt262a_form_page.py:25: in _click_next
+    self.next_button.click()
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/sit...</pre></div></details></td>
           <td><code>TestE2E003MobileHomeLt262a</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge pass">PASS</span></td>
+          <td><span class="badge fail">FAIL</span></td>
         </tr>
-        <tr>
+        <tr class="red-row">
           <td class="num">23</td>
-          <td><strong>Phase 4 Staff Portal Process Lt262A[Chromium]</strong></td>
+          <td><strong>Phase 4 Staff Portal Process Lt262A[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_003_mobile_home_lt262a.py:234: in test_phase_4_staff_portal_process_lt262a
+    lt262a_listing.select_application(0)
+src/pages/staff_portal/lt262a_listing_page.py:66: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+  ...</pre></div></details></td>
           <td><code>TestE2E003MobileHomeLt262a</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge pass">PASS</span></td>
+          <td><span class="badge fail">FAIL</span></td>
         </tr>
-        <tr>
+        <tr class="red-row">
           <td class="num">24</td>
-          <td><strong>Phase 5 Staff Portal Verify Sold[Chromium]</strong></td>
+          <td><strong>Phase 5 Staff Portal Verify Sold[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_003_mobile_home_lt262a.py:260: in test_phase_5_staff_portal_verify_sold
+    sold_listing.select_application(0)
+src/pages/staff_portal/sold_listing_page.py:50: in select_application
+    self.vin_links.nth(index).click()
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+    return await se...</pre></div></details></td>
           <td><code>TestE2E003MobileHomeLt262a</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge pass">PASS</span></td>
+          <td><span class="badge fail">FAIL</span></td>
         </tr>
         <tr>
           <td class="num">25</td>
@@ -402,7 +424,7 @@
   </div>
 
   <div class="footer">
-    Generated by NSM E2E Automation &middot; April 29, 2026 at 09:03 AM UTC
+    Generated by NSM E2E Automation &middot; April 30, 2026 at 09:06 AM UTC
   </div>
 
 </div>
