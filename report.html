@@ -76,25 +76,25 @@
     <h1>NSM E2E Test Report — QA</h1>
     <div class="subtitle">Automated end-to-end test results for NCDOT Notice & Storage Management</div>
     <div class="header-meta">
-      <div class="meta-item"><div class="label">Run Date</div><div class="value">May 01, 2026 at 08:56 AM UTC</div></div>
+      <div class="meta-item"><div class="label">Run Date</div><div class="value">May 04, 2026 at 09:14 AM UTC</div></div>
       <div class="meta-item"><div class="label">Environment</div><div class="value">QA</div></div>
       <div class="meta-item"><div class="label">Duration</div><div class="value">0m 0s</div></div>
-      <div class="meta-item"><div class="label">Tests Collected</div><div class="value">42</div></div>
+      <div class="meta-item"><div class="label">Tests Collected</div><div class="value">214</div></div>
     </div>
   </div>
 
   <div class="summary-row">
-    <div class="summary-card pass"><div class="number">29</div><div class="label">Passed</div></div>
-    <div class="summary-card fail"><div class="number">13</div><div class="label">Failed</div></div>
-    <div class="summary-card warn"><div class="number">172</div><div class="label">Skipped</div></div>
-    <div class="summary-card total"><div class="number">42</div><div class="label">Total</div></div>
+    <div class="summary-card pass"><div class="number">169</div><div class="label">Passed</div></div>
+    <div class="summary-card fail"><div class="number">35</div><div class="label">Failed</div></div>
+    <div class="summary-card warn"><div class="number">10</div><div class="label">Skipped</div></div>
+    <div class="summary-card total"><div class="number">214</div><div class="label">Total</div></div>
   </div>
 
   <div class="result-banner fail">
     <div class="icon">&#x274C;</div>
     <div>
-      <div class="text">13 TEST(S) FAILED</div>
-      <div class="subtext">29 passed, 172 skipped in 0.0s</div>
+      <div class="text">35 TEST(S) FAILED</div>
+      <div class="subtext">169 passed, 10 skipped in 0.0s</div>
     </div>
   </div>
 
@@ -103,143 +103,75 @@
     <table>
       <thead><tr><th>#</th><th>Test</th><th>Class</th><th>Duration</th><th>Status</th></tr></thead>
       <tbody>
-        <tr class="red-row">
+        <tr>
           <td class="num">1</td>
-          <td><strong>Phase 1 Public Portal Create Lt260[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:122: in test_phase_1_public_portal_create_lt260
-    page.wait_for_url(re.compile(r&quot;dashboard&quot;, re.I), timeout=15_000)
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:9505: in wait_for_url
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_page.py:580: in wait_for_url
-    return await self._main_frame.wait_for_url(**locals_to_params(locals()))...</pre></div></details></td>
+          <td><strong>Phase 1 Public Portal Create Lt260[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">2</td>
-          <td><strong>Phase 2 Staff Portal Process Lt260[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:145: in test_phase_2_staff_portal_process_lt260
-    lt260_listing.select_application(0)
-src/pages/staff_portal/lt260_listing_page.py:69: in select_application
-    self.vin_links.nth(index).click(force=True)
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in cli...</pre></div></details></td>
+          <td><strong>Phase 2 Staff Portal Process Lt260[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">3</td>
-          <td><strong>Phase 3 Public Portal Submit Lt262[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:192: in test_phase_3_public_portal_submit_lt262
-    dashboard.select_application(0)
-src/pages/public_portal/dashboard_page.py:42: in select_application
-    self.application_list.nth(index).click()
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
-    ret...</pre></div></details></td>
+          <td><strong>Phase 3 Public Portal Submit Lt262[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">4</td>
-          <td><strong>Phase 4 Staff Portal Process Lt262[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:264: in test_phase_4_staff_portal_process_lt262
-    lt262_listing.select_application(0)
-src/pages/staff_portal/lt262_listing_page.py:92: in select_application
-    self.vin_links.nth(index).click(force=True)
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in cli...</pre></div></details></td>
+          <td><strong>Phase 4 Staff Portal Process Lt262[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">5</td>
-          <td><strong>Phase 5 Staff Portal Track Lt264[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:307: in test_phase_5_staff_portal_track_lt264
-    lt262_listing.select_application(0)
-src/pages/staff_portal/lt262_listing_page.py:92: in select_application
-    self.vin_links.nth(index).click(force=True)
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click...</pre></div></details></td>
+          <td><strong>Phase 5 Staff Portal Track Lt264[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">6</td>
-          <td><strong>Phase 5A Public Portal Submit Lt263[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:402: in test_phase_5a_public_portal_submit_lt263
-    dashboard.select_application(0)
-src/pages/public_portal/dashboard_page.py:42: in select_application
-    self.application_list.nth(index).click()
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
-    re...</pre></div></details></td>
+          <td><strong>Phase 5A Public Portal Submit Lt263[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">7</td>
-          <td><strong>Phase 6 Staff Portal Process Lt263[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:516: in test_phase_6_staff_portal_process_lt263
-    lt263_listing.expect_applications_visible()
-src/pages/staff_portal/lt263_listing_page.py:88: in expect_applications_visible
-    expect(self.application_rows.first).to_be_visible(timeout=15_000)
-E   AssertionError: Locator expected to be visible
-E   Actual value: None
-E   Error: element(s) not found 
-E   Call log:
-E     - Expect &quot;to_be_visible&quot; with timeout 15000ms
-E     - waiting for locator(&quot;tab...</pre></div></details></td>
+          <td><strong>Phase 6 Staff Portal Process Lt263[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">8</td>
-          <td><strong>Phase 7 Staff Portal Verify Lt263 On Lt262[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:545: in test_phase_7_staff_portal_verify_lt263_on_lt262
-    lt262_listing.select_application(0)
-src/pages/staff_portal/lt262_listing_page.py:92: in select_application
-    self.vin_links.nth(index).click(force=True)
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162...</pre></div></details></td>
+          <td><strong>Phase 7 Staff Portal Verify Lt263 On Lt262[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">9</td>
-          <td><strong>Phase 8 Staff Portal Verify Sold[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:571: in test_phase_8_staff_portal_verify_sold
-    lt263_listing.expect_applications_visible()
-src/pages/staff_portal/lt263_listing_page.py:88: in expect_applications_visible
-    expect(self.application_rows.first).to_be_visible(timeout=15_000)
-E   AssertionError: Locator expected to be visible
-E   Actual value: None
-E   Error: element(s) not found 
-E   Call log:
-E     - Expect &quot;to_be_visible&quot; with timeout 15000ms
-E     - waiting for locator(&quot;table...</pre></div></details></td>
+          <td><strong>Phase 8 Staff Portal Verify Sold[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">10</td>
-          <td><strong>Phase 9 Public Portal Verify Vehicle Sold[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:612: in test_phase_9_public_portal_verify_vehicle_sold
-    dashboard.select_application(0)
-src/pages/public_portal/dashboard_page.py:42: in select_application
-    self.application_list.nth(index).click()
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
-...</pre></div></details></td>
+          <td><strong>Phase 9 Public Portal Verify Vehicle Sold[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
         <tr>
           <td class="num">11</td>
@@ -487,12 +419,1401 @@ src/pages/staff_portal/sold_listing_page.py:50: in select_application
           <td class="num">0.0s</td>
           <td><span class="badge pass">PASS</span></td>
         </tr>
+        <tr>
+          <td class="num">43</td>
+          <td><strong>Phase 1 Public Portal Submit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E007RejectionResubmission</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">44</td>
+          <td><strong>Phase 2 Staff Portal Reject Lt260[Chromium]</strong></td>
+          <td><code>TestE2E007RejectionResubmission</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">45</td>
+          <td><strong>Phase 3 Staff Portal Verify Rejected[Chromium]</strong></td>
+          <td><code>TestE2E007RejectionResubmission</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">46</td>
+          <td><strong>Phase 4 Public Portal Verify Rejection[Chromium]</strong></td>
+          <td><code>TestE2E007RejectionResubmission</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">47</td>
+          <td><strong>Phase 5 Public Portal Resubmit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E007RejectionResubmission</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">48</td>
+          <td><strong>Phase 6 Staff Portal Process Resubmission[Chromium]</strong></td>
+          <td><code>TestE2E007RejectionResubmission</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">49</td>
+          <td><strong>Phase 1 Public Portal Submit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E008StolenVehicleLockout</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">50</td>
+          <td><strong>Phase 2 Staff Portal Mark Stolen[Chromium]</strong></td>
+          <td><code>TestE2E008StolenVehicleLockout</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">51</td>
+          <td><strong>Phase 3 Staff Portal Verify Stolen Tab[Chromium]</strong></td>
+          <td><code>TestE2E008StolenVehicleLockout</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">52</td>
+          <td><strong>Phase 4 Public Portal Verify Locked[Chromium]</strong></td>
+          <td><code>TestE2E008StolenVehicleLockout</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">53</td>
+          <td><strong>Phase 1 Public Portal Submit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E009VehicleReclaim</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">54</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E009VehicleReclaim</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">55</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262[Chromium]</strong></td>
+          <td><code>TestE2E009VehicleReclaim</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">56</td>
+          <td><strong>Phase 4 Staff Portal Process Lt262[Chromium]</strong></td>
+          <td><code>TestE2E009VehicleReclaim</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">57</td>
+          <td><strong>Phase 5 Public Portal Vehicle Reclaim[Chromium]</strong></td>
+          <td><code>TestE2E009VehicleReclaim</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">58</td>
+          <td><strong>Phase 6 Staff Portal Verify Closed[Chromium]</strong></td>
+          <td><code>TestE2E009VehicleReclaim</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">59</td>
+          <td><strong>Phase 1 Public Portal Submit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E010NoCourtJudgment</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">60</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E010NoCourtJudgment</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">61</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262[Chromium]</strong></td>
+          <td><code>TestE2E010NoCourtJudgment</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">62</td>
+          <td><strong>Phase 4 Staff Portal Process Lt262[Chromium]</strong></td>
+          <td><code>TestE2E010NoCourtJudgment</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">63</td>
+          <td><strong>Phase 5 Staff Portal Track Lt264[Chromium]</strong></td>
+          <td><code>TestE2E010NoCourtJudgment</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">64</td>
+          <td><strong>Phase 6 Public Portal Verify No Action[Chromium]</strong></td>
+          <td><code>TestE2E010NoCourtJudgment</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">65</td>
+          <td><strong>Phase 1 Setup Submit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E011NordisDeliveryBlocked</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">66</td>
+          <td><strong>Phase 2 Staff Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E011NordisDeliveryBlocked</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">67</td>
+          <td><strong>Phase 3 Submit Lt262 And Issue Lt264[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_011_nordis_delivery_blocked.py:134: in test_phase_3_submit_lt262_and_issue_lt264
+    lt262.fill_lien_charges(STANDARD_LIEN_CHARGES)
+src/pages/public_portal/lt262_form_page.py:114: in fill_lien_charges
+    cls = checkbox.get_attribute(&quot;class&quot;) or &quot;&quot;
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:17538: in get_attribute
+    self._sync(self._impl_obj.get_attribute(name=name, timeout=time...</pre></div></details></td>
+          <td><code>TestE2E011NordisDeliveryBlocked</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">68</td>
+          <td><strong>Phase 4 Verify Tracking Status[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_011_nordis_delivery_blocked.py:178: in test_phase_4_verify_tracking_status
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+    ...</pre></div></details></td>
+          <td><code>TestE2E011NordisDeliveryBlocked</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">69</td>
+          <td><strong>Phase 5 Public Portal Lt263 Locked[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_011_nordis_delivery_blocked.py:197: in test_phase_5_public_portal_lt263_locked
+    dashboard.expect_lt263_not_available()
+src/pages/public_portal/dashboard_page.py:205: in expect_lt263_not_available
+    ).to_have_count(0, timeout=5_000)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Locator expected to have count '0'
+E   Actual value: 1 
+E   Call log:
+E     - Expect &quot;to_have_count&quot; with timeout 5000ms
+E     - waiting for locator(&quot;button:has-text(\&quot;Submit LT-263\&quot;), a:ha...</pre></div></details></td>
+          <td><code>TestE2E011NordisDeliveryBlocked</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">70</td>
+          <td><strong>Phase 1 Add Drawdown Funds[Chromium]</strong></td>
+          <td><code>TestE2E012DrawdownRecharge</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">71</td>
+          <td><strong>Phase 2 Verify Drawdown History[Chromium]</strong></td>
+          <td><code>TestE2E012DrawdownRecharge</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">72</td>
+          <td><strong>Phase 1 Admin Submit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E013MultiUserBusiness</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">73</td>
+          <td><strong>Phase 2 Staff Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E013MultiUserBusiness</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">74</td>
+          <td><strong>Phase 3 User B Can See Application[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_013_multi_user_business.py:118: in test_phase_3_user_b_can_see_application
+    dashboard.select_business()
+src/pages/public_portal/dashboard_page.py:82: in select_business
+    biz_item.wait_for(state=&quot;visible&quot;, timeout=10_000)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18670: in wait_for
+    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packag...</pre></div></details></td>
+          <td><code>TestE2E013MultiUserBusiness</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">75</td>
+          <td><strong>Phase 4 Admin Sees All Applications[Chromium]</strong></td>
+          <td><code>TestE2E013MultiUserBusiness</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">76</td>
+          <td><strong>Phase 1 Submit Lt260 Under Business A[Chromium]</strong></td>
+          <td><code>TestE2E014CompanySwitching</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">77</td>
+          <td><strong>Phase 2 Switch To Business B Verify Isolation[Chromium]</strong></td>
+          <td><code>TestE2E014CompanySwitching</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">78</td>
+          <td><strong>Phase 1 Fiscal User Reports Only Sidebar[Chromium]</strong></td>
+          <td><code>TestE2E015FiscalUserRestrictions</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">79</td>
+          <td><strong>Phase 2 Daily Deposit Report Columns[Chromium]</strong></td>
+          <td><code>TestE2E015FiscalUserRestrictions</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">80</td>
+          <td><strong>Phase 1 Verify Dashboard[Chromium]</strong></td>
+          <td><code>TestE2E016LSAFullWorkflow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">81</td>
+          <td><strong>Phase 2 Lt260 Listing[Chromium]</strong></td>
+          <td><code>TestE2E016LSAFullWorkflow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">82</td>
+          <td><strong>Phase 3 User Management[Chromium]</strong></td>
+          <td><code>TestE2E016LSAFullWorkflow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">83</td>
+          <td><strong>Phase 4 Configuration[Chromium]</strong></td>
+          <td><code>TestE2E016LSAFullWorkflow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">84</td>
+          <td><strong>Phase 5 Facility Management[Chromium]</strong></td>
+          <td><code>TestE2E016LSAFullWorkflow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">85</td>
+          <td><strong>Phase 6 Daily Deposit Report[Chromium]</strong></td>
+          <td><code>TestE2E016LSAFullWorkflow</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">86</td>
+          <td><strong>Phase 1 Enter Invalid Vin Save Draft[Chromium]</strong></td>
+          <td><code>TestE2E017InvalidVinDraftResume</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">87</td>
+          <td><strong>Phase 2 Resume Draft And Submit[Chromium]</strong></td>
+          <td><code>TestE2E017InvalidVinDraftResume</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">88</td>
+          <td><strong>Phase 1 Submit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E018DuplicateVinDetection</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">89</td>
+          <td><strong>Phase 2 Duplicate Submission Blocked[Chromium]</strong></td>
+          <td><code>TestE2E018DuplicateVinDetection</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">90</td>
+          <td><strong>Phase 1 Setup Lt260[Chromium]</strong></td>
+          <td><code>TestE2E019PaymentFailureRetry</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">91</td>
+          <td><strong>Phase 2 Submit Lt262 Payit Fails[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_019_payment_failure_retry.py:135: in test_phase_2_submit_lt262_payit_fails
+    lt262.fill_lien_charges(STANDARD_LIEN_CHARGES)
+src/pages/public_portal/lt262_form_page.py:114: in fill_lien_charges
+    cls = checkbox.get_attribute(&quot;class&quot;) or &quot;&quot;
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:17538: in get_attribute
+    self._sync(self._impl_obj.get_attribute(name=name, timeout=timeout))
+...</pre></div></details></td>
+          <td><code>TestE2E019PaymentFailureRetry</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">92</td>
+          <td><strong>Phase 3 Switch To Drawdown Succeeds[Chromium]</strong></td>
+          <td><code>TestE2E019PaymentFailureRetry</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">93</td>
+          <td><strong>Phase 1 Public Portal Create Lt260[Chromium]</strong></td>
+          <td><code>TestE2E020PaperFormRelaxedDates</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">94</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E020PaperFormRelaxedDates</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">95</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262[Chromium]</strong></td>
+          <td><code>TestE2E020PaperFormRelaxedDates</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">96</td>
+          <td><strong>Phase 4 Staff Portal Process Lt262[Chromium]</strong></td>
+          <td><code>TestE2E020PaperFormRelaxedDates</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">97</td>
+          <td><strong>Phase 5 Staff Portal Track Lt264[Chromium]</strong></td>
+          <td><code>TestE2E020PaperFormRelaxedDates</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">98</td>
+          <td><strong>Phase 6 Staff Portal Add Paper Lt263[Chromium]</strong></td>
+          <td><code>TestE2E020PaperFormRelaxedDates</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">99</td>
+          <td><strong>Phase 7 Staff Portal Verify Sold Lt265[Chromium]</strong></td>
+          <td><code>TestE2E020PaperFormRelaxedDates</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">100</td>
+          <td><strong>Phase 1 Public Portal Submit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E021StolenVehicleReset</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">101</td>
+          <td><strong>Phase 2 Staff Portal Mark Stolen[Chromium]</strong></td>
+          <td><code>TestE2E021StolenVehicleReset</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">102</td>
+          <td><strong>Phase 3 Staff Portal Verify Stolen Tab[Chromium]</strong></td>
+          <td><code>TestE2E021StolenVehicleReset</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">103</td>
+          <td><strong>Phase 4 Public Portal Verify Locked[Chromium]</strong></td>
+          <td><code>TestE2E021StolenVehicleReset</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">104</td>
+          <td><strong>Phase 5 Public Portal Resubmit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E021StolenVehicleReset</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">105</td>
+          <td><strong>Phase 6 Staff Portal Process New Lt260[Chromium]</strong></td>
+          <td><code>TestE2E021StolenVehicleReset</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">106</td>
+          <td><strong>Phase 7 Staff Portal Verify Both Records[Chromium]</strong></td>
+          <td><code>TestE2E021StolenVehicleReset</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">107</td>
+          <td><strong>Phase 1 Setup Lt262[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_022_concurrent_staff_actions.py:129: in test_phase_1_setup_lt262
+    lt262.fill_lien_charges(STANDARD_LIEN_CHARGES)
+src/pages/public_portal/lt262_form_page.py:114: in fill_lien_charges
+    cls = checkbox.get_attribute(&quot;class&quot;) or &quot;&quot;
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:17538: in get_attribute
+    self._sync(self._impl_obj.get_attribute(name=name, timeout=timeout))
+/opt/hoste...</pre></div></details></td>
+          <td><code>TestE2E022ConcurrentStaffActions</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">108</td>
+          <td><strong>Phase 2 Verify Lt264 Consistency[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_022_concurrent_staff_actions.py:157: in test_phase_2_verify_lt264_consistency
+    lt262_listing_a.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click...</pre></div></details></td>
+          <td><code>TestE2E022ConcurrentStaffActions</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">109</td>
+          <td><strong>Phase 1 Public Portal Create Lt260[Chromium]</strong></td>
+          <td><code>TestE2E023PayItStatusUpdate</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">110</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E023PayItStatusUpdate</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">111</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262 To Cart[Chromium]</strong></td>
+          <td><code>TestE2E023PayItStatusUpdate</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">112</td>
+          <td><strong>Phase 4 Public Portal Complete Payit Payment[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_023_payit_status_update.py:246: in test_phase_4_public_portal_complete_payit_payment
+    page.wait_for_url(re.compile(r&quot;dashboard&quot;, re.I), timeout=30_000)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:9505: in wait_for_url
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_page.py:580: in wait_for_url
+    return await self._main_frame.wait_for_url(**locals_to_params(locals(...</pre></div></details></td>
+          <td><code>TestE2E023PayItStatusUpdate</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">113</td>
+          <td><strong>Phase 5 Staff Portal Verify Payment Details[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_023_payit_status_update.py:301: in test_phase_5_staff_portal_verify_payment_details
+    vin_entry.wait_for(state=&quot;visible&quot;, timeout=15_000)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18670: in wait_for
+    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:723: in wait_for
+    await self._frame.wait_for_selecto...</pre></div></details></td>
+          <td><code>TestE2E023PayItStatusUpdate</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">114</td>
+          <td><strong>Phase 1 Public Portal Submit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E024CloseFileAttribution</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">115</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E024CloseFileAttribution</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">116</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262[Chromium]</strong></td>
+          <td><code>TestE2E024CloseFileAttribution</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">117</td>
+          <td><strong>Phase 4 Staff Portal Process Lt262[Chromium]</strong></td>
+          <td><code>TestE2E024CloseFileAttribution</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">118</td>
+          <td><strong>Phase 5 Public Portal Vehicle Reclaim[Chromium]</strong></td>
+          <td><code>TestE2E024CloseFileAttribution</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">119</td>
+          <td><strong>Phase 6 Staff Portal Verify Updated By[Chromium]</strong></td>
+          <td><code>TestE2E024CloseFileAttribution</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">120</td>
+          <td><strong>Phase 1 Staff Portal Add Paper Lt260[Chromium]</strong></td>
+          <td><code>TestE2E025PaperFormSubmittedDate</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">121</td>
+          <td><strong>Phase 2 Staff Portal Record Payment[Chromium]</strong></td>
+          <td><code>TestE2E025PaperFormSubmittedDate</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">122</td>
+          <td><strong>Phase 3 Staff Portal Issue Lt260C[Chromium]</strong></td>
+          <td><code>TestE2E025PaperFormSubmittedDate</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">123</td>
+          <td><strong>Phase 1 Navigate To Daily Transmission[Chromium]</strong></td>
+          <td><code>TestE2E026NordisLetterReconciliation</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">124</td>
+          <td><strong>Phase 2 Verify Letter Counts[Chromium]</strong></td>
+          <td><code>TestE2E026NordisLetterReconciliation</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">125</td>
+          <td><strong>Phase 1 Public Portal Create Lt260[Chromium]</strong></td>
+          <td><code>TestE2E027CaseStatusGlobalSearch</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">126</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E027CaseStatusGlobalSearch</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">127</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262[Chromium]</strong></td>
+          <td><code>TestE2E027CaseStatusGlobalSearch</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">128</td>
+          <td><strong>Phase 4 Staff Portal Process Lt262[Chromium]</strong></td>
+          <td><code>TestE2E027CaseStatusGlobalSearch</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">129</td>
+          <td><strong>Phase 5 Staff Portal Track Lt264[Chromium]</strong></td>
+          <td><code>TestE2E027CaseStatusGlobalSearch</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">130</td>
+          <td><strong>Phase 1 Public Portal Create Lt260[Chromium]</strong></td>
+          <td><code>TestE2E028CartClearanceDuplicates</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">131</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E028CartClearanceDuplicates</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">132</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262 And Verify Cart[Chromium]</strong></td>
+          <td><code>TestE2E028CartClearanceDuplicates</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">133</td>
+          <td><strong>Phase 1 Process And View Correspondence[Chromium]</strong></td>
+          <td><code>TestE2E029EditPostProcessing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">134</td>
+          <td><strong>Phase 2 Edit Requestor Details[Chromium]</strong></td>
+          <td><code>TestE2E029EditPostProcessing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">135</td>
+          <td><strong>Phase 3 Verify Correspondence Original[Chromium]</strong></td>
+          <td><code>TestE2E029EditPostProcessing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">136</td>
+          <td><strong>Phase 1 Public Portal Create Lt260[Chromium]</strong></td>
+          <td><code>TestE2E030Lt264aIssuance</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">137</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E030Lt264aIssuance</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">138</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262[Chromium]</strong></td>
+          <td><code>TestE2E030Lt264aIssuance</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">139</td>
+          <td><strong>Phase 4 Staff Portal Process Lt262[Chromium]</strong></td>
+          <td><code>TestE2E030Lt264aIssuance</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">140</td>
+          <td><strong>Phase 5 Api Trigger Aging[Chromium]</strong></td>
+          <td><code>TestE2E030Lt264aIssuance</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">141</td>
+          <td><strong>Phase 6 Staff Portal Track Lt264[Chromium]</strong></td>
+          <td><code>TestE2E030Lt264aIssuance</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">142</td>
+          <td><strong>Phase 7 Staff Portal Verify Lt264A[Chromium]</strong></td>
+          <td><code>TestE2E030Lt264aIssuance</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">143</td>
+          <td><strong>Phase 1 Public Portal Create Lt260[Chromium]</strong></td>
+          <td><code>TestE2E031Lt264bHearingNotification</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">144</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E031Lt264bHearingNotification</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">145</td>
+          <td><strong>Phase 3 Public Portal Submit Lt262[Chromium]</strong></td>
+          <td><code>TestE2E031Lt264bHearingNotification</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">146</td>
+          <td><strong>Phase 4 Staff Portal Process Lt262[Chromium]</strong></td>
+          <td><code>TestE2E031Lt264bHearingNotification</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">147</td>
+          <td><strong>Phase 5 Staff Portal Track Lt264[Chromium]</strong></td>
+          <td><code>TestE2E031Lt264bHearingNotification</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">148</td>
+          <td><strong>Phase 6 Staff Portal Verify Lt264B Correspondence[Chromium]</strong></td>
+          <td><code>TestE2E031Lt264bHearingNotification</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">149</td>
+          <td><strong>Phase 1 Fill And Save Draft[Chromium]</strong></td>
+          <td><code>TestE2E032DraftAutoSave</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">150</td>
+          <td><strong>Phase 2 Resume Verify And Submit[Chromium]</strong></td>
+          <td><code>TestE2E032DraftAutoSave</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">151</td>
+          <td><strong>Phase 1 Navigate Nordis Tracking[Chromium]</strong></td>
+          <td><code>TestE2E033NordisSftpFailure</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge warn">SKIP</span></td>
+        </tr>
+        <tr>
+          <td class="num">152</td>
+          <td><strong>Phase 2 Verify Monitoring Ui[Chromium]</strong></td>
+          <td><code>TestE2E033NordisSftpFailure</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge warn">SKIP</span></td>
+        </tr>
+        <tr>
+          <td class="num">153</td>
+          <td><strong>Phase 3 Sftp Connection Test[Chromium]</strong></td>
+          <td><code>TestE2E033NordisSftpFailure</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge warn">SKIP</span></td>
+        </tr>
+        <tr>
+          <td class="num">154</td>
+          <td><strong>Phase 0 Setup Lt260[Chromium]</strong></td>
+          <td><code>TestE2E034ConcurrentVinProcessing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">155</td>
+          <td><strong>Phase 1 Concurrent Processing[Chromium]</strong></td>
+          <td><code>TestE2E034ConcurrentVinProcessing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">156</td>
+          <td><strong>Phase 2 Verify No Corruption[Chromium]</strong></td>
+          <td><code>TestE2E034ConcurrentVinProcessing</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">157</td>
+          <td><strong>Phase 1 Daily Revenue Report[Chromium]</strong></td>
+          <td><code>TestE2E035DailyRevenueReport</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">158</td>
+          <td><strong>Phase 1 Daily Deposit Report[Chromium]</strong></td>
+          <td><code>TestE2E036DailyDepositReport</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">159</td>
+          <td><strong>Phase 1 Public Portal Create Lt260[Chromium]</strong></td>
+          <td><code>TestE2E037DraftGlobalSearchExclusion</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">160</td>
+          <td><strong>Phase 2 Staff Portal Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E037DraftGlobalSearchExclusion</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">161</td>
+          <td><strong>Phase 3 Public Portal Save Lt262 Draft[Chromium]</strong></td>
+          <td><code>TestE2E037DraftGlobalSearchExclusion</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">162</td>
+          <td><strong>Phase 4 Staff Portal Global Search Draft[Chromium]</strong></td>
+          <td><code>TestE2E037DraftGlobalSearchExclusion</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">163</td>
+          <td><strong>Phase 5 Public Portal Complete Lt262[Chromium]</strong></td>
+          <td><code>TestE2E037DraftGlobalSearchExclusion</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">164</td>
+          <td><strong>Phase 6 Staff Portal Global Search Submitted[Chromium]</strong></td>
+          <td><code>TestE2E037DraftGlobalSearchExclusion</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">165</td>
+          <td><strong>Phase 0 Setup Two Applications[Chromium]</strong></td>
+          <td><code>TestE2E038ClosedCasesReportAttribution</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">166</td>
+          <td><strong>Phase 1 Staff Close Case A[Chromium]</strong></td>
+          <td><code>TestE2E038ClosedCasesReportAttribution</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">167</td>
+          <td><strong>Phase 2 Closed Cases Report Case A[Chromium]</strong></td>
+          <td><code>TestE2E038ClosedCasesReportAttribution</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">168</td>
+          <td><strong>Phase 3 Public Reclaim Case B[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_038_closed_cases_report_attribution.py:278: in test_phase_3_public_reclaim_case_b
+    reclaim.click_vehicle_reclaim()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'VehicleReclaimPage' object has no attribute 'click_vehicle_reclaim'. Did you mean: 'click_vehicle_reclaimed_btn'?</pre></div></details></td>
+          <td><code>TestE2E038ClosedCasesReportAttribution</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">169</td>
+          <td><strong>Phase 4 Closed Cases Report Case B[Chromium]</strong></td>
+          <td><code>TestE2E038ClosedCasesReportAttribution</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">170</td>
+          <td><strong>Phase 5 No Blank Closed By[Chromium]</strong></td>
+          <td><code>TestE2E038ClosedCasesReportAttribution</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">171</td>
+          <td><strong>Phase 0 Setup Through Lt262[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_039_correspondence_letter_accuracy.py:140: in test_phase_0_setup_through_lt262
+    lt262.fill_lien_charges(STANDARD_LIEN_CHARGES)
+src/pages/public_portal/lt262_form_page.py:114: in fill_lien_charges
+    cls = checkbox.get_attribute(&quot;class&quot;) or &quot;&quot;
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:17538: in get_attribute
+    self._sync(self._impl_obj.get_attribute(name=name, timeout=timeou...</pre></div></details></td>
+          <td><code>TestE2E039CorrespondenceLetterAccuracy</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">172</td>
+          <td><strong>Phase 1 Process Lt262[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_039_correspondence_letter_accuracy.py:165: in test_phase_1_process_lt262
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+    re...</pre></div></details></td>
+          <td><code>TestE2E039CorrespondenceLetterAccuracy</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">173</td>
+          <td><strong>Phase 2 Verify Correspondence Present[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_039_correspondence_letter_accuracy.py:196: in test_phase_2_verify_correspondence_present
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162:...</pre></div></details></td>
+          <td><code>TestE2E039CorrespondenceLetterAccuracy</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">174</td>
+          <td><strong>Phase 3 Verify Letter Name Accuracy[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_039_correspondence_letter_accuracy.py:246: in test_phase_3_verify_letter_name_accuracy
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: i...</pre></div></details></td>
+          <td><code>TestE2E039CorrespondenceLetterAccuracy</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">175</td>
+          <td><strong>Phase 0 Setup Through Lt262[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_040_listing_global_search_consistency.py:139: in test_phase_0_setup_through_lt262
+    lt262.fill_lien_charges(STANDARD_LIEN_CHARGES)
+src/pages/public_portal/lt262_form_page.py:114: in fill_lien_charges
+    cls = checkbox.get_attribute(&quot;class&quot;) or &quot;&quot;
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:17538: in get_attribute
+    self._sync(self._impl_obj.get_attribute(name=name, timeout=tim...</pre></div></details></td>
+          <td><code>TestE2E040ListingGlobalSearchConsistency</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">176</td>
+          <td><strong>Phase 1 Process Lt262 Checkbox Independence[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_040_listing_global_search_consistency.py:164: in test_phase_1_process_lt262_checkbox_independence
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locato...</pre></div></details></td>
+          <td><code>TestE2E040ListingGlobalSearchConsistency</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">177</td>
+          <td><strong>Phase 2 Save Lt263 As Draft[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>('/home/runner/work/nsm-e2e-automation/nsm-e2e-automation/tests/test_e2e_040_listing_global_search_consistency.py', 238, 'Skipped: LT-263 not yet available — LT-264 aging period not elapsed')</pre></div></details></td>
+          <td><code>TestE2E040ListingGlobalSearchConsistency</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge warn">SKIP</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">178</td>
+          <td><strong>Phase 3 Lt262 Listing Persists With Lt263 Draft[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_040_listing_global_search_consistency.py:291: in test_phase_3_lt262_listing_persists_with_lt263_draft
+    row_text = lt262_listing.application_rows.first.text_content() or &quot;&quot;
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18429: in text_content
+    self._sync(self._impl_obj.text_content(timeout=timeout))
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/s...</pre></div></details></td>
+          <td><code>TestE2E040ListingGlobalSearchConsistency</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">179</td>
+          <td><strong>Phase 4 Global Search Matches Listing[Chromium]</strong></td>
+          <td><code>TestE2E040ListingGlobalSearchConsistency</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">180</td>
+          <td><strong>Phase 0A Public Portal Submit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E041Lt262WorkflowTabVisibility</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">181</td>
+          <td><strong>Phase 0B Staff Portal Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E041Lt262WorkflowTabVisibility</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">182</td>
+          <td><strong>Phase 0C Public Portal Submit Lt262[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_041_lt262_workflow_tab_visibility.py:165: in test_phase_0c_public_portal_submit_lt262
+    lt262.fill_lien_charges(STANDARD_LIEN_CHARGES)
+src/pages/public_portal/lt262_form_page.py:114: in fill_lien_charges
+    cls = checkbox.get_attribute(&quot;class&quot;) or &quot;&quot;
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:17538: in get_attribute
+    self._sync(self._impl_obj.get_attribute(name=name, timeout...</pre></div></details></td>
+          <td><code>TestE2E041Lt262WorkflowTabVisibility</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">183</td>
+          <td><strong>Phase 1 Process Lt262 Verify Aging Tab[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_041_lt262_workflow_tab_visibility.py:198: in test_phase_1_process_lt262_verify_aging_tab
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162:...</pre></div></details></td>
+          <td><code>TestE2E041Lt262WorkflowTabVisibility</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">184</td>
+          <td><strong>Phase 2 Mark Court Hearing Verify Tab[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_041_lt262_workflow_tab_visibility.py:261: in test_phase_2_mark_court_hearing_verify_tab
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: ...</pre></div></details></td>
+          <td><code>TestE2E041Lt262WorkflowTabVisibility</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">185</td>
+          <td><strong>Phase 3 Paper Lt262 No Payment Verify Pending[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_041_lt262_workflow_tab_visibility.py:342: in test_phase_3_paper_lt262_no_payment_verify_pending
+    paper_form.select_requester_type(&quot;Individual&quot;)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'PaperFormPage' object has no attribute 'select_requester_type'</pre></div></details></td>
+          <td><code>TestE2E041Lt262WorkflowTabVisibility</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">186</td>
+          <td><strong>Phase 4 Verify All Tabs Render[Chromium]</strong></td>
+          <td><code>TestE2E041Lt262WorkflowTabVisibility</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">187</td>
+          <td><strong>Phase 0A Public Portal Submit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E043ClosedCaseLt264Lockdown</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">188</td>
+          <td><strong>Phase 0B Staff Portal Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E043ClosedCaseLt264Lockdown</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">189</td>
+          <td><strong>Phase 0C Public Portal Submit Lt262[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_043_closed_case_lt264_lockdown.py:160: in test_phase_0c_public_portal_submit_lt262
+    lt262.fill_lien_charges(STANDARD_LIEN_CHARGES)
+src/pages/public_portal/lt262_form_page.py:114: in fill_lien_charges
+    cls = checkbox.get_attribute(&quot;class&quot;) or &quot;&quot;
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:17538: in get_attribute
+    self._sync(self._impl_obj.get_attribute(name=name, timeout=ti...</pre></div></details></td>
+          <td><code>TestE2E043ClosedCaseLt264Lockdown</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">190</td>
+          <td><strong>Phase 0D Staff Portal Process Lt262[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_043_closed_case_lt264_lockdown.py:186: in test_phase_0d_staff_portal_process_lt262
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in cl...</pre></div></details></td>
+          <td><code>TestE2E043ClosedCaseLt264Lockdown</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">191</td>
+          <td><strong>Phase 1 Verify Track Lt264 Enabled[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_043_closed_case_lt264_lockdown.py:217: in test_phase_1_verify_track_lt264_enabled
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in cli...</pre></div></details></td>
+          <td><code>TestE2E043ClosedCaseLt264Lockdown</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">192</td>
+          <td><strong>Phase 2 Close File Verify Closed[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_043_closed_case_lt264_lockdown.py:286: in test_phase_2_close_file_verify_closed
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click...</pre></div></details></td>
+          <td><code>TestE2E043ClosedCaseLt264Lockdown</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">193</td>
+          <td><strong>Phase 3 Verify Track Lt264 Disabled On Closed[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_043_closed_case_lt264_lockdown.py:329: in test_phase_3_verify_track_lt264_disabled_on_closed
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:...</pre></div></details></td>
+          <td><code>TestE2E043ClosedCaseLt264Lockdown</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">194</td>
+          <td><strong>Phase 4 Close File Already Closed Error[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_043_closed_case_lt264_lockdown.py:403: in test_phase_4_close_file_already_closed_error
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: i...</pre></div></details></td>
+          <td><code>TestE2E043ClosedCaseLt264Lockdown</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">195</td>
+          <td><strong>Phase 0A Public Portal Submit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E044Lt264ButtonIdempotency</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">196</td>
+          <td><strong>Phase 0B Staff Portal Process Lt260[Chromium]</strong></td>
+          <td><code>TestE2E044Lt264ButtonIdempotency</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">197</td>
+          <td><strong>Phase 0C Public Portal Submit Lt262[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_044_lt264_button_idempotency.py:164: in test_phase_0c_public_portal_submit_lt262
+    lt262.fill_lien_charges(STANDARD_LIEN_CHARGES)
+src/pages/public_portal/lt262_form_page.py:114: in fill_lien_charges
+    cls = checkbox.get_attribute(&quot;class&quot;) or &quot;&quot;
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:17538: in get_attribute
+    self._sync(self._impl_obj.get_attribute(name=name, timeout=time...</pre></div></details></td>
+          <td><code>TestE2E044Lt264ButtonIdempotency</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">198</td>
+          <td><strong>Phase 1 Double Click Issue Lt264[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_044_lt264_button_idempotency.py:193: in test_phase_1_double_click_issue_lt264
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
+ ...</pre></div></details></td>
+          <td><code>TestE2E044Lt264ButtonIdempotency</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">199</td>
+          <td><strong>Phase 2 Verify No Duplicate Recipients[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_044_lt264_button_idempotency.py:274: in test_phase_2_verify_no_duplicate_recipients
+    lt262_listing.select_application(0)
+src/pages/staff_portal/lt262_listing_page.py:92: in select_application
+    self.vin_links.nth(index).click(force=True)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
+    self._sync(
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in c...</pre></div></details></td>
+          <td><code>TestE2E044Lt264ButtonIdempotency</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">200</td>
+          <td><strong>Phase 3 Double Click Submit Lt260[Chromium]</strong></td>
+          <td><code>TestE2E044Lt264ButtonIdempotency</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">201</td>
+          <td><strong>Phase 1 Verify Nordis Tracking[Chromium]</strong></td>
+          <td><code>TestE2E045NordisBackendTriggers</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge warn">SKIP</span></td>
+        </tr>
+        <tr>
+          <td class="num">202</td>
+          <td><strong>Phase 2 Verify Nordis Correspondence[Chromium]</strong></td>
+          <td><code>TestE2E045NordisBackendTriggers</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge warn">SKIP</span></td>
+        </tr>
+        <tr>
+          <td class="num">203</td>
+          <td><strong>Phase 3 Backend Trigger Precondition[Chromium]</strong></td>
+          <td><code>TestE2E045NordisBackendTriggers</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge warn">SKIP</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">204</td>
+          <td><strong>Phase 0 Setup Case A Check Payment[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_046_global_search_offline_payment.py:104: in test_phase_0_setup_case_a_check_payment
+    paper_form.select_requester_type(&quot;Individual&quot;)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'PaperFormPage' object has no attribute 'select_requester_type'</pre></div></details></td>
+          <td><code>TestE2E046GlobalSearchOfflinePayment</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr class="red-row">
+          <td class="num">205</td>
+          <td><strong>Phase 1 Setup Case B Money Order Payment[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_046_global_search_offline_payment.py:227: in test_phase_1_setup_case_b_money_order_payment
+    paper_form.select_requester_type(&quot;Individual&quot;)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'PaperFormPage' object has no attribute 'select_requester_type'</pre></div></details></td>
+          <td><code>TestE2E046GlobalSearchOfflinePayment</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td class="num">206</td>
+          <td><strong>Phase 2 Global Search Check Payment[Chromium]</strong></td>
+          <td><code>TestE2E046GlobalSearchOfflinePayment</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">207</td>
+          <td><strong>Phase 3 Global Search Money Order Payment[Chromium]</strong></td>
+          <td><code>TestE2E046GlobalSearchOfflinePayment</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">208</td>
+          <td><strong>Phase 1 Edit Company Name Valid[Chromium]</strong></td>
+          <td><code>TestE2E047FacilityNameSpecialChars</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">209</td>
+          <td><strong>Phase 2 Edit Company Name Semicolon Rejected[Chromium]</strong></td>
+          <td><code>TestE2E047FacilityNameSpecialChars</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">210</td>
+          <td><strong>Phase 3 Edit Company Name Angle Brackets Rejected[Chromium]</strong></td>
+          <td><code>TestE2E047FacilityNameSpecialChars</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">211</td>
+          <td><strong>Phase 4 Add Another Company Special Char Start[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>('/home/runner/work/nsm-e2e-automation/nsm-e2e-automation/tests/test_e2e_047_facility_name_special_chars.py', 408, &quot;Skipped: 'Add Company' button not found on profile page&quot;)</pre></div></details></td>
+          <td><code>TestE2E047FacilityNameSpecialChars</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge warn">SKIP</span></td>
+        </tr>
+        <tr>
+          <td class="num">212</td>
+          <td><strong>Phase 5 Verify Facility Name In Staff Portal[Chromium]</strong></td>
+          <td><code>TestE2E047FacilityNameSpecialChars</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td class="num">213</td>
+          <td><strong>Phase 1 Sso Domain Change</strong></td>
+          <td><code>TestE2E042SsoDomainMigration</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge warn">SKIP</span></td>
+        </tr>
+        <tr>
+          <td class="num">214</td>
+          <td><strong>Phase 2 Verify Login After Migration</strong></td>
+          <td><code>TestE2E042SsoDomainMigration</code></td>
+          <td class="num">0.0s</td>
+          <td><span class="badge warn">SKIP</span></td>
+        </tr>
       </tbody>
     </table>
   </div>
 
   <div class="footer">
-    Generated by NSM E2E Automation &middot; May 01, 2026 at 08:56 AM UTC
+    Generated by NSM E2E Automation &middot; May 04, 2026 at 09:14 AM UTC
   </div>
 
 </div>
