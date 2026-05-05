@@ -23,9 +23,17 @@ def main():
         page.wait_for_load_state("networkidle")
         page.wait_for_timeout(2000)
 
-        # Click the "Log in with verifi" img tag (last img on page)
-        page.locator('img').last.click()
-        page.wait_for_timeout(5000)
+        # Click the "Log in with verifi" button to open the inline Verifi credentials form
+        page.locator("//span[contains(text(),'Log in with')]").click()
+
+        # Wait for the inline verifi form to actually appear (not a fixed sleep)
+        try:
+            page.locator("input#loginId").wait_for(state="visible", timeout=40_000)
+        except Exception:
+            screenshot_path = Path(__file__).resolve().parent.parent / "auth" / "debug_staff_login.png"
+            page.screenshot(path=str(screenshot_path))
+            print(f"  DEBUG screenshot saved to: {screenshot_path}")
+            raise
 
         print(f"After verifi click URL: {page.url}")
 

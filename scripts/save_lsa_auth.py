@@ -23,9 +23,10 @@ def main():
         page.wait_for_load_state("networkidle")
         page.wait_for_timeout(2000)
 
-        # Click the "Log in with verifi" img tag (last img on page)
-        page.locator('img').last.click()
-        page.wait_for_timeout(5000)
+        # Click the "Log in with verifi" button to open the inline Verifi credentials form
+        page.locator("//span[contains(text(),'Log in with')]").click()
+
+        page.locator("input#loginId").wait_for(state="visible", timeout=20_000)
 
         # Fill credentials (input#loginId / input#password-box-id appear inline after click)
         page.locator("input#loginId").fill(ENV.STAFF_USER_B_USERNAME)
