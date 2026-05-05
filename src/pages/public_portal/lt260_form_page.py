@@ -274,7 +274,7 @@ class Lt260FormPage:
         # Check if VIN error modal appeared (random VINs trigger this)
         vin_error_modal = self.page.locator('text="THE VIN ENTERED MAY HAVE AN ERROR"')
         try:
-            vin_error_modal.wait_for(state="visible", timeout=5_000)
+            vin_error_modal.wait_for(state="visible", timeout=15_000)
         except Exception:
             # No VIN error modal — form may have submitted directly
             self.page.wait_for_load_state("networkidle")
