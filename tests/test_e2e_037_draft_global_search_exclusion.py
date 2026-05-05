@@ -65,6 +65,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.edge
 @pytest.mark.high
+@pytest.mark.fixed
 class TestE2E037DraftGlobalSearchExclusion:
     """E2E-037: LT-262 Draft → global search shows Draft; after payment shows Submitted"""
 

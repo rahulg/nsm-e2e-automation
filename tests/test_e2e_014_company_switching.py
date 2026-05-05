@@ -48,6 +48,7 @@ def go_to_public_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.multiuser
 @pytest.mark.high
+@pytest.mark.fixed
 class TestE2E014CompanySwitching:
     """E2E-014: Company Switching — data isolation between two businesses"""
 

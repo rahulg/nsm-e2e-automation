@@ -55,6 +55,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.edge
 @pytest.mark.high
 @pytest.mark.paper_form
+@pytest.mark.fixed
 class TestE2E025PaperFormSubmittedDate:
     """E2E-025: Paper form — verify Date Submitted column = today after Add from Paper"""
 

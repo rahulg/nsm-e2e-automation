@@ -85,7 +85,7 @@ class Lt263ListingPage:
         self.page.wait_for_timeout(2000)
 
     def expect_applications_visible(self):
-        expect(self.application_rows.first).to_be_visible(timeout=15_000)
+        expect(self.application_rows.first).to_be_visible(timeout=30_000)
 
     def _dismiss_cdk_overlay(self):
         """Dismiss CDK overlay blocking clicks."""

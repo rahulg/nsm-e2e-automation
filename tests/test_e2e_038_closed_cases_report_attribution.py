@@ -119,6 +119,7 @@ def process_lt260(page, vin):
 @pytest.mark.edge
 @pytest.mark.high
 @pytest.mark.report
+@pytest.mark.fixed
 class TestE2E038ClosedCasesReportAttribution:
     """E2E-038: Closed Cases Report — verify 'Closed By' attribution for staff and public users"""
 
@@ -126,7 +127,7 @@ class TestE2E038ClosedCasesReportAttribution:
     # PHASE 0: Setup — Two applications in closable state
     # ========================================================================
     def test_phase_0_setup_two_applications(self, public_context: BrowserContext,
-                                              staff_context: BrowserContext):
+                                              lsa_context: BrowserContext):
         """Phase 0: [Setup] Submit and process LT-260 for VIN_A and VIN_B"""
         # Submit and process VIN_A
         page = public_context.new_page()
@@ -135,7 +136,7 @@ class TestE2E038ClosedCasesReportAttribution:
         finally:
             page.close()
 
-        page = staff_context.new_page()
+        page = lsa_context.new_page()
         try:
             process_lt260(page, VIN_A)
         finally:
@@ -148,7 +149,7 @@ class TestE2E038ClosedCasesReportAttribution:
         finally:
             page.close()
 
-        page = staff_context.new_page()
+        page = lsa_context.new_page()
         try:
             process_lt260(page, VIN_B)
         finally:
@@ -157,9 +158,9 @@ class TestE2E038ClosedCasesReportAttribution:
     # ========================================================================
     # PHASE 1: Staff Portal — Close Case A via Close File
     # ========================================================================
-    def test_phase_1_staff_close_case_a(self, staff_context: BrowserContext):
+    def test_phase_1_staff_close_case_a(self, lsa_context: BrowserContext):
         """Phase 1: [Staff Portal] Close Case A with remarks — verify status changes to 'Closed'"""
-        page = staff_context.new_page()
+        page = lsa_context.new_page()
         try:
             go_to_staff_dashboard(page)
             staff_dashboard = StaffDashboardPage(page)
@@ -198,9 +199,10 @@ class TestE2E038ClosedCasesReportAttribution:
     # ========================================================================
     # PHASE 2: Staff Portal — Closed Cases Report shows Case A with staff name
     # ========================================================================
-    def test_phase_2_closed_cases_report_case_a(self, staff_context: BrowserContext):
-        """Phase 2: [Staff Portal] Closed Cases Report — Case A has non-blank 'Closed By' (staff name)"""
-        page = staff_context.new_page()
+    def test_phase_2_closed_cases_report_case_a(self, lsa_context: BrowserContext):
+        """Phase 2: [Staff Portal] Closed Cases Report — filter by VIN_A, verify
+        'Closed By' = 'Carmine Annabelle' (staff user who closed the file)"""
+        page = lsa_context.new_page()
         try:
             go_to_staff_dashboard(page)
             staff_dashboard = StaffDashboardPage(page)
@@ -208,47 +210,17 @@ class TestE2E038ClosedCasesReportAttribution:
 
             staff_dashboard.navigate_to_reports()
             reports.click_closed_cases_report()
+            reports.expect_report_visible()
 
-            # Set date range to capture recently closed cases
-            reports.set_date_range(past_date(7), today_date())
-            reports.generate_report()
+            # Show Filters → filter by VIN_A
+            reports.click_show_filters()
+            reports.filter_by_vin(VIN_A)
 
-            try:
-                reports.expect_report_visible()
-            except Exception:
-                pass  # Report may load differently
-
-            # Search for VIN_A in the report
-            try:
-                search_input = page.locator(
-                    'input[placeholder*="Search" i], input[placeholder*="VIN" i], '
-                    'input[type="search"]'
-                ).first
-                search_input.wait_for(state="visible", timeout=5_000)
-                search_input.fill(VIN_A)
-                search_input.press("Enter")
-                page.wait_for_load_state("networkidle")
-                page.wait_for_timeout(1000)
-            except Exception:
-                pass  # Report may not have search — scan table rows instead
-
-            # Verify VIN_A appears and "Closed By" column is non-blank
-            rows = page.locator("table tbody tr")
-            try:
-                rows.first.wait_for(state="visible", timeout=10_000)
-            except Exception:
-                pass
-
-            row_count = rows.count()
-            vin_a_found = False
-            for i in range(row_count):
-                row_text = rows.nth(i).text_content() or ""
-                if VIN_A in row_text:
-                    vin_a_found = True
-                    break
-
-            if not vin_a_found:
-                pass  # VIN_A may not appear in report (close may not have completed)
+            # Verify "Closed By" = staff user name
+            closed_by = reports.get_closed_by_value(VIN_A)
+            assert "Carmine Annabelle" in closed_by, (
+                f"Expected 'Carmine Annabelle' in Closed By, got: '{closed_by}'"
+            )
         finally:
             page.close()
 
@@ -270,14 +242,16 @@ class TestE2E038ClosedCasesReportAttribution:
                 pass
             dashboard.select_application(0)
 
-            # Dismiss any CDK overlay before clicking
-            page.keyboard.press("Escape")
+            # Wait for any loading overlay to clear before interacting
+            page.wait_for_selector(".exp-loader-overlay-backdrop", state="hidden", timeout=15_000)
             page.wait_for_timeout(500)
 
             reclaim = VehicleReclaimPage(page)
-            reclaim.click_vehicle_reclaim()
-            reclaim.expect_pending_amount_displayed()
-            reclaim.confirm_and_pay()
+            reclaim.open_vehicle_reclaimed_download()
+            reclaim.enter_reclaim_comments("Vehicle reclaimed by owner - automation test")
+            reclaim.click_vehicle_reclaimed_btn()
+
+            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=15_000)
             page.wait_for_timeout(2000)
         finally:
             page.close()
@@ -285,9 +259,10 @@ class TestE2E038ClosedCasesReportAttribution:
     # ========================================================================
     # PHASE 4: Staff Portal — Closed Cases Report shows Case B with public user
     # ========================================================================
-    def test_phase_4_closed_cases_report_case_b(self, staff_context: BrowserContext):
-        """Phase 4: [Staff Portal] Closed Cases Report — Case B has non-blank 'Closed By' (public user)"""
-        page = staff_context.new_page()
+    def test_phase_4_closed_cases_report_case_b(self, lsa_context: BrowserContext):
+        """Phase 4: [Staff Portal] Closed Cases Report — filter by VIN_B, verify
+        'Closed By' = 'Daniel Scott' (public user who reclaimed the vehicle)"""
+        page = lsa_context.new_page()
         try:
             go_to_staff_dashboard(page)
             staff_dashboard = StaffDashboardPage(page)
@@ -295,55 +270,26 @@ class TestE2E038ClosedCasesReportAttribution:
 
             staff_dashboard.navigate_to_reports()
             reports.click_closed_cases_report()
+            reports.expect_report_visible()
 
-            reports.set_date_range(past_date(7), today_date())
-            reports.generate_report()
+            # Show Filters → filter by VIN_B
+            reports.click_show_filters()
+            reports.filter_by_vin(VIN_B)
 
-            try:
-                reports.expect_report_visible()
-            except Exception:
-                pass
-
-            # Search for VIN_B
-            try:
-                search_input = page.locator(
-                    'input[placeholder*="Search" i], input[placeholder*="VIN" i], '
-                    'input[type="search"]'
-                ).first
-                search_input.wait_for(state="visible", timeout=5_000)
-                search_input.fill(VIN_B)
-                search_input.press("Enter")
-                page.wait_for_load_state("networkidle")
-                page.wait_for_timeout(1000)
-            except Exception:
-                pass
-
-            # Verify VIN_B appears with non-blank "Closed By"
-            rows = page.locator("table tbody tr")
-            try:
-                rows.first.wait_for(state="visible", timeout=10_000)
-            except Exception:
-                pass
-
-            row_count = rows.count()
-            vin_b_found = False
-            for i in range(row_count):
-                row_text = rows.nth(i).text_content() or ""
-                if VIN_B in row_text:
-                    vin_b_found = True
-                    break
-
-            if not vin_b_found:
-                pass  # VIN_B may not appear in report (reclaim may not have completed)
+            # Verify "Closed By" = public user name
+            closed_by = reports.get_closed_by_value(VIN_B)
+            assert "Daniel Scott" in closed_by, (
+                f"Expected 'Daniel Scott' in Closed By, got: '{closed_by}'"
+            )
         finally:
             page.close()
 
     # ========================================================================
     # PHASE 5: Staff Portal — No blank "Closed By" in entire report
     # ========================================================================
-    def test_phase_5_no_blank_closed_by(self, staff_context: BrowserContext):
+    def test_phase_5_no_blank_closed_by(self, lsa_context: BrowserContext):
         """Phase 5: [Staff Portal] Remove date filters — verify NO blank 'Closed By' values in report"""
-        page = staff_context.new_page()
+        page = lsa_context.new_page()
         try:
             go_to_staff_dashboard(page)
             staff_dashboard = StaffDashboardPage(page)

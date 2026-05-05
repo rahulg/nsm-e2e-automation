@@ -10,7 +10,6 @@ Phases:
 """
 
 import re
-from pathlib import Path
 
 import pytest
 from playwright.sync_api import BrowserContext, expect
@@ -19,7 +18,6 @@ from src.config.env import ENV
 from src.config.test_data import (
     APPROX_VEHICLE_VALUE,
     STORAGE_LOCATION_NAME,
-    VIN_PLATE_IMAGE_PATH,
 )
 from src.helpers.data_helper import (
     generate_vin,
@@ -49,6 +47,7 @@ def go_to_public_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.edge
 @pytest.mark.high
+@pytest.mark.fixed
 class TestE2E017InvalidVinDraftResume:
     """E2E-017: Invalid VIN → manual entry → draft → resume → VIN image modal → submit"""
 
@@ -75,18 +74,22 @@ class TestE2E017InvalidVinDraftResume:
 
             # Save as draft
             draft_btn = page.locator('button:has-text("Save as Draft"), button:has-text("Save Draft")').first
-            try:
-                draft_btn.wait_for(state="visible", timeout=5_000)
-                draft_btn.click()
-                page.wait_for_load_state("networkidle")
-                page.wait_for_timeout(2000)
-            except Exception:
-                pass  # Draft functionality may vary
+            draft_btn.wait_for(state="visible", timeout=10_000)
+            draft_btn.click()
+            page.wait_for_timeout(1000)
+
+            # Confirm modal → click Yes
+            yes_btn = page.locator('mat-dialog-container button:has-text("Yes")').first
+            yes_btn.wait_for(state="visible", timeout=10_000)
+            yes_btn.click()
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(2000)
         finally:
             page.close()
 
     def test_phase_2_resume_draft_and_submit(self, fresh_public_context: BrowserContext):
-        """Phase 2: Resume draft, complete fields, submit with VIN image modal"""
+        """Phase 2: Resume draft → verify LT-260 Draft status → Submit LT-260 → Next on pre-filled Tab 1
+        → fill Authorized Person → Terms → submit_with_vin_image"""
         page = fresh_public_context.new_page()
         try:
             go_to_public_dashboard(page)
@@ -94,77 +97,33 @@ class TestE2E017InvalidVinDraftResume:
             dashboard.select_business()
             dashboard.click_notice_storage_tab()
 
-            # Find and resume the draft
-            try:
-                dashboard.search_by_vin(TEST_VIN)
-                dashboard.select_application(0)
-            except Exception:
-                # Draft may be in a different tab — try multiple tab names
-                for tab_name in ["Draft", "Drafts", "In Progress", "Pending"]:
-                    try:
-                        page.locator(f'[role="tab"]:has-text("{tab_name}")').first.click(timeout=3_000)
-                        page.wait_for_timeout(1000)
-                        dashboard.select_application(0)
-                        break
-                    except Exception:
-                        continue
-                else:
-                    # No draft tab found — select first application from current view
-                    try:
-                        dashboard.select_application(0)
-                    except Exception:
-                        pass  # No application available
+            # Search for the draft by VIN
+            dashboard.search_by_vin(TEST_VIN)
+            page.wait_for_timeout(2000)
+            dashboard.select_application(0)
+
+            # Verify status is "LT-260 Draft"
+            expect(page.get_by_text(re.compile(r"LT-260 Draft", re.I)).first).to_be_visible(timeout=15_000)
+
+            # Click "Submit LT-260" button
+            submit_lt260_btn = page.locator('button:has-text("Submit LT-260"), a:has-text("Submit LT-260")').first
+            submit_lt260_btn.wait_for(state="visible", timeout=10_000)
+            submit_lt260_btn.click()
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(2000)
 
             lt260 = Lt260FormPage(page)
 
-            # Dismiss any CDK overlay that may block tab clicks
-            page.keyboard.press("Escape")
-            page.wait_for_timeout(500)
+            # Tab 1 (Vehicle Details) is pre-filled — fill_authorized_person clicks Next internally
+            lt260.fill_authorized_person(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
 
-            # Complete remaining fields — use page object tab click method
-            try:
-                lt260.click_authorized_person_tab()
-                page.wait_for_timeout(500)
-                lt260.auth_person_name_input.wait_for(state="visible", timeout=10_000)
-                lt260.auth_person_name_input.fill(PERSON["name"])
-                lt260.auth_person_address_input.fill(ADDRESS["street"])
-                lt260.auth_person_zip_input.fill(ADDRESS["zip"])
-                page.wait_for_timeout(1000)
-            except Exception:
-                # Draft resume may already have these fields filled, or tab navigation failed
-                # Try using fill_authorized_person page object method instead
-                try:
-                    lt260.fill_authorized_person(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
-                except Exception:
-                    pass  # Fields may be pre-populated from draft
-            try:
-                lt260.accept_terms_and_sign(PERSON["name"], PERSON["email"])
-                lt260.submit()
-            except Exception:
-                # Draft resume may not load the form properly — submit may fail
-                try:
-                    lt260.submit()
-                except Exception:
-                    pass  # Form submission failed — draft may not have been saved
+            # Terms & signature
+            lt260.accept_terms_and_sign(PERSON["name"], PERSON["email"])
 
-            # VIN Image Modal may appear for unknown VINs
-            try:
-                modal = page.locator('[class*="modal" i]:has-text("VIN"), [class*="dialog" i]:has-text("VIN")').first
-                modal.wait_for(state="visible", timeout=5_000)
+            # Submit — handles VIN image modal for unknown VINs
+            lt260.submit_with_vin_image()
 
-                # Upload VIN plate image
-                vin_image_path = VIN_PLATE_IMAGE_PATH
-                if Path(vin_image_path).exists():
-                    file_input = page.locator('input[type="file"]').first
-                    file_input.set_input_files(vin_image_path)
-                    page.wait_for_timeout(1000)
-
-                # Submit the modal
-                modal_submit = page.locator('button:has-text("Submit")').last
-                modal_submit.click()
-                page.wait_for_load_state("networkidle")
-                page.wait_for_timeout(2000)
-            except Exception:
-                pass  # Modal may not appear for all VINs
+            # Verify redirect back to dashboard
+            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=30_000)
         finally:
             page.close()

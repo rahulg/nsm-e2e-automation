@@ -97,15 +97,15 @@ class Lt262aFormPage:
     def fill_phone(self, phone: str = "9195551234"):
         """Fill Phone field then click Next."""
         phone_field = self.page.locator(
-            'input[type="tel"], input[aria-label*="Phone" i], input[placeholder*="Phone" i], input[name*="phone" i]'
+            'input[type="tel"], input[aria-label*="Phone" i], input[placeholder*="Phone" i], input[name*="phone" i], input[formcontrolname*="phone" i]'
         ).first
-        try:
-            phone_field.scroll_into_view_if_needed(timeout=5_000)
-            phone_field.click()
-            phone_field.fill(phone)
-            self.page.wait_for_timeout(300)
-        except Exception:
-            pass
+        phone_field.wait_for(state="visible", timeout=10_000)
+        phone_field.scroll_into_view_if_needed(timeout=5_000)
+        phone_field.click()
+        phone_field.fill("")
+        phone_field.press_sequentially(phone, delay=50)
+        self.page.wait_for_timeout(500)
+        expect(self.next_button).to_be_enabled(timeout=10_000)
         self._click_next()
 
     def accept_terms_and_submit(self, name: str):

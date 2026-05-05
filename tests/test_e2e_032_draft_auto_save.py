@@ -53,6 +53,7 @@ def go_to_public_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.edge
 @pytest.mark.medium
+@pytest.mark.fixed
 class TestE2E032DraftAutoSave:
     """E2E-032: Fill through Tab 2 → Save as Draft → resume from dashboard → complete submission"""
 

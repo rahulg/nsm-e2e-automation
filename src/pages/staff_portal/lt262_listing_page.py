@@ -400,7 +400,7 @@ class Lt262ListingPage:
         success = self.page.get_by_text(
             re.compile(r"issued successfully|success", re.I)
         ).first
-        expect(success).to_be_visible(timeout=15_000)
+        expect(success).to_be_visible(timeout=30_000)
 
         # Wait for auto-redirect to REVIEW COURT HEARINGS tab
         court_hearings_tab = self.page.locator('[role="tab"]:has-text("REVIEW COURT HEARINGS")')

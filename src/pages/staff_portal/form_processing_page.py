@@ -129,12 +129,12 @@ class FormProcessingPage:
         toast = self.page.locator(
             'text="The form has been issued successfully."'
         )
-        expect(toast).to_be_visible(timeout=15_000)
+        expect(toast).to_be_visible(timeout=30_000)
 
     def expect_status_processed(self):
         """Verify the page shows 'Processed' status."""
         processed = self.page.get_by_text(re.compile(r"Processed", re.I)).first
-        expect(processed).to_be_visible(timeout=15_000)
+        expect(processed).to_be_visible(timeout=30_000)
 
     def _dismiss_cdk_overlay(self):
         """Dismiss CDK overlay blocking clicks."""

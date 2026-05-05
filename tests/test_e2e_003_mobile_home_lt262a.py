@@ -69,6 +69,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.core
 @pytest.mark.critical
+@pytest.mark.fixed
 class TestE2E003MobileHomeLt262a:
     """E2E-003: Mobile Home — LT-260 → Process → LT-262A → LT-265 (skip LT-263)"""
 

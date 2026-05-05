@@ -105,6 +105,7 @@ def global_search_open_detail_and_tab(page, vin: str, tab_name: str, expected_st
 @pytest.mark.e2e
 @pytest.mark.edge
 @pytest.mark.high
+@pytest.mark.fixed
 class TestE2E027CaseStatusGlobalSearch:
     """E2E-027: Global Search reflects correct status at each lifecycle transition"""
 

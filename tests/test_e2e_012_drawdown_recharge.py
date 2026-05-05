@@ -1,13 +1,13 @@
 """
 E2E-012: Drawdown Recharge
-PP: My Profile → ACH tab → Add Funds ($50) → verify green banner →
+PP: My Profile → ACH tab → Add Funds ($1000) → verify green banner →
 PP: My Profile → ACH tab → View Drawdown Account History →
-    verify top entry has today's date, category=Drawdown Recharge, Credit Amount=$50.00
+    verify top entry has today's date, category=Drawdown Recharge, Credit Amount=$1000.00
 
 Phases:
-  1. [Public Portal]  Hover username → My Profile → ACH tab → Add Funds $50 → verify banner
+  1. [Public Portal]  Hover username → My Profile → ACH tab → Add Funds $1000 → verify banner
   2. [Public Portal]  My Profile → ACH tab → View Drawdown Account History →
-                      verify top row: today's date, Drawdown Recharge, $50.00
+                      verify top row: today's date, Drawdown Recharge, $1000.00
 """
 
 import re
@@ -56,15 +56,16 @@ def navigate_to_ach_tab(page):
 @pytest.mark.alternate
 @pytest.mark.high
 @pytest.mark.payment
+@pytest.mark.fixed
 class TestE2E012DrawdownRecharge:
-    """E2E-012: Drawdown Recharge — add $50, verify banner and account history"""
+    """E2E-012: Drawdown Recharge — add $1000, verify banner and account history"""
 
     # ========================================================================
-    # PHASE 1: Public Portal — Add Funds $50 via My Profile → ACH tab
+    # PHASE 1: Public Portal — Add Funds $1000 via My Profile → ACH tab
     # ========================================================================
     def test_phase_1_add_drawdown_funds(self, public_context: BrowserContext):
         """Phase 1: [Public Portal] Hover username → My Profile → ACH tab →
-        Add Funds → enter $50 → Save → verify green banner"""
+        Add Funds → enter $1000 → Save → verify green banner"""
         page = public_context.new_page()
         try:
             go_to_public_dashboard(page)
@@ -79,7 +80,7 @@ class TestE2E012DrawdownRecharge:
             # Enter 50 in the Amount field
             amount_input = page.locator('mat-dialog-container input').first
             amount_input.wait_for(state="visible", timeout=10_000)
-            amount_input.fill("50")
+            amount_input.fill("1000")
             page.wait_for_timeout(500)
 
             # Click Save
@@ -90,7 +91,7 @@ class TestE2E012DrawdownRecharge:
 
             # Verify green success banner
             success_banner = page.get_by_text(
-                "Your Drawdown account has been successfully credited with $50"
+                "Your Drawdown account has been successfully credited with $1000"
             )
             expect(success_banner).to_be_visible(timeout=15_000)
         finally:
@@ -102,7 +103,7 @@ class TestE2E012DrawdownRecharge:
     def test_phase_2_verify_drawdown_history(self, public_context: BrowserContext):
         """Phase 2: [Public Portal] My Profile → ACH tab →
         View Drawdown Account History → verify top entry:
-        today's date, category=Drawdown Recharge, Credit Amount=$50.00"""
+        today's date, category=Drawdown Recharge, Credit Amount=$1000.00"""
         page = public_context.new_page()
         try:
             go_to_public_dashboard(page)
@@ -138,9 +139,9 @@ class TestE2E012DrawdownRecharge:
                 first_row.get_by_text(re.compile(r"Drawdown Recharge", re.I))
             ).to_be_visible(timeout=10_000)
 
-            # Verify Credit Amount ($) = $50.00
+            # Verify Credit Amount ($) = $1,000.00
             expect(
-                first_row.get_by_text(re.compile(r"\$50\.00", re.I))
+                first_row.get_by_text(re.compile(r"\$1,000\.00", re.I))
             ).to_be_visible(timeout=10_000)
 
             history_page.close()

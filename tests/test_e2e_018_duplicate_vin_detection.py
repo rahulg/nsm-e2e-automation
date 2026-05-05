@@ -47,6 +47,7 @@ def go_to_public_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.edge
 @pytest.mark.high
+@pytest.mark.fixed
 class TestE2E018DuplicateVinDetection:
     """E2E-018: Duplicate VIN — second LT-260 for same VIN must be blocked with error banner"""
 

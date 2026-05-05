@@ -72,6 +72,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.edge
 @pytest.mark.critical
 @pytest.mark.payment
+@pytest.mark.fixed
 class TestE2E023PayItStatusUpdate:
     """E2E-023: Abandoned PayIt → retry from dashboard → success → staff verifies"""
 

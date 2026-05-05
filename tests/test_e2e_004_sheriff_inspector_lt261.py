@@ -42,6 +42,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.core
 @pytest.mark.critical
+@pytest.mark.fixed
 class TestE2E004SheriffInspectorLt261:
     """E2E-004: Sheriff/Inspector LT-261 — Staff-only workflow to LT-265"""
 

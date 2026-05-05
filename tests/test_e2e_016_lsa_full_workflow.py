@@ -37,6 +37,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.multiuser
 @pytest.mark.high
+@pytest.mark.fixed
 class TestE2E016LSAFullWorkflow:
     """E2E-016: LSA — all admin capabilities in one session"""
 

@@ -77,6 +77,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.edge
 @pytest.mark.medium
 @pytest.mark.paper_form
+@pytest.mark.fixed
 class TestE2E020PaperFormRelaxedDates:
     """E2E-020: Full lifecycle — paper LT-263 with private sale date < 1 month (no date restrictions)"""
 

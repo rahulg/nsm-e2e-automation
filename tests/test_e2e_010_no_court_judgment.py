@@ -64,6 +64,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.alternate
 @pytest.mark.high
+@pytest.mark.fixed
 class TestE2E010NoCourtJudgment:
     """E2E-010: No court judgment — application stays locked, no action available on public portal"""
 

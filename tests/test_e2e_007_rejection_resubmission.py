@@ -64,6 +64,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.alternate
 @pytest.mark.critical
+@pytest.mark.fixed
 class TestE2E007RejectionResubmission:
     """E2E-007: Rejection and Resubmission — LT-260 reject → correct → resubmit"""
 

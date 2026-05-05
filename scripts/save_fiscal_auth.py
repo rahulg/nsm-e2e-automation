@@ -25,7 +25,8 @@ def main():
 
         # Click the "Log in with verifi" img tag (last img on page)
         page.locator('img').last.click()
-        page.wait_for_timeout(5000)
+
+        page.locator("input#loginId").wait_for(state="visible", timeout=20_000)
 
         # Fill credentials (input#loginId / input#password-box-id appear inline after click)
         page.locator("input#loginId").fill(ENV.FISCAL_USER_USERNAME)

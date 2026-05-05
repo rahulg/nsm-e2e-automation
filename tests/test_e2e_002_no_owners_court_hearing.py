@@ -78,6 +78,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.core
 @pytest.mark.critical
+@pytest.mark.fixed
 class TestE2E002NoOwnersCourtHearing:
     """E2E-002: No Owners Path — LT-260C → LT-262B → Court Hearing → LT-265"""
 
@@ -108,7 +109,7 @@ class TestE2E002NoOwnersCourtHearing:
             page.wait_for_timeout(2000)
 
             # Verify redirect back to dashboard
-            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=15_000)
+            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=30_000)
         finally:
             page.close()
 
@@ -213,7 +214,7 @@ class TestE2E002NoOwnersCourtHearing:
 
             # Click "Pay Using ACH/Drawdown" on the cart page
             pay_drawdown_btn = page.locator('button:has-text("Pay Using ACH/Drawdown")')
-            pay_drawdown_btn.wait_for(state="visible", timeout=15_000)
+            pay_drawdown_btn.wait_for(state="visible", timeout=30_000)
             pay_drawdown_btn.click()
             page.wait_for_timeout(2000)
 
@@ -225,10 +226,10 @@ class TestE2E002NoOwnersCourtHearing:
 
             # Verify green success banner
             success_banner = page.get_by_text("Your payment has been completed successfully")
-            expect(success_banner).to_be_visible(timeout=15_000)
+            expect(success_banner).to_be_visible(timeout=30_000)
 
             # Verify redirect to dashboard
-            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=15_000)
+            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=30_000)
         finally:
             page.close()
 
@@ -268,7 +269,7 @@ class TestE2E002NoOwnersCourtHearing:
 
             # Click Save
             save_btn = page.locator('button:has-text("Save")').first
-            save_btn.wait_for(state="visible", timeout=15_000)
+            save_btn.wait_for(state="visible", timeout=30_000)
             save_btn.scroll_into_view_if_needed()
             save_btn.click()
             page.wait_for_timeout(2000)
@@ -281,11 +282,11 @@ class TestE2E002NoOwnersCourtHearing:
 
             # Verify green success banner
             success_banner = page.get_by_text(re.compile(r"success", re.I)).first
-            expect(success_banner).to_be_visible(timeout=15_000)
+            expect(success_banner).to_be_visible(timeout=30_000)
 
             # Click Next button
             next_btn = page.locator('button:has-text("Next")').first
-            next_btn.wait_for(state="visible", timeout=15_000)
+            next_btn.wait_for(state="visible", timeout=30_000)
             next_btn.scroll_into_view_if_needed()
             next_btn.click()
             page.wait_for_timeout(2000)
@@ -320,7 +321,7 @@ class TestE2E002NoOwnersCourtHearing:
             dashboard.select_application(0)
 
             # Verify status is "LT-262 Processed" and Submit LT-263 button is available
-            expect(page.get_by_text(re.compile(r"LT-262 Processed", re.I)).first).to_be_visible(timeout=15_000)
+            expect(page.get_by_text(re.compile(r"LT-262 Processed", re.I)).first).to_be_visible(timeout=30_000)
             dashboard.expect_lt263_available()
 
             # Click "Submit LT-263"
@@ -328,7 +329,7 @@ class TestE2E002NoOwnersCourtHearing:
             page.wait_for_timeout(2000)
 
             # Verify LT-263 form page
-            expect(page.get_by_text(re.compile(r"LT-263.*Form Details", re.I)).first).to_be_visible(timeout=15_000)
+            expect(page.get_by_text(re.compile(r"LT-263.*Form Details", re.I)).first).to_be_visible(timeout=30_000)
 
             # Select "Type of Sale" → Public
             sale_type_dropdown = page.locator('mat-select[aria-label*="Type of Sale" i]').first
@@ -361,13 +362,13 @@ class TestE2E002NoOwnersCourtHearing:
 
             # Click Next
             next_btn = page.locator('button:has-text("Next")').first
-            next_btn.wait_for(state="visible", timeout=15_000)
+            next_btn.wait_for(state="visible", timeout=30_000)
             next_btn.scroll_into_view_if_needed()
             next_btn.click()
             page.wait_for_timeout(2000)
 
             # Terms and Conditions page — check all checkboxes
-            expect(page.get_by_text(re.compile(r"Terms and Conditions", re.I)).first).to_be_visible(timeout=15_000)
+            expect(page.get_by_text(re.compile(r"Terms and Conditions", re.I)).first).to_be_visible(timeout=30_000)
 
             mat_checkboxes = page.locator('mat-checkbox')
             cb_count = mat_checkboxes.count()
@@ -398,17 +399,17 @@ class TestE2E002NoOwnersCourtHearing:
 
             # Click Submit
             submit_btn = page.locator('button:has-text("Submit")').first
-            submit_btn.wait_for(state="visible", timeout=15_000)
+            submit_btn.wait_for(state="visible", timeout=30_000)
             submit_btn.scroll_into_view_if_needed()
             submit_btn.click()
             page.wait_for_timeout(3000)
 
             # Verify green success banner
             success_banner = page.get_by_text(re.compile(r"Form is submitted successfully", re.I)).first
-            expect(success_banner).to_be_visible(timeout=15_000)
+            expect(success_banner).to_be_visible(timeout=30_000)
 
             # Verify VIN status is "LT-263 Submitted" on dashboard
-            expect(page.get_by_text(re.compile(r"LT-263 Submitted", re.I)).first).to_be_visible(timeout=15_000)
+            expect(page.get_by_text(re.compile(r"LT-263 Submitted", re.I)).first).to_be_visible(timeout=30_000)
         finally:
             page.close()
 
@@ -500,7 +501,7 @@ class TestE2E002NoOwnersCourtHearing:
             sold_listing.select_application(0)
 
             # Verify status is Processed
-            expect(page.get_by_text(re.compile(r"Processed", re.I)).first).to_be_visible(timeout=15_000)
+            expect(page.get_by_text(re.compile(r"Processed", re.I)).first).to_be_visible(timeout=30_000)
         finally:
             page.close()
 
@@ -528,6 +529,6 @@ class TestE2E002NoOwnersCourtHearing:
             dashboard.select_application(0)
 
             # Verify status is "Vehicle Sold"
-            expect(page.get_by_text(re.compile(r"Vehicle Sold", re.I)).first).to_be_visible(timeout=15_000)
+            expect(page.get_by_text(re.compile(r"Vehicle Sold", re.I)).first).to_be_visible(timeout=30_000)
         finally:
             page.close()

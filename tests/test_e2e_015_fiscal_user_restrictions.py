@@ -28,6 +28,7 @@ def go_to_staff_portal(page):
 @pytest.mark.e2e
 @pytest.mark.multiuser
 @pytest.mark.high
+@pytest.mark.fixed
 class TestE2E015FiscalUserRestrictions:
     """E2E-015: Fiscal User — only Reports accessible, all other areas restricted"""
 

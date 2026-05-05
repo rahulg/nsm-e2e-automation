@@ -64,6 +64,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.edge
 @pytest.mark.high
+@pytest.mark.fixed
 class TestE2E031Lt264bHearingNotification:
     """E2E-031: LT-264B — owner hearing request → staff issues → requestor notified"""
 

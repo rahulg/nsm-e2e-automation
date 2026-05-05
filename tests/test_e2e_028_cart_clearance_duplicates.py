@@ -60,6 +60,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.edge
 @pytest.mark.critical
 @pytest.mark.payment
+@pytest.mark.fixed
 class TestE2E028CartClearanceDuplicates:
     """E2E-028: Cart cleared after payment — no action buttons, cart shows $0.00"""
 

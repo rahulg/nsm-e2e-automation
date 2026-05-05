@@ -67,6 +67,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.alternate
 @pytest.mark.critical
+@pytest.mark.fixed
 class TestE2E009VehicleReclaim:
     """E2E-009: Vehicle Reclaim — owner reclaims mid-process, file closed"""
 

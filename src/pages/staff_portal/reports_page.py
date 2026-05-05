@@ -278,6 +278,49 @@ class ReportsPage:
                     )).first
                 ).to_be_visible(timeout=10_000)
 
+    def click_show_filters(self):
+        """Click the 'Show Filters' button to reveal report filter inputs."""
+        show_filters_btn = self.page.locator(
+            '//span[contains(text(),"Show Filters")]'
+        ).first
+        show_filters_btn.wait_for(state="visible", timeout=10_000)
+        show_filters_btn.click()
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(1000)
+
+    def filter_by_vin(self, vin: str):
+        """Enter a VIN in the report filter input and apply."""
+        vin_input = self.page.locator('//input[@name="vin"]').first
+        vin_input.wait_for(state="visible", timeout=10_000)
+        vin_input.fill(vin)
+        self.page.wait_for_timeout(500)
+        vin_input.press("Enter")
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(1000)
+
+    def get_closed_by_value(self, vin: str) -> str:
+        """Return the 'Closed By' cell value for the row matching the given VIN."""
+        # Find the column index of "Closed By"
+        headers = self.page.locator("table thead th, table thead td")
+        headers.first.wait_for(state="visible", timeout=15_000)
+        closed_by_idx = -1
+        for i in range(headers.count()):
+            if re.search(r"closed\s*by", headers.nth(i).text_content() or "", re.I):
+                closed_by_idx = i
+                break
+        if closed_by_idx == -1:
+            raise AssertionError("'Closed By' column not found in report table")
+
+        # Find the row containing the VIN and return the Closed By cell value
+        rows = self.page.locator("table tbody tr")
+        rows.first.wait_for(state="visible", timeout=10_000)
+        for i in range(rows.count()):
+            row_text = rows.nth(i).text_content() or ""
+            if vin in row_text:
+                cells = rows.nth(i).locator("td")
+                return (cells.nth(closed_by_idx).text_content() or "").strip()
+        raise AssertionError(f"VIN {vin} not found in report table")
+
     def expect_reports_section_accessible(self):
         """Verify that the reports section is accessible (at least one report link visible)."""
         expect(
