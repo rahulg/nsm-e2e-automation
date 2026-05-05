@@ -76,7 +76,7 @@
     <h1>NSM E2E Test Report — QA</h1>
     <div class="subtitle">Automated end-to-end test results for NCDOT Notice & Storage Management</div>
     <div class="header-meta">
-      <div class="meta-item"><div class="label">Run Date</div><div class="value">May 05, 2026 at 09:00 AM UTC</div></div>
+      <div class="meta-item"><div class="label">Run Date</div><div class="value">May 05, 2026 at 12:08 PM UTC</div></div>
       <div class="meta-item"><div class="label">Environment</div><div class="value">QA</div></div>
       <div class="meta-item"><div class="label">Duration</div><div class="value">0m 0s</div></div>
       <div class="meta-item"><div class="label">Tests Collected</div><div class="value">42</div></div>
@@ -84,17 +84,17 @@
   </div>
 
   <div class="summary-row">
-    <div class="summary-card pass"><div class="number">30</div><div class="label">Passed</div></div>
-    <div class="summary-card fail"><div class="number">12</div><div class="label">Failed</div></div>
+    <div class="summary-card pass"><div class="number">42</div><div class="label">Passed</div></div>
+    <div class="summary-card fail"><div class="number">0</div><div class="label">Failed</div></div>
     <div class="summary-card warn"><div class="number">172</div><div class="label">Skipped</div></div>
     <div class="summary-card total"><div class="number">42</div><div class="label">Total</div></div>
   </div>
 
-  <div class="result-banner fail">
-    <div class="icon">&#x274C;</div>
+  <div class="result-banner pass">
+    <div class="icon">&#x2705;</div>
     <div>
-      <div class="text">12 TEST(S) FAILED</div>
-      <div class="subtext">30 passed, 172 skipped in 0.0s</div>
+      <div class="text">ALL TESTS PASSED</div>
+      <div class="subtext">42 passed, 172 skipped in 0.0s</div>
     </div>
   </div>
 
@@ -103,143 +103,75 @@
     <table>
       <thead><tr><th>#</th><th>Test</th><th>Class</th><th>Duration</th><th>Status</th></tr></thead>
       <tbody>
-        <tr class="red-row">
+        <tr>
           <td class="num">1</td>
-          <td><strong>Phase 1 Public Portal Create Lt260[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:123: in test_phase_1_public_portal_create_lt260
-    page.wait_for_url(re.compile(r&quot;dashboard&quot;, re.I), timeout=30_000)
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:9505: in wait_for_url
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_page.py:580: in wait_for_url
-    return await self._main_frame.wait_for_url(**locals_to_params(locals()))...</pre></div></details></td>
+          <td><strong>Phase 1 Public Portal Create Lt260[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">2</td>
-          <td><strong>Phase 2 Staff Portal Process Lt260[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:146: in test_phase_2_staff_portal_process_lt260
-    lt260_listing.select_application(0)
-src/pages/staff_portal/lt260_listing_page.py:69: in select_application
-    self.vin_links.nth(index).click(force=True)
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in cli...</pre></div></details></td>
+          <td><strong>Phase 2 Staff Portal Process Lt260[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">3</td>
-          <td><strong>Phase 3 Public Portal Submit Lt262[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:193: in test_phase_3_public_portal_submit_lt262
-    dashboard.select_application(0)
-src/pages/public_portal/dashboard_page.py:42: in select_application
-    self.application_list.nth(index).click()
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
-    ret...</pre></div></details></td>
+          <td><strong>Phase 3 Public Portal Submit Lt262[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">4</td>
-          <td><strong>Phase 4 Staff Portal Process Lt262[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:265: in test_phase_4_staff_portal_process_lt262
-    lt262_listing.select_application(0)
-src/pages/staff_portal/lt262_listing_page.py:92: in select_application
-    self.vin_links.nth(index).click(force=True)
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in cli...</pre></div></details></td>
+          <td><strong>Phase 4 Staff Portal Process Lt262[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">5</td>
-          <td><strong>Phase 5 Staff Portal Track Lt264[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:308: in test_phase_5_staff_portal_track_lt264
-    lt262_listing.select_application(0)
-src/pages/staff_portal/lt262_listing_page.py:92: in select_application
-    self.vin_links.nth(index).click(force=True)
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click...</pre></div></details></td>
+          <td><strong>Phase 5 Staff Portal Track Lt264[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">6</td>
-          <td><strong>Phase 5A Public Portal Submit Lt263[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:403: in test_phase_5a_public_portal_submit_lt263
-    dashboard.select_application(0)
-src/pages/public_portal/dashboard_page.py:42: in select_application
-    self.application_list.nth(index).click()
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
-    re...</pre></div></details></td>
+          <td><strong>Phase 5A Public Portal Submit Lt263[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">7</td>
-          <td><strong>Phase 6 Staff Portal Process Lt263[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:517: in test_phase_6_staff_portal_process_lt263
-    lt263_listing.expect_applications_visible()
-src/pages/staff_portal/lt263_listing_page.py:88: in expect_applications_visible
-    expect(self.application_rows.first).to_be_visible(timeout=30_000)
-E   AssertionError: Locator expected to be visible
-E   Actual value: None
-E   Error: element(s) not found 
-E   Call log:
-E     - Expect &quot;to_be_visible&quot; with timeout 30000ms
-E     - waiting for locator(&quot;tab...</pre></div></details></td>
+          <td><strong>Phase 6 Staff Portal Process Lt263[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">8</td>
-          <td><strong>Phase 7 Staff Portal Verify Lt263 On Lt262[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:546: in test_phase_7_staff_portal_verify_lt263_on_lt262
-    lt262_listing.select_application(0)
-src/pages/staff_portal/lt262_listing_page.py:92: in select_application
-    self.vin_links.nth(index).click(force=True)
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162...</pre></div></details></td>
+          <td><strong>Phase 7 Staff Portal Verify Lt263 On Lt262[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">9</td>
-          <td><strong>Phase 8 Staff Portal Verify Sold[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:572: in test_phase_8_staff_portal_verify_sold
-    lt263_listing.expect_applications_visible()
-src/pages/staff_portal/lt263_listing_page.py:88: in expect_applications_visible
-    expect(self.application_rows.first).to_be_visible(timeout=30_000)
-E   AssertionError: Locator expected to be visible
-E   Actual value: None
-E   Error: element(s) not found 
-E   Call log:
-E     - Expect &quot;to_be_visible&quot; with timeout 30000ms
-E     - waiting for locator(&quot;table...</pre></div></details></td>
+          <td><strong>Phase 8 Staff Portal Verify Sold[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">10</td>
-          <td><strong>Phase 9 Public Portal Verify Vehicle Sold[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_001_standard_vehicle_lifecycle.py:613: in test_phase_9_public_portal_verify_vehicle_sold
-    dashboard.select_application(0)
-src/pages/public_portal/dashboard_page.py:42: in select_application
-    self.application_list.nth(index).click()
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:16196: in click
-    self._sync(
-/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/_impl/_locator.py:162: in click
-...</pre></div></details></td>
+          <td><strong>Phase 9 Public Portal Verify Vehicle Sold[Chromium]</strong></td>
           <td><code>TestE2E001StandardVehicleLifecycle</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
         <tr>
           <td class="num">11</td>
@@ -269,19 +201,12 @@ src/pages/public_portal/dashboard_page.py:42: in select_application
           <td class="num">0.0s</td>
           <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">15</td>
-          <td><strong>Phase 5 Public Portal Submit Lt263[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_002_no_owners_court_hearing.py:409: in test_phase_5_public_portal_submit_lt263
-    expect(success_banner).to_be_visible(timeout=30_000)
-E   AssertionError: Locator expected to be visible
-E   Actual value: None
-E   Error: element(s) not found 
-E   Call log:
-E     - Expect &quot;to_be_visible&quot; with timeout 30000ms
-E     - waiting for get_by_text(re.compile(r&quot;Form is submitted successfully&quot;, re.IGNORECASE)).first</pre></div></details></td>
+          <td><strong>Phase 5 Public Portal Submit Lt263[Chromium]</strong></td>
           <td><code>TestE2E002NoOwnersCourtHearing</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
         <tr>
           <td class="num">16</td>
@@ -444,19 +369,12 @@ E     - waiting for get_by_text(re.compile(r&quot;Form is submitted successfully
           <td class="num">0.0s</td>
           <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr class="red-row">
+        <tr>
           <td class="num">39</td>
-          <td><strong>Phase 6 Public Portal Submit Lt263[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_006_individual_user_E2E_flow.py:392: in test_phase_6_public_portal_submit_lt263
-    expect(success_banner).to_be_visible(timeout=15_000)
-E   AssertionError: Locator expected to be visible
-E   Actual value: None
-E   Error: element(s) not found 
-E   Call log:
-E     - Expect &quot;to_be_visible&quot; with timeout 15000ms
-E     - waiting for get_by_text(re.compile(r&quot;Form is submitted successfully&quot;, re.IGNORECASE)).first</pre></div></details></td>
+          <td><strong>Phase 6 Public Portal Submit Lt263[Chromium]</strong></td>
           <td><code>TestE2E006IndividualUserE2EFlow</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge fail">FAIL</span></td>
+          <td><span class="badge pass">PASS</span></td>
         </tr>
         <tr>
           <td class="num">40</td>
@@ -484,7 +402,7 @@ E     - waiting for get_by_text(re.compile(r&quot;Form is submitted successfully
   </div>
 
   <div class="footer">
-    Generated by NSM E2E Automation &middot; May 05, 2026 at 09:00 AM UTC
+    Generated by NSM E2E Automation &middot; May 05, 2026 at 12:08 PM UTC
   </div>
 
 </div>
