@@ -76,7 +76,7 @@
     <h1>NSM E2E Test Report — QA</h1>
     <div class="subtitle">Automated end-to-end test results for NCDOT Notice & Storage Management</div>
     <div class="header-meta">
-      <div class="meta-item"><div class="label">Run Date</div><div class="value">May 05, 2026 at 12:08 PM UTC</div></div>
+      <div class="meta-item"><div class="label">Run Date</div><div class="value">May 06, 2026 at 09:10 AM UTC</div></div>
       <div class="meta-item"><div class="label">Environment</div><div class="value">QA</div></div>
       <div class="meta-item"><div class="label">Duration</div><div class="value">0m 0s</div></div>
       <div class="meta-item"><div class="label">Tests Collected</div><div class="value">42</div></div>
@@ -84,17 +84,17 @@
   </div>
 
   <div class="summary-row">
-    <div class="summary-card pass"><div class="number">42</div><div class="label">Passed</div></div>
-    <div class="summary-card fail"><div class="number">0</div><div class="label">Failed</div></div>
+    <div class="summary-card pass"><div class="number">38</div><div class="label">Passed</div></div>
+    <div class="summary-card fail"><div class="number">4</div><div class="label">Failed</div></div>
     <div class="summary-card warn"><div class="number">172</div><div class="label">Skipped</div></div>
     <div class="summary-card total"><div class="number">42</div><div class="label">Total</div></div>
   </div>
 
-  <div class="result-banner pass">
-    <div class="icon">&#x2705;</div>
+  <div class="result-banner fail">
+    <div class="icon">&#x274C;</div>
     <div>
-      <div class="text">ALL TESTS PASSED</div>
-      <div class="subtext">42 passed, 172 skipped in 0.0s</div>
+      <div class="text">4 TEST(S) FAILED</div>
+      <div class="subtext">38 passed, 172 skipped in 0.0s</div>
     </div>
   </div>
 
@@ -299,12 +299,22 @@
           <td class="num">0.0s</td>
           <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr>
+        <tr class="red-row">
           <td class="num">29</td>
-          <td><strong>Phase 2 Staff Portal Record Payment[Chromium]</strong></td>
+          <td><strong>Phase 2 Staff Portal Record Payment[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_005_paper_form_e2e.py:133: in test_phase_2_staff_portal_record_payment
+    payments.record_mailed_payment(
+src/pages/staff_portal/payments_page.py:119: in record_mailed_payment
+    self.submit_payment()
+src/pages/staff_portal/payments_page.py:83: in submit_payment
+    expect(submit_btn).to_be_enabled(timeout=10_000)
+E   AssertionError: Locator expected to be enabled
+E   Actual value: disabled 
+E   Call log:
+E     - Expect &quot;to_be_enabled&quot; with timeout 10000ms
+E     - waiting for lo...</pre></div></details></td>
           <td><code>TestE2E005PaperFormE2E</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge pass">PASS</span></td>
+          <td><span class="badge fail">FAIL</span></td>
         </tr>
         <tr>
           <td class="num">30</td>
@@ -313,26 +323,50 @@
           <td class="num">0.0s</td>
           <td><span class="badge pass">PASS</span></td>
         </tr>
-        <tr>
+        <tr class="red-row">
           <td class="num">31</td>
-          <td><strong>Phase 4 Staff Portal Lt262B Court Hearing[Chromium]</strong></td>
+          <td><strong>Phase 4 Staff Portal Lt262B Court Hearing[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_005_paper_form_e2e.py:215: in test_phase_4_staff_portal_lt262b_court_hearing
+    lt262_listing.issue_lt262b()
+src/pages/staff_portal/lt262_listing_page.py:389: in issue_lt262b
+    expect(btn).to_be_visible(timeout=10_000)
+E   AssertionError: Locator expected to be visible
+E   Actual value: None
+E   Error: element(s) not found 
+E   Call log:
+E     - Expect &quot;to_be_visible&quot; with timeout 10000ms
+E     - waiting for locator(&quot;button:has-text(\&quot;Generate LT-262B\&quot;), button:has-text(\&quot;Issu...</pre></div></details></td>
           <td><code>TestE2E005PaperFormE2E</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge pass">PASS</span></td>
+          <td><span class="badge fail">FAIL</span></td>
         </tr>
-        <tr>
+        <tr class="red-row">
           <td class="num">32</td>
-          <td><strong>Phase 5 Staff Portal Add Paper Lt263[Chromium]</strong></td>
+          <td><strong>Phase 5 Staff Portal Add Paper Lt263[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_005_paper_form_e2e.py:270: in test_phase_5_staff_portal_add_paper_lt263
+    paper_form.fill_lt263_sale_details(
+src/pages/staff_portal/paper_form_page.py:234: in fill_lt263_sale_details
+    type_of_sale_select.wait_for(state=&quot;visible&quot;, timeout=10_000)
+/opt/hostedtoolcache/Python/3.13.13/x64/lib/python3.13/site-packages/playwright/sync_api/_generated.py:18670: in wait_for
+    self._sync(self._impl_obj.wait_for(timeout=timeout, state=state))
+/opt/hostedtoolcache/Python/3.13.13/x64/l...</pre></div></details></td>
           <td><code>TestE2E005PaperFormE2E</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge pass">PASS</span></td>
+          <td><span class="badge fail">FAIL</span></td>
         </tr>
-        <tr>
+        <tr class="red-row">
           <td class="num">33</td>
-          <td><strong>Phase 6 Staff Portal Verify Sold Lt265[Chromium]</strong></td>
+          <td><strong>Phase 6 Staff Portal Verify Sold Lt265[Chromium]</strong><details class="error-toggle"><summary class="toggle-btn has-issues">View Error</summary><div class="error-box"><pre>tests/test_e2e_005_paper_form_e2e.py:297: in test_phase_6_staff_portal_verify_sold_lt265
+    sold_listing.expect_applications_visible()
+src/pages/staff_portal/sold_listing_page.py:55: in expect_applications_visible
+    expect(self.application_rows.first).to_be_visible(timeout=15_000)
+E   AssertionError: Locator expected to be visible
+E   Actual value: None
+E   Error: element(s) not found 
+E   Call log:
+E     - Expect &quot;to_be_visible&quot; with timeout 15000ms
+E     - waiting for locator(&quot;table.mat-tab...</pre></div></details></td>
           <td><code>TestE2E005PaperFormE2E</code></td>
           <td class="num">0.0s</td>
-          <td><span class="badge pass">PASS</span></td>
+          <td><span class="badge fail">FAIL</span></td>
         </tr>
         <tr>
           <td class="num">34</td>
@@ -402,7 +436,7 @@
   </div>
 
   <div class="footer">
-    Generated by NSM E2E Automation &middot; May 05, 2026 at 12:08 PM UTC
+    Generated by NSM E2E Automation &middot; May 06, 2026 at 09:10 AM UTC
   </div>
 
 </div>
