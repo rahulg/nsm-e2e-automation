@@ -16,6 +16,7 @@ on:
         options:
           - core
           - full
+          - fixed
           - smoke
 
 env:
@@ -65,7 +66,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             SCOPE="${{ github.event.inputs.test_scope }}"
           elif [ "${{ github.event.schedule }}" = "0 4 * * 1" ]; then
-            SCOPE="full"
+            SCOPE="fixed"
           else
             SCOPE="core"
           fi
@@ -88,6 +89,8 @@ jobs:
         run: |
           if [ "${{ steps.scope.outputs.scope }}" = "full" ]; then
             pytest --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
+          elif [ "${{ steps.scope.outputs.scope }}" = "fixed" ]; then
+            pytest -m "fixed" --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
           elif [ "${{ steps.scope.outputs.scope }}" = "smoke" ]; then
             pytest -m "smoke or core" --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
           else

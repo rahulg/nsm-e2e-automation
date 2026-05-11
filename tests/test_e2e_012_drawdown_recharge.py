@@ -139,9 +139,9 @@ class TestE2E012DrawdownRecharge:
                 first_row.get_by_text(re.compile(r"Drawdown Recharge", re.I))
             ).to_be_visible(timeout=10_000)
 
-            # Verify Credit Amount ($) = $1,000.00
+            # Verify Credit Amount ($) = $1,000.00 or $1000.00 (table format varies)
             expect(
-                first_row.get_by_text(re.compile(r"\$1,000\.00", re.I))
+                first_row.get_by_text(re.compile(r"\$1,?000\.00", re.I))
             ).to_be_visible(timeout=10_000)
 
             history_page.close()

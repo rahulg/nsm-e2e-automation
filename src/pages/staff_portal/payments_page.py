@@ -28,13 +28,18 @@ class StaffPaymentsPage:
     # ── Record Mailed Payment form (new page) ────────────────────────────────
 
     def enter_vin_and_add(self, vin: str):
-        """Enter VIN in the mat-chip-list input and press Enter to add it as a chip."""
+        """Enter VIN in the mat-chip-list input and click the + (add-span) icon to add it as a chip."""
         vin_input = self.page.locator('input[id*="mat-chip-list-input"]')
         expect(vin_input).to_be_visible(timeout=15_000)
         vin_input.click()
         vin_input.press_sequentially(vin, delay=50)
-        self.page.wait_for_timeout(500)
-        vin_input.press("Enter")
+        self.page.wait_for_timeout(800)
+
+        # The + button is a custom exp-svg-icon element with class "add-span".
+        # Pressing Enter is unreliable in headless/CLI mode — click the icon explicitly.
+        add_icon = self.page.locator('exp-svg-icon.add-span')
+        add_icon.wait_for(state="visible", timeout=5_000)
+        add_icon.click()
         self.page.wait_for_timeout(1000)
 
     def select_payment_type_check(self):

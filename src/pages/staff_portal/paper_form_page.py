@@ -62,7 +62,58 @@ class PaperFormPage:
         except Exception:
             pass
 
-    # ===== Phase 1: LT-260 Add from Paper =====
+    # ===== Phase 1: LT-260 Add from Paper (high-level helpers for E2E-046+) =====
+
+    def select_requester_type(self, requester_type: str):
+        """Select Individual or Business requester type in the paper form modal."""
+        radio = self.page.locator(
+            f'mat-radio-button:has-text("{requester_type}"), '
+            f'label:has-text("{requester_type}"), '
+            f'[role="radio"]:has-text("{requester_type}")'
+        ).first
+        try:
+            radio.wait_for(state="visible", timeout=10_000)
+            radio.click()
+        except Exception:
+            self.page.locator(f'text="{requester_type}"').first.click()
+        self.page.wait_for_timeout(500)
+
+    def enter_vin(self, vin: str):
+        """Enter VIN in the Add from Paper modal input."""
+        vin_input = self.page.locator(
+            'mat-dialog-container input[placeholder*="VIN" i], '
+            'mat-dialog-container input[name*="vin" i]'
+        ).first
+        vin_input.wait_for(state="visible", timeout=10_000)
+        vin_input.fill(vin)
+        self.page.wait_for_timeout(500)
+
+    def click_vin_lookup(self):
+        """Click Next in the Add from Paper modal to proceed after VIN entry."""
+        next_btn = self.page.locator('mat-dialog-container button:has-text("Next")').first
+        next_btn.wait_for(state="visible", timeout=10_000)
+        next_btn.click()
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(3000)
+
+    def fill_vehicle_details(self, vehicle: dict):
+        """Fill vehicle fields (year, make, date vehicle left) from a vehicle dict."""
+        from datetime import datetime, timedelta
+        if vehicle.get("year"):
+            self.fill_year(vehicle["year"])
+        if vehicle.get("make"):
+            make_prefix = vehicle["make"][:3].upper()
+            self.fill_make(make_prefix)
+        date_left = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        self.fill_date_vehicle_left(date_left)
+
+    def fill_storage_location(self, location_name: str, street: str = None, zip_code: str = None):
+        """Search for storage location by name and select the first autocomplete result."""
+        search_text = location_name[:10] if location_name else "Garage"
+        self.fill_search_location(search_text)
+        self.select_stolen_no()
+
+    # ===== Phase 1: LT-260 Add from Paper (low-level) =====
 
     def fill_modal_vin_and_next(self, vin: str):
         """In the Add from Paper modal: enter VIN and click Next (no E-Stop radio for LT-260)."""

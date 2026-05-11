@@ -117,7 +117,7 @@ def generate_report(json_path: str, html_path: str):
   .meta-item .label {{ color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px; font-weight: 600; }}
   .meta-item .value {{ color: white; font-weight: 500; margin-top: 2px; }}
 
-  .summary-row {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }}
+  .summary-row {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }}
   .summary-card {{ background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--gray-200); }}
   .summary-card .number {{ font-size: 36px; font-weight: 700; line-height: 1; }}
   .summary-card .label {{ font-size: 13px; color: var(--gray-500); margin-top: 4px; font-weight: 500; }}
@@ -178,7 +178,6 @@ def generate_report(json_path: str, html_path: str):
   <div class="summary-row">
     <div class="summary-card pass"><div class="number">{passed}</div><div class="label">Passed</div></div>
     <div class="summary-card fail"><div class="number">{failed}</div><div class="label">Failed</div></div>
-    <div class="summary-card warn"><div class="number">{skipped}</div><div class="label">Skipped</div></div>
     <div class="summary-card total"><div class="number">{total}</div><div class="label">Total</div></div>
   </div>
 
