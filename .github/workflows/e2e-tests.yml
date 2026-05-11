@@ -124,13 +124,17 @@ jobs:
       - name: Prepare report for GitHub Pages
         if: always()
         run: |
-          mkdir -p gh-pages-content
+          RUN_DATETIME=$(date -u +"%Y-%m-%d-%H%M")
+          mkdir -p gh-pages-content/reports
+          # Always-current report at root URL
           cp report.html gh-pages-content/report.html
+          # Dated archive copy so previous runs are preserved
+          cp report.html gh-pages-content/reports/report-${RUN_DATETIME}.html
           cat > gh-pages-content/index.html << 'HEREDOC'
           <!DOCTYPE html>
           <html>
           <head><meta http-equiv="refresh" content="0;url=report.html"></head>
-          <body><a href="report.html">View Report</a></body>
+          <body><a href="report.html">View Latest Report</a></body>
           </html>
           HEREDOC
 
@@ -141,6 +145,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./gh-pages-content
           publish_branch: gh-pages
+          keep_files: true
 
       - name: Post results to Slack via Expertly
         if: always()
