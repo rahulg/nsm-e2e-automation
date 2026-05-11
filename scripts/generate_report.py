@@ -22,22 +22,22 @@ def generate_report(json_path: str, html_path: str):
     failed = summary.get("failed", 0)
     skipped = summary.get("deselected", 0) + summary.get("xfailed", 0) + summary.get("skipped", 0)
     error = summary.get("error", 0)
-    duration = summary.get("duration", 0)
+    duration = data.get("duration", 0) or summary.get("duration", 0)
+
+    run_date = datetime.now(timezone.utc).strftime("%B %d, %Y at %I:%M %p UTC")
+    duration_fmt = f"{int(duration // 60)}m {int(duration % 60)}s"
 
     # Determine overall status
     if failed > 0 or error > 0:
         overall = "fail"
         banner_icon = "&#x274C;"
         banner_text = f"{failed + error} TEST(S) FAILED"
-        banner_sub = f"{passed} passed, {skipped} skipped in {duration:.1f}s"
+        banner_sub = f"{passed} passed in {duration_fmt}"
     else:
         overall = "pass"
         banner_icon = "&#x2705;"
         banner_text = "ALL TESTS PASSED"
-        banner_sub = f"{passed} passed, {skipped} skipped in {duration:.1f}s"
-
-    run_date = datetime.now(timezone.utc).strftime("%B %d, %Y at %I:%M %p UTC")
-    duration_fmt = f"{int(duration // 60)}m {int(duration % 60)}s"
+        banner_sub = f"{passed} passed in {duration_fmt}"
 
     # Build test rows
     tests = data.get("tests", [])
