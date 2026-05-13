@@ -146,7 +146,11 @@ def main():
 
     owner = repo.split("/")[0].lower() if "/" in repo else "rg9887"
     repo_name = repo.split("/")[-1]
-    report_url = f"https://{owner}.github.io/{repo_name}/report.html"
+    run_datetime = os.environ.get("RUN_DATETIME", "")
+    if run_datetime:
+        report_url = f"https://{owner}.github.io/{repo_name}/reports/report-{run_datetime}.html"
+    else:
+        report_url = f"https://{owner}.github.io/{repo_name}/report.html"
 
     if not username or not password:
         print("[expertly] EXPERTLY_USERNAME/PASSWORD not set, skipping Slack notification")

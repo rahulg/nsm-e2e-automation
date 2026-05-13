@@ -1,0 +1,49 @@
+name: Cleanup Old Reports
+
+on:
+  schedule:
+    # Every Sunday at 3:00 AM UTC
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Delete reports older than 60 days
+        id: cleanup
+        run: |
+          CUTOFF=$(date -u -d "60 days ago" +"%Y-%m-%d")
+          echo "Deleting reports with date before: $CUTOFF"
+          DELETED=0
+
+          for f in reports/report-*.html; do
+            [ -f "$f" ] || continue
+            # Extract YYYY-MM-DD from filename: reports/report-2026-05-13-0630.html
+            FILE_DATE=$(echo "$f" | grep -oP '\d{4}-\d{2}-\d{2}' | head -1)
+            if [[ -n "$FILE_DATE" && "$FILE_DATE" < "$CUTOFF" ]]; then
+              echo "Removing: $f (date: $FILE_DATE)"
+              git rm "$f"
+              DELETED=$((DELETED + 1))
+            fi
+          done
+
+          echo "deleted=$DELETED" >> $GITHUB_OUTPUT
+          echo "Total deleted: $DELETED"
+
+      - name: Commit and push if anything was deleted
+        if: steps.cleanup.outputs.deleted != '0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: remove reports older than 60 days (${{ steps.cleanup.outputs.deleted }} files)"
+          git push

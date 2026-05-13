@@ -123,8 +123,10 @@ jobs:
 
       - name: Prepare report for GitHub Pages
         if: always()
+        id: prepare
         run: |
           RUN_DATETIME=$(date -u +"%Y-%m-%d-%H%M")
+          echo "run_datetime=$RUN_DATETIME" >> $GITHUB_OUTPUT
           mkdir -p gh-pages-content/reports
           # Always-current report at root URL
           cp report.html gh-pages-content/report.html
@@ -156,5 +158,6 @@ jobs:
           TEST_SUMMARY: ${{ steps.summary.outputs.summary }}
           TEST_SCOPE: ${{ steps.scope.outputs.scope }}
           REPO_NAME: ${{ github.repository }}
+          RUN_DATETIME: ${{ steps.prepare.outputs.run_datetime }}
         run: python scripts/notify_slack.py
 
