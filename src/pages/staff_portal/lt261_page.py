@@ -106,9 +106,7 @@ class Lt261Page:
 
     def fill_year(self, year: str):
         """Fill the Year field."""
-        year_input = self.page.locator(
-            'input[name*="year" i], input[aria-label*="Year" i], input[placeholder*="Year" i]'
-        ).first
+        year_input = self.page.locator("//input[@name='year']")
         year_input.wait_for(state="visible", timeout=10_000)
         year_input.fill(year)
         self.page.wait_for_timeout(300)
@@ -198,7 +196,7 @@ class Lt261Page:
 
         no_option = self.page.locator('mat-option:has-text("No")').first
         no_option.wait_for(state="visible", timeout=10_000)
-        no_option.click()
+        no_option.dispatch_event("click")
         self.page.wait_for_timeout(500)
 
     def submit_with_confirmation(self):
