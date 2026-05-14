@@ -45,7 +45,11 @@ def generate_report(json_path: str, html_path: str):
     for i, test in enumerate(tests, 1):
         nodeid = test.get("nodeid", "")
         outcome = test.get("outcome", "unknown")
-        test_duration = test.get("duration", 0)
+        test_duration = (
+            test.get("setup", {}).get("duration", 0)
+            + test.get("call", {}).get("duration", 0)
+            + test.get("teardown", {}).get("duration", 0)
+        )
 
         # Parse test name from nodeid
         parts = nodeid.split("::")
