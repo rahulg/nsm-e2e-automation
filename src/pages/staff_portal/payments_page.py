@@ -54,6 +54,18 @@ class StaffPaymentsPage:
         check_option.click()
         self.page.wait_for_timeout(500)
 
+    def select_payment_type_money_order(self):
+        """Under 'Payment Details', open Payment Type dropdown and select Money Order."""
+        payment_type_select = self.page.locator('mat-select[aria-label="Payment Type"]')
+        expect(payment_type_select).to_be_visible(timeout=10_000)
+        payment_type_select.click()
+        self.page.wait_for_timeout(500)
+
+        mo_option = self.page.locator('mat-option:has-text("Money Order")').first
+        expect(mo_option).to_be_visible(timeout=5_000)
+        mo_option.click()
+        self.page.wait_for_timeout(500)
+
     def fill_payer_name(self, payer_name: str):
         """Fill Business/Payer Name field."""
         payer_input = self.page.locator('input[name="payerName"]')
@@ -109,15 +121,21 @@ class StaffPaymentsPage:
         payer_name: str = "Test Garage Inc",
         check_number: str = "12345",
         date_received: str = None,
+        payment_type: str = "check",
     ):
-        """Full flow: click Record Mailed Payment → enter VIN → add → fill details → submit."""
+        """Full flow: click Record Mailed Payment → enter VIN → add → fill details → submit.
+        payment_type: 'check' (default) or 'money_order'
+        """
         from src.helpers.data_helper import past_date
         if date_received is None:
             date_received = past_date(1)
 
         self.click_record_mailed_payment()
         self.enter_vin_and_add(vin)
-        self.select_payment_type_check()
+        if payment_type == "money_order":
+            self.select_payment_type_money_order()
+        else:
+            self.select_payment_type_check()
         self.fill_payer_name(payer_name)
         self.fill_date_check_received(date_received)
         self.fill_check_number(check_number)
