@@ -5,11 +5,13 @@ and that checkbox independence works correctly during LT-262 processing. Also ve
 that a downstream LT-263 draft does not remove the LT-262 from its listing page.
 
 Phases:
-  0. [Setup]         Submit LT-260 (PP), process (SP), submit LT-262 with payment (PP)
-  1. [Staff Portal]  Process LT-262 — verify checkbox independence (Owners/Lienholders)
-  2. [Public Portal] Save LT-263 as draft (partial fill, Save as Draft)
-  3. [Staff Portal]  LT-262 listing — search VIN — verify still on appropriate tab despite LT-263 draft
-  4. [Staff Portal]  Global Search — search VIN — verify LT-262 entry appears, status matches listing
+  0a. [Public Portal]  Submit LT-260
+  0b. [Staff Portal]   Process LT-260
+  0c. [Public Portal]  Submit LT-262 with payment
+  1.  [Staff Portal]   Process LT-262 — verify lien/owner details + checkbox independence
+  2.  [Public Portal]  Navigate to LT-263 form, partial fill (sale type, date, lien amount), Save as Draft
+  3.  [Staff Portal]   LT-262 Processed tab — search VIN via filters — click — verify status = Processed
+  4.  [Staff Portal]   Header search VIN → LT-260 tab: LT-260 Processed; LT-262 tab: LT-262 Processed
 """
 
 import re
@@ -19,12 +21,7 @@ import pytest
 from playwright.sync_api import BrowserContext, expect
 
 from src.config.env import ENV
-from src.config.test_data import (
-    APPROX_VEHICLE_VALUE,
-    STANDARD_LIEN_CHARGES,
-    STORAGE_LOCATION_NAME,
-    SAMPLE_DOC_PATH,
-)
+from src.config.test_data import SAMPLE_DOC_PATH
 from src.helpers.data_helper import (
     generate_vin,
     random_vehicle,
@@ -41,10 +38,10 @@ from src.pages.staff_portal.dashboard_page import StaffDashboardPage
 from src.pages.staff_portal.lt260_listing_page import Lt260ListingPage
 from src.pages.staff_portal.lt262_listing_page import Lt262ListingPage
 from src.pages.staff_portal.form_processing_page import FormProcessingPage
-from src.pages.staff_portal.global_search_page import GlobalSearchPage
 
 
 # ─── Shared test data ───
+BUSINESS_NAME = "G-Car Garages New"
 TEST_VIN = generate_vin()
 VEHICLE = random_vehicle()
 PLATE = generate_license_plate()
@@ -71,79 +68,175 @@ def go_to_staff_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.edge
 @pytest.mark.high
+@pytest.mark.fixed
 class TestE2E040ListingGlobalSearchConsistency:
     """E2E-040: Listing page vs. Global Search consistency — checkbox independence and draft isolation"""
 
     # ========================================================================
-    # PHASE 0: Setup — Submit LT-260, process, submit LT-262 with payment
+    # PHASE 0a: Public Portal — Create & Submit LT-260
     # ========================================================================
-    def test_phase_0_setup_through_lt262(self, public_context: BrowserContext,
-                                          staff_context: BrowserContext):
-        """Phase 0: [Setup] Submit LT-260, process, submit LT-262 with payment"""
-        # Submit LT-260
+    def test_phase_0a_public_portal_create_lt260(self, public_context: BrowserContext):
+        """Phase 0a: [Public Portal] Login, create LT-260, VIN lookup, fill form, submit"""
         page = public_context.new_page()
         try:
             go_to_public_dashboard(page)
+
             dashboard = PublicDashboardPage(page)
-            dashboard.select_business()
+
+            # Select business (if multi-business user)
+            dashboard.select_business(BUSINESS_NAME)
+
+            # Click "Start here" to create LT-260
             dashboard.click_start_here()
 
             lt260 = Lt260FormPage(page)
+
+            # Enter VIN (no VIN lookup — modal will appear at submit)
             lt260.enter_vin(TEST_VIN)
-            lt260.click_vin_lookup()
+
+            # Fill vehicle details
             lt260.fill_vehicle_details(VEHICLE)
             lt260.fill_date_vehicle_left(past_date(30))
             lt260.fill_license_plate(PLATE)
-            lt260.fill_approx_value(APPROX_VEHICLE_VALUE)
+            lt260.fill_approx_value("5000")
             lt260.select_reason_storage()
-            lt260.fill_storage_location(STORAGE_LOCATION_NAME, ADDRESS["street"], ADDRESS["zip"])
+            lt260.fill_storage_location("Test Storage Facility", ADDRESS["street"], ADDRESS["zip"])
+
+            # Fill authorized person (Tab 2)
             lt260.fill_authorized_person(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
+
+            # Accept terms and sign (Tab 3)
             lt260.accept_terms_and_sign(PERSON["name"], PERSON["email"])
-            lt260.submit()
+
+            # Submit — VIN image modal should appear now that webdriver flag is hidden
+            lt260.submit_with_vin_image()
             page.wait_for_timeout(2000)
+
+            # Verify redirect back to dashboard
+            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=30_000)
         finally:
             page.close()
 
-        # Process LT-260
+    # ========================================================================
+    # PHASE 0b: Staff Portal — Verify LT-260 processing
+    # ========================================================================
+    def test_phase_0b_staff_portal_process_lt260(self, staff_context: BrowserContext):
+        """Phase 0b: [Staff Portal] Open LT-260, add owner, set stolen=No, save, issue 160B/260A"""
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
+
             staff_dashboard = StaffDashboardPage(page)
             lt260_listing = Lt260ListingPage(page)
             form_processing = FormProcessingPage(page)
 
+            # Navigate to LT-260 listing → To Process tab
             staff_dashboard.navigate_to_lt260_listing()
             lt260_listing.click_to_process_tab()
+
+            # Search for our specific VIN
             lt260_listing.search_by_vin(TEST_VIN)
             lt260_listing.select_application(0)
+
+            # Verify detail page loaded
             form_processing.expect_detail_page_visible()
-            try:
-                lt260_listing.verify_auto_issuance()
-            except Exception:
-                lt260_listing.issue_lt260c()
+
+            # Click Edit
+            form_processing.click_edit()
+
+            # Add owner under "Owner(s) Check"
+            form_processing.add_owner(
+                PERSON["name"], ADDRESS["street"], ADDRESS["zip"]
+            )
+
+            # Select STOLEN = No
+            form_processing.select_stolen_no()
+
+            # Save
+            form_processing.click_save()
+
+            # Issue 160B and 260A
+            form_processing.issue_160b_and_260a()
+
+            # Verify success toast and Processed status
+            form_processing.expect_issued_success_toast()
+            form_processing.expect_status_processed()
         finally:
             page.close()
 
-        # Submit LT-262 with payment
+    # ========================================================================
+    # PHASE 0c: Public Portal — Submit LT-262
+    # ========================================================================
+    def test_phase_0c_public_portal_submit_lt262(self, public_context: BrowserContext):
+        """Phase 0c: [Public Portal] Verify LT-260 processed, submit LT-262 with lien/charges/docs, pay"""
         page = public_context.new_page()
         try:
             go_to_public_dashboard(page)
+
             dashboard = PublicDashboardPage(page)
+
+            # Select business (same as Phase 0a)
+            dashboard.select_business(BUSINESS_NAME)
+
+            # Search for the same VIN from Phase 0a
             dashboard.click_notice_storage_tab()
+            page.wait_for_timeout(1000)
+            dashboard.search_by_vin(TEST_VIN)
+            page.wait_for_timeout(2000)
             dashboard.select_application(0)
             dashboard.expect_application_processed()
+
+            # Click "Submit LT-262"
             dashboard.click_submit_lt262()
 
             lt262 = Lt262FormPage(page)
             lt262.expect_form_tabs_visible()
-            lt262.fill_lien_charges(STANDARD_LIEN_CHARGES)
+
+            # Skip pre-filled tabs A (Vehicle) and B (Location) via Next
+            lt262.skip_vehicle_and_location_tabs()
+
+            # Fill Tab C — lien charges (advances to D via Next)
+            lt262.fill_lien_charges({"storage": "500", "towing": "200", "labor": "100"})
+
+            # Fill Tab D — date of storage (advances to E via Next)
             lt262.fill_date_of_storage(past_date(30))
+
+            # Fill Tab E — person authorizing storage
             lt262.fill_person_authorizing(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
+
+            # Fill Additional Details (advances via Next from Form Details)
             lt262.fill_additional_details(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
+
+            # Upload supporting documents
             lt262.upload_documents([SAMPLE_DOC_PATH])
+
+            # Accept terms and sign
             lt262.accept_terms_and_sign(PERSON["name"])
+
+            # Finish and pay — redirects to cart page
             lt262.finish_and_pay()
+
+            # Click "Pay Using ACH/Drawdown" on the cart page
+            pay_drawdown_btn = page.locator('button:has-text("Pay Using ACH/Drawdown")')
+            pay_drawdown_btn.wait_for(state="visible", timeout=30_000)
+            pay_drawdown_btn.click()
             page.wait_for_timeout(2000)
+
+            # Confirm drawdown modal: "Are you sure you want to use your Drawdown balance?"
+            yes_btn = page.locator('mat-dialog-container button:has-text("Yes")').first
+            yes_btn.wait_for(state="visible", timeout=10_000)
+            yes_btn.click()
+            page.wait_for_timeout(3000)
+
+            # Soft check — banner is transient and may be missed in CI
+            try:
+                success_banner = page.get_by_text("Your payment has been completed successfully")
+                expect(success_banner).to_be_visible(timeout=30_000)
+            except Exception:
+                print("WARN: 'Your payment has been completed successfully' banner not seen — continuing")
+
+            # Verify redirect to dashboard with VIN showing "LT-262 Submitted"
+            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=30_000)
         finally:
             page.close()
 
@@ -151,21 +244,51 @@ class TestE2E040ListingGlobalSearchConsistency:
     # PHASE 1: Staff Portal — Process LT-262, verify checkbox independence
     # ========================================================================
     def test_phase_1_process_lt262_checkbox_independence(self, staff_context: BrowserContext):
-        """Phase 1: [Staff Portal] Process LT-262 — verify Owners/Lienholders checkbox independence"""
+        """Phase 1: [Staff Portal] Open LT-262, verify details, CHECK DCI → Issue LT-264"""
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
+
             staff_dashboard = StaffDashboardPage(page)
             lt262_listing = Lt262ListingPage(page)
 
+            # Navigate to LT-262 listing → To Process tab
             staff_dashboard.navigate_to_lt262_listing()
             lt262_listing.click_to_process_tab()
+
+            # Search for our specific VIN
             lt262_listing.search_by_vin(TEST_VIN)
             lt262_listing.select_application(0)
 
-            # Navigate to CHECK DCI AND NMVTIS tab where checkboxes are
-            lt262_listing.click_check_dci_tab()
-            page.wait_for_timeout(1000)
+            # Verify lien details on REVIEW LT-262 tab
+            lt262_listing.verify_lien_details_visible()
+
+            # Navigate to CHECK DCI AND NMVTIS → verify owner details
+            lt262_listing.verify_owner_details_visible()
+            
+            # Issue LT-264 (clicks button → modal → Issue → success)
+            lt262_listing.issue_lt264()
+
+            # Verify green success banner
+            success_banner = page.get_by_text("The form has been issued successfully.")
+            expect(success_banner).to_be_visible(timeout=30_000)
+
+            # Verify redirected to TRACK LT-264 tab
+            track_tab = page.locator('[role="tab"]:has-text("TRACK LT-264")')
+            expect(track_tab).to_be_visible(timeout=10_000)
+            
+            # Check checkbox under "Log Receipt of Signed LT-264 Letters"
+            log_receipt_cb = page.locator('mat-checkbox').first
+            if "mat-checkbox-checked" not in (log_receipt_cb.get_attribute("class") or ""):
+                log_receipt_cb.locator("label").click()
+                page.wait_for_timeout(1000)
+
+            # Second checkbox appears after first is checked — "Select recipients requesting judicial hearing"
+            hearing_cb = page.locator('mat-checkbox').nth(1)
+            hearing_cb.wait_for(state="visible", timeout=10_000)
+            if "mat-checkbox-checked" not in (hearing_cb.get_attribute("class") or ""):
+                hearing_cb.locator("label").click()
+                page.wait_for_timeout(500)
 
             # Find Lienholders and Owners checkboxes
             lienholders_cb = page.locator(
@@ -213,37 +336,131 @@ class TestE2E040ListingGlobalSearchConsistency:
                 # Checkboxes may not exist for this VIN (no owners/lienholders in STARS)
                 pass
 
-            # Issue LT-264 to advance the workflow
-            lt262_listing.issue_lt264()
+            # Click Save (enabled after checking boxes on TRACK LT-264)
+            save_btn = page.locator('button:has-text("Save")').first
+            save_btn.wait_for(state="visible", timeout=30_000)
+            save_btn.scroll_into_view_if_needed()
+            save_btn.click()
+            page.wait_for_timeout(2000)
+
+            # Confirm modal — click Yes
+            yes_btn = page.locator('mat-dialog-container button:has-text("Yes")').first
+            yes_btn.wait_for(state="visible", timeout=10_000)
+            yes_btn.click()
+            page.wait_for_timeout(3000)
+
+            # Wait for redirect to REVIEW COURT HEARINGS — wait for its unique content
+            possessory_text = page.get_by_text(re.compile(r"Judgment in action of Possessory Lien", re.I)).first
+            possessory_text.wait_for(state="visible", timeout=30_000)
+            page.wait_for_timeout(2000)
+
+            # Check "Judgment in action of Possessory Lien" checkbox
+            possessory_cb = page.locator('mat-checkbox').first
+            possessory_cb.wait_for(state="visible", timeout=10_000)
+            if "mat-checkbox-checked" not in (possessory_cb.get_attribute("class") or ""):
+                possessory_cb.locator("label").click()
+                page.wait_for_timeout(1000)
+
+            # Click Save (enabled after checking the checkbox)
+            save_btn2 = page.locator('button:has-text("Save")').first
+            save_btn2.wait_for(state="visible", timeout=30_000)
+            save_btn2.scroll_into_view_if_needed()
+            save_btn2.click()
+            page.wait_for_timeout(2000)
+
+            # Confirm modal — click Yes
+            yes_btn2 = page.locator('mat-dialog-container button:has-text("Yes")').first
+            yes_btn2.wait_for(state="visible", timeout=10_000)
+            yes_btn2.click()
+            page.wait_for_timeout(3000)
+
+            # Verify green success banner
+            success_banner = page.get_by_text(re.compile(r"success", re.I)).first
+            expect(success_banner).to_be_visible(timeout=30_000)
+
+            # Click Next button (appears after successful save)
+            next_btn = page.locator('button:has-text("Next")').first
+            next_btn.wait_for(state="visible", timeout=30_000)
+            next_btn.scroll_into_view_if_needed()
+            next_btn.click()
+            page.wait_for_timeout(2000)
+
+            # Verify modal with waiting message
+            waiting_msg = page.get_by_text("Waiting for the requester to submit LT-263.")
+            expect(waiting_msg).to_be_visible(timeout=10_000)
+            
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 2: Public Portal — Save LT-263 as draft
+    # PHASE 2: Public Portal — Navigate to LT-263 form, partial fill, Save as Draft
     # ========================================================================
     def test_phase_2_save_lt263_as_draft(self, public_context: BrowserContext):
-        """Phase 2: [Public Portal] Save LT-263 as draft (partial fill, Save as Draft)"""
+        """Phase 2: [Public Portal] Navigate to LT-263 form, partial fill (sale type, date, lien amount), Save as Draft"""
+        from datetime import datetime, timedelta
+
         page = public_context.new_page()
         try:
             go_to_public_dashboard(page)
+
             dashboard = PublicDashboardPage(page)
+
+            # Select business (same as Phase 0a and 0c)
+            dashboard.select_business(BUSINESS_NAME)
+
+            # Search for the same VIN
             dashboard.click_notice_storage_tab()
+            page.wait_for_timeout(1000)
+            dashboard.search_by_vin(TEST_VIN)
+            page.wait_for_timeout(2000)
             dashboard.select_application(0)
 
-            # Click Submit LT-263 if available
+            # Verify status is "LT-262 Processed" and Submit LT-263 button is available
+            expect(page.get_by_text(re.compile(r"LT-262 Processed", re.I)).first).to_be_visible(timeout=30_000)
+            dashboard.expect_lt263_available()
+
+            # Click "Submit LT-263"
+            dashboard.click_submit_lt263()
+            page.wait_for_timeout(2000)
+
+            # Verify LT-263 form page
+            expect(page.get_by_text(re.compile(r"LT-263.*Form Details", re.I)).first).to_be_visible(timeout=30_000)
+
+            # Select "Type of Sale" → Public
+            sale_type_dropdown = page.locator('mat-select[aria-label*="Type of Sale" i]').first
             try:
-                dashboard.click_submit_lt263()
+                sale_type_dropdown.wait_for(state="visible", timeout=5_000)
+                sale_type_dropdown.click()
+                page.wait_for_timeout(500)
+                page.locator('mat-option:has-text("Public")').first.click()
+                page.wait_for_timeout(500)
             except Exception:
-                # LT-263 may not be available yet depending on LT-264 aging
-                pytest.skip("LT-263 not yet available — LT-264 aging period not elapsed")
-
-            lt263 = Lt263FormPage(page)
-
-            # Partial fill — only select sale type
-            try:
+                lt263 = Lt263FormPage(page)
                 lt263.select_public_sale()
-            except Exception:
-                pass
+
+            # Enter Sale Date (21 days from today in MM/DD/YYYY format)
+            sale_date = (datetime.now() + timedelta(days=21)).strftime("%m/%d/%Y")
+            sale_date_input = page.locator(
+                'input[aria-label*="Sale Date" i], input[placeholder*="MM/DD/YYYY"]'
+            ).first
+            sale_date_input.wait_for(state="visible", timeout=10_000)
+            sale_date_input.fill(sale_date)
+            page.wait_for_timeout(500)
+
+            # Enter Lien Amount
+            lien_amount_input = page.locator(
+                'input[aria-label*="Lien Amount" i], input[name*="lien" i][name*="amount" i]'
+            ).first
+            lien_amount_input.wait_for(state="visible", timeout=10_000)
+            lien_amount_input.fill("800")
+            page.wait_for_timeout(500)
+
+            # Click Next
+            next_btn = page.locator('button:has-text("Next")').first
+            next_btn.wait_for(state="visible", timeout=30_000)
+            next_btn.scroll_into_view_if_needed()
+            next_btn.click()
+            page.wait_for_timeout(2000)
 
             # Save as Draft
             save_draft_btn = page.locator(
@@ -256,85 +473,84 @@ class TestE2E040ListingGlobalSearchConsistency:
                 page.wait_for_load_state("networkidle")
                 page.wait_for_timeout(2000)
             except Exception:
-                # Navigate away to trigger auto-save if no explicit button
                 go_to_public_dashboard(page)
                 page.wait_for_timeout(2000)
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 3: Staff Portal — LT-262 listing still shows VIN despite LT-263 draft
+    # PHASE 3: Staff Portal — LT-262 Processed tab, search VIN, verify status = Processed
     # ========================================================================
     def test_phase_3_lt262_listing_persists_with_lt263_draft(self, staff_context: BrowserContext):
-        """Phase 3: [Staff Portal] LT-262 listing — VIN still appears despite downstream LT-263 draft"""
+        """Phase 3: [Staff Portal] LT-262 Processed tab — search VIN via filters — click — verify status = Processed"""
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
             staff_dashboard = StaffDashboardPage(page)
             lt262_listing = Lt262ListingPage(page)
 
+            # Navigate to LT-262 listing → Processed tab
             staff_dashboard.navigate_to_lt262_listing()
+            lt262_listing._click_tab(lt262_listing.processed_tab, "Processed")
 
-            # Search for VIN — try Aging tab first (where it should be after LT-264 issuance)
-            lt262_listing.click_aging_tab()
+            # Search for our specific VIN
             lt262_listing.search_by_vin(TEST_VIN)
+            lt262_listing.select_application(0)
 
-            if lt262_listing.application_rows.count() == 0:
-                # Try All tab
-                lt262_listing.click_all_tab()
-                lt262_listing.search_by_vin(TEST_VIN)
-
-            # Verify the VIN is still present on the listing page
-            lt262_listing.expect_applications_visible()
-
-            # Verify the VIN text is in the results — check both row text and VIN link text
-            row_text = lt262_listing.application_rows.first.text_content() or ""
-            vin_link_text = ""
-            try:
-                vin_link_text = lt262_listing.vin_links.first.text_content() or ""
-            except Exception:
-                pass
-            if TEST_VIN not in row_text and TEST_VIN not in vin_link_text:
-                pass  # Search may not filter correctly — VIN may be on different tab
+            # Verify status "Processed" is displayed
+            processed_text = page.get_by_text(re.compile(r"Processed", re.I)).first
+            expect(processed_text).to_be_visible(timeout=15_000)
         finally:
             page.close()
 
     # ========================================================================
-    # PHASE 4: Staff Portal — Global Search matches listing page state
+    # PHASE 4: Staff Portal — Header search VIN, verify LT-260 and LT-262 statuses
     # ========================================================================
     def test_phase_4_global_search_matches_listing(self, staff_context: BrowserContext):
-        """Phase 4: [Staff Portal] Global Search — VIN appears, status matches LT-262 listing"""
+        """Phase 4: [Staff Portal] Header search VIN → LT-260 tab: LT-260 Processed; LT-262 tab: LT-262 Processed"""
         page = staff_context.new_page()
         try:
             go_to_staff_dashboard(page)
-            global_search = GlobalSearchPage(page)
+            staff_dashboard = StaffDashboardPage(page)
+            lt262_listing = Lt262ListingPage(page)
 
-            global_search.navigate_to()
-            global_search.search(TEST_VIN)
+            # Navigate to a listing page first (header search requires non-dashboard context)
+            staff_dashboard.navigate_to_lt262_listing()
+            page.wait_for_load_state("networkidle")
 
-            try:
-                global_search.expect_results_visible()
+            # Enter VIN in the top header search field
+            search_input = page.locator(
+                'mat-toolbar input, app-toolbar input, input[placeholder*="Search" i]'
+            ).first
+            search_input.wait_for(state="visible", timeout=15_000)
+            search_input.fill(TEST_VIN)
+            page.wait_for_timeout(500)
 
-                # Verify LT-262 entry appears in Global Search results
-                results_text = page.locator("table tbody").text_content() or ""
-                if TEST_VIN not in results_text:
-                    pass  # VIN may not be indexed yet in Global Search
+            # Click Search button
+            search_btn = page.locator('//span[contains(text(),"Search ")]').first
+            search_btn.wait_for(state="visible", timeout=10_000)
+            search_btn.click()
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(2000)
 
-                if "LT-262" not in results_text:
-                    pass  # LT-262 may not appear — search indexing delay
+            # Verify LT-260 tab — status should be "LT-260 Processed"
+            lt260_tab = page.locator('[role="tab"]:has-text("LT-260")').first
+            lt260_tab.wait_for(state="visible", timeout=15_000)
+            lt260_tab.click()
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(1000)
 
-                # Verify status consistency
-                result_rows = page.locator("table tbody tr")
-                lt262_row_found = False
-                for i in range(result_rows.count()):
-                    row_text = result_rows.nth(i).text_content() or ""
-                    if TEST_VIN in row_text and "LT-262" in row_text:
-                        lt262_row_found = True
-                        break
+            lt260_status = page.get_by_text(re.compile(r"LT-260 Processed", re.I)).first
+            expect(lt260_status).to_be_visible(timeout=15_000)
 
-                if not lt262_row_found:
-                    pass  # LT-262 row may not appear in Global Search yet
-            except Exception:
-                pass  # Global Search may return empty for newly created VINs
+            # Verify LT-262 tab — status should be "LT-262 Processed"
+            lt262_tab = page.locator('[role="tab"]:has-text("LT-262")').first
+            lt262_tab.wait_for(state="visible", timeout=15_000)
+            lt262_tab.click()
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(1000)
+
+            lt262_status = page.get_by_text(re.compile(r"LT-262 Processed", re.I)).first
+            expect(lt262_status).to_be_visible(timeout=15_000)
         finally:
             page.close()
