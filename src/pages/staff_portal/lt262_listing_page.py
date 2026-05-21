@@ -381,6 +381,9 @@ class Lt262ListingPage:
         self.click_check_dci_tab()
         self.page.wait_for_timeout(1000)
 
+        # Run DCI check if needed (button appears after DCI check)
+        self._run_dci_check_if_needed()
+
         # Click Generate/Issue LT-262B button
         btn = self.page.locator(
             'button:has-text("Generate LT-262B"), button:has-text("Issue LT-262B"), '
