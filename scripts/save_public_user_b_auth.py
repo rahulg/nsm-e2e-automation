@@ -1,15 +1,18 @@
-"""Generate auth/public-portal-user-b.json by logging in as PUBLIC_USER_B (mora_333) via NCID."""
+"""Generate auth/{env}/public-portal-user-b.json by logging in as PUBLIC_USER_B."""
 import os
-import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from playwright.sync_api import sync_playwright
+from scripts.auth_helpers import login_public_portal
 from src.config.env import ENV
 
-AUTH_PATH = Path(__file__).resolve().parent.parent / "auth" / "public-portal-user-b.json"
+ENV_NAME = os.getenv("NSM_ENV", "qa")
+AUTH_DIR = Path(__file__).resolve().parent.parent / "auth" / ENV_NAME
+AUTH_DIR.mkdir(parents=True, exist_ok=True)
+AUTH_PATH = AUTH_DIR / "public-portal-user-b.json"
 IS_CI = os.getenv("CI") == "true"
 
 
@@ -24,22 +27,7 @@ def main():
         page.wait_for_load_state("networkidle")
         page.wait_for_timeout(2000)
 
-        # Click "Sign In with NCID"
-        page.locator('button:has-text("Sign In with NCID")').click()
-        page.wait_for_url(re.compile(r"myncid|login\.myncidpp", re.I), timeout=30_000)
-        page.wait_for_load_state("networkidle")
-        page.wait_for_timeout(1000)
-
-        # Enter username
-        page.locator("#identifierInput").fill(ENV.PUBLIC_USER_B_USERNAME)
-        page.locator('a.ping-button:has-text("Next")').click()
-        page.wait_for_load_state("networkidle")
-
-        # Enter password
-        page.locator("#password").fill(ENV.PUBLIC_USER_B_PASSWORD)
-        page.locator('a.ping-button:has-text("Sign On")').click()
-        page.wait_for_load_state("networkidle")
-        page.wait_for_timeout(3000)
+        login_public_portal(page, ENV.PUBLIC_USER_B_USERNAME, ENV.PUBLIC_USER_B_PASSWORD, ENV_NAME)
 
         print(f"Post-login URL: {page.url}")
         context.storage_state(path=str(AUTH_PATH))

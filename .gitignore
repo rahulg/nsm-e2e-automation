@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
 .env
+.env.qa
+.env.stage
 auth/
 test-results/
 playwright-report/

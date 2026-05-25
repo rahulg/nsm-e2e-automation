@@ -1,13 +1,21 @@
 """Run all portal auth scripts in sequence to regenerate saved auth states.
 
 Usage (from e2eautomation/):
-    python scripts/refresh_auth.py
+    python scripts/refresh_auth.py               # targets QA (default)
+    python scripts/refresh_auth.py --env stage   # targets STAGE
 """
+import argparse
+import os
 import sys
 import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+_parser = argparse.ArgumentParser()
+_parser.add_argument("--env", default="qa", choices=["qa", "stage"])
+_args, _ = _parser.parse_known_args()
+os.environ["NSM_ENV"] = _args.env
 
 from scripts.save_public_auth import main as save_public
 from scripts.save_public_user_b_auth import main as save_public_user_b

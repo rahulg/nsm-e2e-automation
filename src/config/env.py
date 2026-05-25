@@ -2,7 +2,9 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
+NSM_ENV = os.getenv("NSM_ENV", "qa")
+_env_file = Path(__file__).resolve().parent.parent.parent / f".env.{NSM_ENV}"
+load_dotenv(_env_file)
 
 REQUIRED_VARS = [
     "PUBLIC_PORTAL_URL",

@@ -1,4 +1,4 @@
-"""Generate auth/fiscal-portal.json by logging in as the fiscal user via Verifi login."""
+"""Generate auth/{env}/fiscal-portal.json by logging in as the fiscal user via Verifi login."""
 import os
 import sys
 from pathlib import Path
@@ -8,7 +8,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from playwright.sync_api import sync_playwright
 from src.config.env import ENV
 
-AUTH_PATH = Path(__file__).resolve().parent.parent / "auth" / "fiscal-portal.json"
+ENV_NAME = os.getenv("NSM_ENV", "qa")
+AUTH_DIR = Path(__file__).resolve().parent.parent / "auth" / ENV_NAME
+AUTH_DIR.mkdir(parents=True, exist_ok=True)
+AUTH_PATH = AUTH_DIR / "fiscal-portal.json"
 IS_CI = os.getenv("CI") == "true"
 
 
@@ -29,7 +32,7 @@ def main():
         try:
             page.locator("input#loginId").wait_for(state="visible", timeout=40_000)
         except Exception:
-            screenshot_path = Path(__file__).resolve().parent.parent / "auth" / "debug_fiscal_login.png"
+            screenshot_path = AUTH_DIR / "debug_fiscal_login.png"
             page.screenshot(path=str(screenshot_path))
             print(f"  DEBUG screenshot saved to: {screenshot_path}")
             raise

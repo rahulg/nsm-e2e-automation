@@ -1,4 +1,4 @@
-"""Generate auth/lsa-portal.json by logging in as STAFF_USER_B (LSA role) via Verifi login."""
+"""Generate auth/{env}/lsa-portal.json by logging in as STAFF_USER_B (LSA role) via Verifi login."""
 import os
 import sys
 from pathlib import Path
@@ -8,7 +8,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from playwright.sync_api import sync_playwright
 from src.config.env import ENV
 
-AUTH_PATH = Path(__file__).resolve().parent.parent / "auth" / "lsa-portal.json"
+ENV_NAME = os.getenv("NSM_ENV", "qa")
+AUTH_DIR = Path(__file__).resolve().parent.parent / "auth" / ENV_NAME
+AUTH_DIR.mkdir(parents=True, exist_ok=True)
+AUTH_PATH = AUTH_DIR / "lsa-portal.json"
 IS_CI = os.getenv("CI") == "true"
 
 

@@ -18,22 +18,31 @@ on:
           - full
           - fixed
           - smoke
+      env_name:
+        description: 'Target environment'
+        required: false
+        default: 'qa'
+        type: choice
+        options:
+          - qa
+          - stage
 
 env:
-  PUBLIC_PORTAL_URL: ${{ secrets.PUBLIC_PORTAL_URL }}
-  PUBLIC_PORTAL_USERNAME: ${{ secrets.PUBLIC_PORTAL_USERNAME }}
-  PUBLIC_PORTAL_PASSWORD: ${{ secrets.PUBLIC_PORTAL_PASSWORD }}
-  STAFF_PORTAL_URL: ${{ secrets.STAFF_PORTAL_URL }}
-  STAFF_PORTAL_USERNAME: ${{ secrets.STAFF_PORTAL_USERNAME }}
-  STAFF_PORTAL_PASSWORD: ${{ secrets.STAFF_PORTAL_PASSWORD }}
-  STAFF_USER_B_USERNAME: ${{ secrets.STAFF_USER_B_USERNAME }}
-  STAFF_USER_B_PASSWORD: ${{ secrets.STAFF_USER_B_PASSWORD }}
-  PUBLIC_USER_B_USERNAME: ${{ secrets.PUBLIC_USER_B_USERNAME }}
-  PUBLIC_USER_B_PASSWORD: ${{ secrets.PUBLIC_USER_B_PASSWORD }}
-  FISCAL_USER_USERNAME: ${{ secrets.FISCAL_USER_USERNAME }}
-  FISCAL_USER_PASSWORD: ${{ secrets.FISCAL_USER_PASSWORD }}
-  INDIVIDUAL_PUBLIC_USERNAME: ${{ secrets.INDIVIDUAL_PUBLIC_USERNAME }}
-  INDIVIDUAL_PUBLIC_PASSWORD: ${{ secrets.INDIVIDUAL_PUBLIC_PASSWORD }}
+  NSM_ENV: ${{ github.event.inputs.env_name || 'qa' }}
+  PUBLIC_PORTAL_URL: ${{ github.event.inputs.env_name == 'stage' && secrets.STAGE_PUBLIC_PORTAL_URL || secrets.PUBLIC_PORTAL_URL }}
+  PUBLIC_PORTAL_USERNAME: ${{ github.event.inputs.env_name == 'stage' && secrets.STAGE_PUBLIC_PORTAL_USERNAME || secrets.PUBLIC_PORTAL_USERNAME }}
+  PUBLIC_PORTAL_PASSWORD: ${{ github.event.inputs.env_name == 'stage' && secrets.STAGE_PUBLIC_PORTAL_PASSWORD || secrets.PUBLIC_PORTAL_PASSWORD }}
+  STAFF_PORTAL_URL: ${{ github.event.inputs.env_name == 'stage' && secrets.STAGE_STAFF_PORTAL_URL || secrets.STAFF_PORTAL_URL }}
+  STAFF_PORTAL_USERNAME: ${{ github.event.inputs.env_name == 'stage' && secrets.STAGE_STAFF_PORTAL_USERNAME || secrets.STAFF_PORTAL_USERNAME }}
+  STAFF_PORTAL_PASSWORD: ${{ github.event.inputs.env_name == 'stage' && secrets.STAGE_STAFF_PORTAL_PASSWORD || secrets.STAFF_PORTAL_PASSWORD }}
+  STAFF_USER_B_USERNAME: ${{ github.event.inputs.env_name == 'stage' && secrets.STAGE_STAFF_USER_B_USERNAME || secrets.STAFF_USER_B_USERNAME }}
+  STAFF_USER_B_PASSWORD: ${{ github.event.inputs.env_name == 'stage' && secrets.STAGE_STAFF_USER_B_PASSWORD || secrets.STAFF_USER_B_PASSWORD }}
+  PUBLIC_USER_B_USERNAME: ${{ github.event.inputs.env_name == 'stage' && secrets.STAGE_PUBLIC_USER_B_USERNAME || secrets.PUBLIC_USER_B_USERNAME }}
+  PUBLIC_USER_B_PASSWORD: ${{ github.event.inputs.env_name == 'stage' && secrets.STAGE_PUBLIC_USER_B_PASSWORD || secrets.PUBLIC_USER_B_PASSWORD }}
+  FISCAL_USER_USERNAME: ${{ github.event.inputs.env_name == 'stage' && secrets.STAGE_FISCAL_USER_USERNAME || secrets.FISCAL_USER_USERNAME }}
+  FISCAL_USER_PASSWORD: ${{ github.event.inputs.env_name == 'stage' && secrets.STAGE_FISCAL_USER_PASSWORD || secrets.FISCAL_USER_PASSWORD }}
+  INDIVIDUAL_PUBLIC_USERNAME: ${{ github.event.inputs.env_name == 'stage' && secrets.STAGE_INDIVIDUAL_PUBLIC_USERNAME || secrets.INDIVIDUAL_PUBLIC_USERNAME }}
+  INDIVIDUAL_PUBLIC_PASSWORD: ${{ github.event.inputs.env_name == 'stage' && secrets.STAGE_INDIVIDUAL_PUBLIC_PASSWORD || secrets.INDIVIDUAL_PUBLIC_PASSWORD }}
 
 permissions:
   contents: write
@@ -71,11 +80,11 @@ jobs:
             SCOPE="core"
           fi
           echo "scope=$SCOPE" >> $GITHUB_OUTPUT
-          echo "Running test scope: $SCOPE"
+          echo "Running test scope: $SCOPE on env: $NSM_ENV"
 
       - name: Authenticate all portals
         run: |
-          mkdir -p auth
+          mkdir -p auth/$NSM_ENV
           python scripts/save_public_auth.py
           python scripts/save_public_user_b_auth.py
           python scripts/save_staff_auth.py
@@ -88,13 +97,13 @@ jobs:
         continue-on-error: true
         run: |
           if [ "${{ steps.scope.outputs.scope }}" = "full" ]; then
-            pytest --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
+            pytest --env $NSM_ENV --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
           elif [ "${{ steps.scope.outputs.scope }}" = "fixed" ]; then
-            pytest -m "fixed" --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
+            pytest -m "fixed" --env $NSM_ENV --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
           elif [ "${{ steps.scope.outputs.scope }}" = "smoke" ]; then
-            pytest -m "smoke or core" --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
+            pytest -m "smoke or core" --env $NSM_ENV --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
           else
-            pytest -m "core" --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
+            pytest -m "core" --env $NSM_ENV --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
           fi
 
       - name: Generate HTML report
@@ -160,4 +169,3 @@ jobs:
           REPO_NAME: ${{ github.repository }}
           RUN_DATETIME: ${{ steps.prepare.outputs.run_datetime }}
         run: python scripts/notify_slack.py
-
