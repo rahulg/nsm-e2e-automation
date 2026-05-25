@@ -490,7 +490,7 @@ class TestE2E050LienholderAddressConsistency:
             try:
                 lt262_listing.click_aging_tab()
                 page.wait_for_load_state("networkidle")
-                page.wait_for_timeout(2000)
+                page.wait_for_timeout(8000)
             except Exception:
                 pass
 

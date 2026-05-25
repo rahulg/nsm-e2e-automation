@@ -232,6 +232,8 @@ class TestE2E043ClosedCaseLt264Lockdown:
             # Find application in Aging tab (post LT-264 issuance)
             staff_dashboard.navigate_to_lt262_listing()
             lt262_listing.click_aging_tab()
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(8000)
             lt262_listing.search_by_vin(TEST_VIN)
 
             if lt262_listing.application_rows.count() == 0:
@@ -301,6 +303,8 @@ class TestE2E043ClosedCaseLt264Lockdown:
             # Find application in Aging or Court Hearing tab
             staff_dashboard.navigate_to_lt262_listing()
             lt262_listing.click_aging_tab()
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(8000)
             lt262_listing.search_by_vin(TEST_VIN)
 
             if lt262_listing.application_rows.count() == 0:

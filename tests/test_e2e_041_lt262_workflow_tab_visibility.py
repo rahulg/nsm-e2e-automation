@@ -242,7 +242,8 @@ class TestE2E041Lt262WorkflowTabVisibility:
             # Navigate to Aging tab
             staff_dashboard.navigate_to_lt262_listing()
             lt262_listing.click_aging_tab()
-            page.wait_for_timeout(2000)
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(8000)
 
             # Verify Aging tab is NOT blank — data rows visible
             try:
@@ -292,6 +293,8 @@ class TestE2E041Lt262WorkflowTabVisibility:
             # Navigate to LT-262 listing → find application in Aging tab
             staff_dashboard.navigate_to_lt262_listing()
             lt262_listing.click_aging_tab()
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(8000)
             lt262_listing.search_by_vin(TEST_VIN_A)
 
             if lt262_listing.application_rows.count() == 0:
@@ -494,7 +497,8 @@ class TestE2E041Lt262WorkflowTabVisibility:
 
             # Confirm Aging tab still shows data (soft-fail — may be empty)
             lt262_listing.click_aging_tab()
-            page.wait_for_timeout(1000)
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(8000)
             try:
                 expect(lt262_listing.application_rows.first).to_be_visible(timeout=15_000)
             except Exception:

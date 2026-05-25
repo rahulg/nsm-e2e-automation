@@ -54,6 +54,8 @@ class TestE2E045NordisBackendTriggers:
             # Navigate to LT-262 Aging tab where Nordis tracking is relevant
             staff_dashboard.navigate_to_lt262_listing()
             lt262_listing.click_aging_tab()
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(8000)
 
             try:
                 lt262_listing.expect_applications_visible()
@@ -89,6 +91,8 @@ class TestE2E045NordisBackendTriggers:
 
             staff_dashboard.navigate_to_lt262_listing()
             lt262_listing.click_aging_tab()
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(8000)
 
             try:
                 lt262_listing.expect_applications_visible()
