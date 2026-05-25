@@ -7,6 +7,7 @@ Usage:
 """
 
 import json
+import os
 import sys
 from datetime import datetime, timezone
 
@@ -24,6 +25,7 @@ def generate_report(json_path: str, html_path: str):
     error = summary.get("error", 0)
     duration = data.get("duration", 0) or summary.get("duration", 0)
 
+    env_label = os.getenv("NSM_ENV", "qa").upper()
     run_date = datetime.now(timezone.utc).strftime("%B %d, %Y at %I:%M %p UTC")
     duration_fmt = f"{int(duration // 60)}m {int(duration % 60)}s"
 
@@ -99,7 +101,7 @@ def generate_report(json_path: str, html_path: str):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NSM E2E Test Report — QA</title>
+<title>NSM E2E Test Report — {env_label}</title>
 <style>
   :root {{
     --green: #16a34a; --green-bg: #f0fdf4; --green-border: #bbf7d0;
@@ -169,11 +171,11 @@ def generate_report(json_path: str, html_path: str):
 <div class="container">
 
   <div class="header">
-    <h1>NSM E2E Test Report — QA</h1>
+    <h1>NSM E2E Test Report — {env_label}</h1>
     <div class="subtitle">Automated end-to-end test results for NCDOT Notice & Storage Management</div>
     <div class="header-meta">
       <div class="meta-item"><div class="label">Run Date</div><div class="value">{run_date}</div></div>
-      <div class="meta-item"><div class="label">Environment</div><div class="value">QA</div></div>
+      <div class="meta-item"><div class="label">Environment</div><div class="value">{env_label}</div></div>
       <div class="meta-item"><div class="label">Duration</div><div class="value">{duration_fmt}</div></div>
       <div class="meta-item"><div class="label">Tests Collected</div><div class="value">{total}</div></div>
     </div>

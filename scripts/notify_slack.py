@@ -164,9 +164,10 @@ def main():
 
     run_date = datetime.now(timezone.utc).strftime("%B %d, %Y at %I:%M %p UTC")
 
+    env_label = os.environ.get("NSM_ENV", "qa").upper()
     message = (
         f"Hello, \n"
-        f"Please find the automation test run report below for QA - NSM ({scope} tests)\n"
+        f"Please find the automation test run report below for {env_label} - NSM ({scope} tests)\n"
         f"Summary: {passed} Passed, {failed} Failed \n"
         f"HTML Report :- {report_url} \n"
         f"Run Date :- {run_date}"
