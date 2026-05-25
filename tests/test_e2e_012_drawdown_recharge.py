@@ -37,7 +37,7 @@ def navigate_to_ach_tab(page):
     dashboard = PublicDashboardPage(page)
     dashboard.select_business(BUSINESS_NAME)
 
-    username = page.locator("//span[contains(text(),'Daniel Scott')]")
+    username = page.locator("//span[contains(@class,'updated-username') and contains(text(),'Daniel Scott')]")
     username.wait_for(state="visible", timeout=15_000)
     username.hover()
     page.wait_for_timeout(500)
