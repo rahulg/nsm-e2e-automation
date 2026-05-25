@@ -31,8 +31,16 @@ def _login_public_simple(page, username: str, password: str) -> None:
     page.wait_for_load_state("networkidle")
     page.wait_for_timeout(2000)
 
+    # Screenshot immediately after page load — shows what's actually on screen
+    _save_debug_screenshot(page, "debug_stage_public_01_landed.png")
+    print(f"  STAGE login: page URL after load = {page.url}")
+    print(f"  STAGE login: page title = {page.title()}")
+
+    page.locator("//input[@name='email']").wait_for(state="visible", timeout=30_000)
     page.locator("//input[@name='email']").fill(username)
     page.locator("//input[@name='pass']").fill(password)
+
+    _save_debug_screenshot(page, "debug_stage_public_02_filled.png")
 
     page.locator(
         "button[type='submit'], input[type='submit'], "

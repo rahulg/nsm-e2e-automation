@@ -92,6 +92,15 @@ jobs:
           python scripts/save_fiscal_auth.py
           python scripts/save_individual_auth.py
 
+      - name: Upload auth debug screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: auth-debug-screenshots
+          path: auth/**/*.png
+          if-no-files-found: ignore
+          retention-days: 3
+
       - name: Run tests
         id: tests
         continue-on-error: true
