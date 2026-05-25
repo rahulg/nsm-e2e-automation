@@ -31,39 +31,8 @@ def _login_public_simple(page, username: str, password: str) -> None:
     page.wait_for_load_state("networkidle")
     page.wait_for_timeout(2000)
 
-    # Save debug screenshot so we can inspect the actual STAGE login form in CI
-    _save_debug_screenshot(page, "debug_stage_public_login.png")
-
-    # Try Verifi-style fields first (input#loginId), then fall back to broad selectors
-    email_selectors = [
-        "input#loginId",
-        "input[type='email']",
-        "input[name*='email' i]",
-        "input[placeholder*='email' i]",
-        "input[type='text']",
-    ]
-    email_input = None
-    for sel in email_selectors:
-        loc = page.locator(sel).first
-        if loc.count() > 0:
-            try:
-                loc.wait_for(state="visible", timeout=5_000)
-                email_input = loc
-                print(f"  STAGE login: found email field with selector '{sel}'")
-                break
-            except Exception:
-                continue
-
-    if email_input is None:
-        _save_debug_screenshot(page, "debug_stage_public_login_no_field.png")
-        raise RuntimeError(
-            f"STAGE public portal: could not locate email/username input. "
-            f"Page URL: {page.url}. Check debug_stage_public_login.png for the actual form."
-        )
-
-    email_input.fill(username)
-
-    page.locator("input[type='password']").first.fill(password)
+    page.locator("//input[@name='email']").fill(username)
+    page.locator("//input[@name='pass']").fill(password)
 
     page.locator(
         "button[type='submit'], input[type='submit'], "
