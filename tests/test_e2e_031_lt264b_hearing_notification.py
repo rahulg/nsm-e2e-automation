@@ -296,6 +296,7 @@ class TestE2E031Lt264bHearingNotification:
             staff_dashboard.navigate_to_lt262_listing()
             lt262_listing.court_hearing_tab.click()
             page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(6000)
 
             # Search for VIN using filters
             lt262_listing.search_by_vin(TEST_VIN)

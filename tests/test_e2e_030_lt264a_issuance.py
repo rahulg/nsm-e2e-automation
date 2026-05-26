@@ -11,6 +11,7 @@ Phases:
 
 import re
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pytest
 from playwright.sync_api import BrowserContext, expect
@@ -45,6 +46,9 @@ BUSINESS_NAME = "G-Car Garages New"
 
 PP_DASHBOARD_URL = ENV.PUBLIC_PORTAL_URL
 SP_DASHBOARD_URL = re.sub(r"/login$", "/pages/ncdot-notice-and-storage/dashboard", ENV.STAFF_PORTAL_URL)
+
+_parsed = urlparse(ENV.STAFF_PORTAL_URL)
+API_BASE_URL = f"{_parsed.scheme}://{_parsed.netloc}"
 
 
 def go_to_public_dashboard(page):
@@ -286,7 +290,7 @@ class TestE2E030Lt264aIssuance:
             page.close()
 
         url = (
-            "https://nsm-qa.nc.verifi.dev/rest/api/automation/chain/execute"
+            f"{API_BASE_URL}/rest/api/automation/chain/execute"
             "/485a239fd539a7654cfb94cdf8b8f59e?encrypted=true"
         )
         headers = {
@@ -295,7 +299,7 @@ class TestE2E030Lt264aIssuance:
             "Accept-Language": "en-US,en;q=0.5",
             "Content-Type": "application/json",
             "Authorization": auth_token,
-            "Origin": "https://nsm-qa.nc.verifi.dev",
+            "Origin": API_BASE_URL,
         }
         response = requests.post(url, headers=headers, json={"vin": TEST_VIN})
         assert response.status_code == 200, (
