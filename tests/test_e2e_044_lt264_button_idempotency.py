@@ -28,7 +28,6 @@ from playwright.sync_api import BrowserContext, expect
 
 from src.config.env import ENV
 from src.config.test_data import (
-    STANDARD_LIEN_CHARGES,
     APPROX_VEHICLE_VALUE,
     STORAGE_LOCATION_NAME,
 )
@@ -52,6 +51,8 @@ from src.pages.staff_portal.nordis_tracking_page import NordisTrackingPage
 SAMPLE_DOC_PATH = str(Path(__file__).resolve().parent.parent / "fixtures" / "sample-document.pdf")
 
 # ─── Shared test data ───
+BUSINESS_NAME = "G-Car Garages New"
+
 # VIN for LT-264 idempotency test
 TEST_VIN = generate_vin()
 VEHICLE = random_vehicle()
@@ -84,6 +85,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.edge
 @pytest.mark.high
+@pytest.mark.fixed
 class TestE2E044Lt264ButtonIdempotency:
     """E2E-044: LT-264 Issuance Button Idempotency — Double-Click Prevention"""
 
@@ -97,12 +99,11 @@ class TestE2E044Lt264ButtonIdempotency:
             go_to_public_dashboard(page)
 
             dashboard = PublicDashboardPage(page)
-            dashboard.select_business()
+            dashboard.select_business(BUSINESS_NAME)
             dashboard.click_start_here()
 
             lt260 = Lt260FormPage(page)
             lt260.enter_vin(TEST_VIN)
-            lt260.click_vin_lookup()
             lt260.fill_vehicle_details(VEHICLE)
             lt260.fill_date_vehicle_left(past_date(30))
             lt260.fill_license_plate(PLATE)
@@ -111,8 +112,10 @@ class TestE2E044Lt264ButtonIdempotency:
             lt260.fill_storage_location(STORAGE_LOCATION_NAME, ADDRESS["street"], ADDRESS["zip"])
             lt260.fill_authorized_person(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
             lt260.accept_terms_and_sign(PERSON["name"], PERSON["email"])
-            lt260.submit()
+            lt260.submit_with_vin_image()
             page.wait_for_timeout(2000)
+
+            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=15_000)
         finally:
             page.close()
 
@@ -133,14 +136,15 @@ class TestE2E044Lt264ButtonIdempotency:
             lt260_listing.click_to_process_tab()
             lt260_listing.search_by_vin(TEST_VIN)
             lt260_listing.select_application(0)
-
             form_processing.expect_detail_page_visible()
-            lt260_listing.verify_owners_check_visible()
 
-            try:
-                lt260_listing.verify_auto_issuance()
-            except Exception:
-                lt260_listing.issue_lt260c()
+            form_processing.click_edit()
+            form_processing.add_owner(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
+            form_processing.select_stolen_no()
+            form_processing.click_save()
+            form_processing.issue_160b_and_260a()
+            form_processing.expect_issued_success_toast()
+            form_processing.expect_status_processed()
         finally:
             page.close()
 
@@ -154,21 +158,42 @@ class TestE2E044Lt264ButtonIdempotency:
             go_to_public_dashboard(page)
 
             dashboard = PublicDashboardPage(page)
+            dashboard.select_business(BUSINESS_NAME)
+
             dashboard.click_notice_storage_tab()
+            page.wait_for_timeout(1000)
+            dashboard.search_by_vin(TEST_VIN)
+            page.wait_for_timeout(2000)
             dashboard.select_application(0)
             dashboard.expect_application_processed()
+
             dashboard.click_submit_lt262()
 
             lt262 = Lt262FormPage(page)
             lt262.expect_form_tabs_visible()
-            lt262.fill_lien_charges(STANDARD_LIEN_CHARGES)
+            lt262.skip_vehicle_and_location_tabs()
+            lt262.fill_lien_charges({"storage": "500", "towing": "200", "labor": "100"})
             lt262.fill_date_of_storage(past_date(30))
             lt262.fill_person_authorizing(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
             lt262.fill_additional_details(PERSON["name"], ADDRESS["street"], ADDRESS["zip"])
             lt262.upload_documents([SAMPLE_DOC_PATH])
             lt262.accept_terms_and_sign(PERSON["name"])
             lt262.finish_and_pay()
+
+            pay_drawdown_btn = page.locator('button:has-text("Pay Using ACH/Drawdown")')
+            pay_drawdown_btn.wait_for(state="visible", timeout=15_000)
+            pay_drawdown_btn.click()
             page.wait_for_timeout(2000)
+
+            yes_btn = page.locator('mat-dialog-container button:has-text("Yes")').first
+            yes_btn.wait_for(state="visible", timeout=10_000)
+            yes_btn.click()
+            page.wait_for_timeout(3000)
+
+            success_banner = page.get_by_text("Your payment has been completed successfully")
+            expect(success_banner).to_be_visible(timeout=15_000)
+
+            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=15_000)
         finally:
             page.close()
 
@@ -244,6 +269,18 @@ class TestE2E044Lt264ButtonIdempotency:
 
             page.wait_for_load_state("networkidle")
             page.wait_for_timeout(2000)
+            
+            # Issue LT-264 (clicks button → modal → Issue → success)
+            lt262_listing.issue_lt264()
+
+            # Verify green success banner
+            success_banner = page.get_by_text("The form has been issued successfully.")
+            expect(success_banner).to_be_visible(timeout=30_000)
+
+            # Verify redirected to TRACK LT-264 tab
+            track_tab = page.locator('[role="tab"]:has-text("TRACK LT-264")')
+            expect(track_tab).to_be_visible(timeout=10_000)
+            
         finally:
             page.close()
 
@@ -261,17 +298,27 @@ class TestE2E044Lt264ButtonIdempotency:
             staff_dashboard = StaffDashboardPage(page)
             lt262_listing = Lt262ListingPage(page)
 
-            # Find the application in Aging tab (post LT-264 issuance)
+            # Find the application post LT-264 issuance — check Aging, then Court Hearing, then All
             staff_dashboard.navigate_to_lt262_listing()
             lt262_listing.click_aging_tab()
             page.wait_for_load_state("networkidle")
             page.wait_for_timeout(8000)
             lt262_listing.search_by_vin(TEST_VIN)
+            page.wait_for_timeout(2000)
 
             if lt262_listing.application_rows.count() == 0:
                 lt262_listing.court_hearing_tab.click()
                 page.wait_for_load_state("networkidle")
+                page.wait_for_timeout(2000)
                 lt262_listing.search_by_vin(TEST_VIN)
+                page.wait_for_timeout(2000)
+
+            if lt262_listing.application_rows.count() == 0:
+                lt262_listing.all_tab.click()
+                page.wait_for_load_state("networkidle")
+                page.wait_for_timeout(2000)
+                lt262_listing.search_by_vin(TEST_VIN)
+                page.wait_for_timeout(2000)
 
             lt262_listing.select_application(0)
 
@@ -305,12 +352,20 @@ class TestE2E044Lt264ButtonIdempotency:
                     row_text = row.text_content() or ""
                     recipient_names.append(row_text.strip())
 
-                # Extract tracking number from second cell if available
+                # Extract tracking number — scan all cells for one that looks like
+                # an actual tracking code (short alphanumeric, no address keywords)
                 try:
-                    if cells.count() > 1:
-                        tracking_num = cells.nth(1).text_content() or ""
-                        if tracking_num.strip():
-                            tracking_numbers.append(tracking_num.strip())
+                    cell_count = cells.count()
+                    for col in range(1, cell_count):
+                        val = (cells.nth(col).text_content() or "").strip()
+                        if val and not re.search(
+                            r"\b(street|st|ave|road|rd|blvd|drive|dr|lane|ln|"
+                            r"north|south|east|west|carolina|virginia|georgia|"
+                            r"[a-z]{2,}\s+\d{5})\b",
+                            val, re.I
+                        ) and len(val) < 50:
+                            tracking_numbers.append(val)
+                            break
                 except Exception:
                     pass
 
@@ -318,7 +373,6 @@ class TestE2E044Lt264ButtonIdempotency:
             seen = set()
             for name in recipient_names:
                 if name in seen:
-                    # Allow if the name is very generic (e.g., empty or just whitespace)
                     if len(name) > 3:
                         pytest.fail(f"Duplicate recipient found in TRACK LT-264: {name}")
                 seen.add(name)
