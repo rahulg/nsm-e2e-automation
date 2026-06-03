@@ -37,6 +37,7 @@ class ReportsPage:
             'a:has-text("Closed"), button:has-text("Closed")'
         ).first
         self.audit_report = page.locator(
+            'a:has-text("Audit Log"), button:has-text("Audit Log"), '
             'a:has-text("Audit Report"), button:has-text("Audit")'
         ).first
         self.close_file_report = page.locator(
@@ -124,6 +125,9 @@ class ReportsPage:
 
     def click_closed_cases_report(self):
         self._click_report_link(self.closed_cases_report, "Closed Cases")
+
+    def click_audit_report(self):
+        self._click_report_link(self.audit_report, "Audit Log")
 
     def set_date_range(self, from_date: str, to_date: str):
         """Set the date filter range."""
