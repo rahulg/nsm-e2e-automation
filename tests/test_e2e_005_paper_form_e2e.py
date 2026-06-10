@@ -68,6 +68,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.high
 @pytest.mark.paper_form
 @pytest.mark.fixed
+@pytest.mark.smoke
 class TestE2E005PaperFormE2E:
     """E2E-005: Paper Form — All forms entered by staff from mailed paperwork"""
 

@@ -74,6 +74,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.core
 @pytest.mark.critical
 @pytest.mark.fixed
+@pytest.mark.smoke
 class TestE2E006IndividualUserE2EFlow:
     """E2E-006: Individual user — full lifecycle LT-260 → LT-262 → LT-264 → LT-263 → LT-265 (Sold)"""
 

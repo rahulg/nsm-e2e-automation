@@ -66,6 +66,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.edge
 @pytest.mark.high
 @pytest.mark.fixed
+@pytest.mark.smoke
 class TestE2E021StolenVehicleReset:
     """E2E-021: Mark stolen → resubmit same VIN → process new case → verify both records"""
 

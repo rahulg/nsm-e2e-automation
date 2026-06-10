@@ -64,6 +64,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.alternate
 @pytest.mark.critical
 @pytest.mark.fixed
+@pytest.mark.smoke
 class TestE2E008StolenVehicleLockout:
     """E2E-008: Stolen Vehicle — save as stolen → CMS download → PP locked"""
 

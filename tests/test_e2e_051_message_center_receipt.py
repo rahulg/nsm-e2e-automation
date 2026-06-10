@@ -126,6 +126,7 @@ def open_message_center(page):
 @pytest.mark.edge
 @pytest.mark.high
 @pytest.mark.fixed
+@pytest.mark.smoke
 class TestE2E051MessageCenterReceipt:
     """E2E-051: Public Portal Message Center Receipt Across Notification-Triggering Letter Issuance Events"""
 

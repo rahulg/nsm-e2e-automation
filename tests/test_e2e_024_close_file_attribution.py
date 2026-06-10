@@ -68,6 +68,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.edge
 @pytest.mark.medium
 @pytest.mark.fixed
+@pytest.mark.smoke
 class TestE2E024CloseFileAttribution:
     """E2E-024: PP reclaim → SP verify 'Updated By' = Daniel Scott with user icon in listing"""
 

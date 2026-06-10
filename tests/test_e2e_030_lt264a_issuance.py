@@ -66,6 +66,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.edge
 @pytest.mark.high
 @pytest.mark.fixed
+@pytest.mark.smoke
 class TestE2E030Lt264aIssuance:
     """E2E-030: LT-264A issuance — full lifecycle to LT-264 issued, then LT-264A flow"""
 

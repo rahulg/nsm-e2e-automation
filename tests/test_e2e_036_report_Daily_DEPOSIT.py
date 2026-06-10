@@ -36,6 +36,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.edge
 @pytest.mark.high
 @pytest.mark.fixed
+@pytest.mark.smoke
 class TestE2E036DailyDepositReport:
     """E2E-036: Daily Deposit Report — generate, verify results, download PDF and XLSX"""
 

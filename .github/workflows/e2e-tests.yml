@@ -2,6 +2,8 @@ name: NSM E2E Tests
 
 on:
   schedule:
+    # Daily (Mon-Fri): Smoke tests at 5:00 AM UTC
+    - cron: '0 5 * * 1-5'
     # Tuesday-Friday: Core & critical tests at 6:30 AM UTC
     - cron: '30 6 * * 2-5'
     # Monday: Full suite at 4:00 AM UTC
@@ -76,6 +78,8 @@ jobs:
             SCOPE="${{ github.event.inputs.test_scope }}"
           elif [ "${{ github.event.schedule }}" = "0 4 * * 1" ]; then
             SCOPE="fixed"
+          elif [ "${{ github.event.schedule }}" = "0 5 * * 1-5" ]; then
+            SCOPE="smoke"
           else
             SCOPE="core"
           fi
@@ -110,7 +114,7 @@ jobs:
           elif [ "${{ steps.scope.outputs.scope }}" = "fixed" ]; then
             pytest -m "fixed" --env $NSM_ENV --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
           elif [ "${{ steps.scope.outputs.scope }}" = "smoke" ]; then
-            pytest -m "smoke or core" --env $NSM_ENV --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
+            pytest -m "smoke" --env $NSM_ENV --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
           else
             pytest -m "core" --env $NSM_ENV --json-report --json-report-file=results.json -v --tb=short 2>&1 | tee test_output.txt
           fi

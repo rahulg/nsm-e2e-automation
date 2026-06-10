@@ -76,6 +76,7 @@ def go_to_staff_dashboard(page):
 @pytest.mark.e2e
 @pytest.mark.core
 @pytest.mark.fixed
+@pytest.mark.smoke
 class TestE2E001StandardVehicleLifecycle:
     """E2E-001: Complete lifecycle — LT-260 → LT-262 → LT-264 → LT-263 → LT-265 (Sold)"""
 
