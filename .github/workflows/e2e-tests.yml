@@ -87,6 +87,7 @@ jobs:
           echo "Running test scope: $SCOPE on env: $NSM_ENV"
 
       - name: Authenticate all portals
+        id: auth
         run: |
           mkdir -p auth/$NSM_ENV
           python scripts/save_public_auth.py
@@ -172,7 +173,7 @@ jobs:
           keep_files: true
 
       - name: Post results to Slack via Expertly
-        if: always()
+        if: always() && steps.auth.outcome != 'failure'
         env:
           EXPERTLY_USERNAME: ${{ secrets.EXPERTLY_USERNAME }}
           EXPERTLY_PASSWORD: ${{ secrets.EXPERTLY_PASSWORD }}
