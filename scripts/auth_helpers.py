@@ -30,7 +30,10 @@ def _login_public_ncid(page, username: str, password: str) -> None:
     page.wait_for_timeout(1000)
     _save_debug_screenshot(page, "debug_ncid_02_password_page.png")
     page.locator("#password").fill(password)
+    # PingFederate button text varies by version: "Sign On" (older) or "Sign In" (newer)
     page.locator(
+        'a.ping-button:has-text("Sign In"), button.ping-button:has-text("Sign In"), '
+        'button:has-text("Sign In"), input[value="Sign In"], '
         'a.ping-button:has-text("Sign On"), button.ping-button:has-text("Sign On"), '
         'button:has-text("Sign On"), input[value="Sign On"]'
     ).first.click()
