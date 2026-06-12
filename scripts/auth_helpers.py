@@ -19,8 +19,10 @@ def _login_public_ncid(page, username: str, password: str) -> None:
     page.wait_for_timeout(1000)
     _save_debug_screenshot(page, "debug_ncid_01_username_page.png")
     page.locator("#identifierInput").fill(username)
-    # PingFederate renders Next as <a class="ping-button"> or <button class="ping-button"> depending on version
+    # PingFederate button text varies by version: "Next" (older) or "Sign In" (newer)
     page.locator(
+        'a.ping-button:has-text("Sign In"), button.ping-button:has-text("Sign In"), '
+        'button:has-text("Sign In"), input[value="Sign In"], '
         'a.ping-button:has-text("Next"), button.ping-button:has-text("Next"), '
         'button:has-text("Next"), input[value="Next"]'
     ).first.click()
