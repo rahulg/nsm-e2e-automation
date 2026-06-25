@@ -299,6 +299,10 @@ class TestE2E031Lt264bHearingNotification:
             page.wait_for_load_state("networkidle")
             page.wait_for_timeout(6000)
 
+            # Allow the Court Hearing listing to fully populate before applying the
+            # VIN filter — the just-moved record can take a few seconds to index here.
+            page.wait_for_timeout(9000)
+
             # Search for VIN using filters
             lt262_listing.search_by_vin(TEST_VIN)
             page.wait_for_timeout(2000)

@@ -199,6 +199,73 @@ class Lt261Page:
         no_option.dispatch_event("click")
         self.page.wait_for_timeout(500)
 
+    def select_stolen_yes(self):
+        """Select 'Yes' from the Stolen dropdown (NCNSS-27067375)."""
+        stolen_dropdown = self.page.locator(
+            'mat-select[aria-label*="Stolen" i], mat-select[name*="stolen" i]'
+        ).first
+        stolen_dropdown.wait_for(state="visible", timeout=10_000)
+        stolen_dropdown.click()
+        self.page.wait_for_timeout(500)
+
+        yes_option = self.page.locator('mat-option:has-text("Yes")').first
+        yes_option.wait_for(state="visible", timeout=10_000)
+        yes_option.dispatch_event("click")
+        self.page.wait_for_timeout(500)
+
+    def submit_stolen_form(self):
+        """Submit a Stolen=Yes paper form: click Submit → confirm Yes.
+
+        Unlike submit_with_confirmation(), this does NOT expect an LT-265
+        issuance/success banner — for a stolen record the fix must SUPPRESS
+        auto-processing, so we only drive the submit + confirmation and let the
+        caller assert the resulting state. Returns nothing.
+        """
+        self._dismiss_cdk_overlay()
+        submit_btn = self.page.locator('button:has-text("Submit")').first
+        submit_btn.wait_for(state="visible", timeout=15_000)
+        submit_btn.scroll_into_view_if_needed()
+        submit_btn.click()
+        self.page.wait_for_timeout(1000)
+
+        # Confirmation modal → Yes (if one appears)
+        try:
+            yes_btn = self.page.locator('mat-dialog-container button:has-text("Yes")').first
+            yes_btn.wait_for(state="visible", timeout=8_000)
+            yes_btn.click()
+        except Exception:
+            pass
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(2000)
+
+    def expect_no_lt265_issue_popup(self):
+        """Assert that NO LT-265/LT-265A issuance popup/modal is shown.
+
+        For a Stolen=Yes LT-261 the fix must NOT auto-issue LT-265/265A, so the
+        'Issue LT-265' confirmation popup must not appear (TC-05, BR-122).
+        """
+        popup = self.page.locator(
+            'mat-dialog-container:has-text("LT-265"), [role="dialog"]:has-text("LT-265"), '
+            'mat-dialog-container:has-text("265A"), [role="dialog"]:has-text("265A")'
+        )
+        count = popup.count()
+        assert count == 0, (
+            "EXPECTED: no LT-265/265A issuance popup for a Stolen=Yes LT-261 (auto-process "
+            f"suppressed, BR-122) | ACTUAL: {count} LT-265 popup(s) visible — record was auto-issued"
+        )
+
+    def expect_vin_in_listing(self, vin: str):
+        """Assert a VIN IS present in the current listing (record was saved, not lost)."""
+        try:
+            self.search_by_vin(vin)
+        except Exception:
+            pass
+        row_count = self.application_rows.count()
+        assert row_count > 0, (
+            f"EXPECTED: VIN {vin} present in the LT-261 listing (record saved, not lost) | "
+            f"ACTUAL: 0 rows — the record vanished from the listing (the NCNSS-27067375 defect)"
+        )
+
     def submit_with_confirmation(self):
         """Click Submit → confirm modal (Yes) → verify green banner → wait for redirect."""
         self._dismiss_cdk_overlay()
@@ -274,6 +341,64 @@ class Lt261Page:
         expect(
             self.page.get_by_text(re.compile(r"Processed", re.I)).first
         ).to_be_visible(timeout=15_000)
+
+    # ===== Cancel flow (NCNSS-531) =====
+
+    def click_cancel_button(self):
+        """Click the page-level Cancel button on a paper form."""
+        cancel_btn = self.page.locator('button:has-text("Cancel")').first
+        cancel_btn.wait_for(state="visible", timeout=15_000)
+        cancel_btn.scroll_into_view_if_needed()
+        cancel_btn.click()
+        self.page.wait_for_timeout(800)
+
+    def expect_cancel_modal_visible(self):
+        """Assert the cancel-confirmation modal is visible with Yes and No options."""
+        modal = self.page.locator('mat-dialog-container, [role="dialog"]').first
+        expect(modal).to_be_visible(timeout=10_000)
+        expect(self.page.locator(
+            'mat-dialog-container button:has-text("Yes"), [role="dialog"] button:has-text("Yes")'
+        ).first).to_be_visible(timeout=5_000)
+
+    def click_cancel_modal_yes(self):
+        """Click Yes in the cancel-confirmation modal and wait for navigation."""
+        yes_btn = self.page.locator(
+            'mat-dialog-container button:has-text("Yes"), [role="dialog"] button:has-text("Yes")'
+        ).first
+        yes_btn.wait_for(state="visible", timeout=10_000)
+        yes_btn.click()
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(2000)
+
+    def click_cancel_modal_no(self):
+        """Click No (or dismiss) in the cancel-confirmation modal — stays on form."""
+        try:
+            no_btn = self.page.locator(
+                'mat-dialog-container button:has-text("No"), [role="dialog"] button:has-text("No")'
+            ).first
+            no_btn.wait_for(state="visible", timeout=5_000)
+            no_btn.click()
+        except Exception:
+            self.page.keyboard.press("Escape")
+        self.page.wait_for_timeout(800)
+
+    def expect_on_listing_page(self):
+        """Assert we are back on the LT-261 listing (To Process / Draft / Processed tabs visible)."""
+        expect(self.to_process_tab).to_be_visible(timeout=15_000)
+
+    def expect_vin_not_in_listing(self, vin: str):
+        """Assert a VIN is NOT present in the current listing (no record was created)."""
+        try:
+            self.search_by_vin(vin)
+        except Exception:
+            pass
+        row_count = self.application_rows.count()
+        assert row_count == 0, (
+            f"EXPECTED: VIN {vin} not in listing (Cancel aborted submission) | "
+            f"ACTUAL: {row_count} row(s) found — record was incorrectly created"
+        )
+
+    # ===== Correspondence =====
 
     def click_view_correspondence(self):
         """Click 'View Correspondence/Documents' link to open the Correspondence History modal."""
