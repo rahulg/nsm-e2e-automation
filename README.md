@@ -487,7 +487,7 @@ e2eautomation/
 │
 ├── fixtures/               ← Static test files
 │   ├── sample-document.pdf
-│   └── sample-vin-image.png
+│   └── vin-image-sample.png
 │
 └── results/                ← Generated reports (git-ignored)
     ├── report.html

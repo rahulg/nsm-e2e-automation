@@ -131,7 +131,7 @@ class Lt260FormPage:
 
             # Upload VIN image
             if vin_image_path is None:
-                vin_image_path = str(Path(__file__).resolve().parent.parent.parent.parent / "fixtures" / "sample-vin-image.png")
+                vin_image_path = str(Path(__file__).resolve().parent.parent.parent.parent / "fixtures" / "vin-image-sample.png")
 
             vin_image_button = self.page.locator('button:has-text("VIN Image"), button:has-text("vin image"), label:has-text("VIN Image")').first
             vin_image_button.evaluate("el => el.scrollIntoView({ block: 'center' })")
@@ -282,7 +282,7 @@ class Lt260FormPage:
 
         # VIN error modal appeared — upload VIN image
         if vin_image_path is None:
-            vin_image_path = str(Path(__file__).resolve().parent.parent.parent.parent / "fixtures" / "sample-vin-image.png")
+            vin_image_path = str(Path(__file__).resolve().parent.parent.parent.parent / "fixtures" / "vin-image-sample.png")
 
         # Find the file upload area in the modal (input[type="file"] or upload button)
         file_input = self.page.locator('mat-dialog-container input[type="file"]')
