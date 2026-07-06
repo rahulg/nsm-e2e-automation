@@ -23,3 +23,6 @@ results/
 
 # Debug / scratch folder (notes, old runs, reference docs)
 Debug/
+
+# Local Claude Code state (agent memory, settings)
+.claude/
