@@ -183,6 +183,46 @@ class PaperFormPage:
         suggestion.click()
         self.page.wait_for_timeout(500)
 
+    def add_owner(self, name: str, address: str, zip_code: str,
+                  address2: str = "Suite 100"):
+        """Click '+ Add Owner' and fill the appended owner row.
+
+        A top-level `owner_name` input is always present; '+ Add Owner' appends
+        `owner_<field>__id-N` inputs — so target the `__`-suffixed names and take
+        the last row.
+        """
+        add_btn = self.page.locator('//span[contains(text(),"+ Add Owner")]').first
+        try:
+            add_btn.wait_for(state="visible", timeout=10_000)
+        except Exception:
+            add_btn = self.page.get_by_text(re.compile(r"\+?\s*Add Owner", re.I)).first
+            add_btn.wait_for(state="visible", timeout=10_000)
+        add_btn.scroll_into_view_if_needed()
+        add_btn.click()
+
+        # The appended owner row is ready once its name input renders.
+        self.page.locator('input[name^="owner_name__"]').last.wait_for(
+            state="visible", timeout=15_000
+        )
+
+        def _fill(selector: str, value: str, required: bool = True):
+            field = self.page.locator(selector).last
+            try:
+                field.wait_for(state="visible", timeout=5_000)
+            except Exception:
+                if required:
+                    raise
+                return
+            field.scroll_into_view_if_needed()
+            field.fill(value)
+            self.page.wait_for_timeout(300)
+
+        _fill('input[name^="owner_name__"]', name)
+        _fill('input[name^="owner_address__"]', address)
+        _fill('input[name^="owner_address2__"]', address2, required=False)
+        _fill('input[name^="owner_zip__"]', zip_code)
+        self.page.wait_for_timeout(500)
+
     def select_stolen_no(self):
         """Select 'No' from the Stolen dropdown."""
         stolen_dropdown = self.page.locator(
@@ -210,14 +250,12 @@ class PaperFormPage:
         yes_btn = self.page.locator('mat-dialog-container button:has-text("Yes")').first
         yes_btn.wait_for(state="visible", timeout=10_000)
         yes_btn.click()
-        self.page.wait_for_timeout(2000)
 
-        # Verify green success banner (may auto-dismiss quickly — soft check)
-        try:
-            success = self.page.get_by_text(re.compile(r"success", re.I)).first
-            expect(success).to_be_visible(timeout=5_000)
-        except Exception:
-            pass  # Banner may have already dismissed before check
+        # Green success toast — a successful submission always raises one.
+        # expect() polls, so start it the instant Yes is clicked: the toast
+        # auto-dismisses, and any wait_for_timeout here risks missing it.
+        success = self.page.get_by_text(re.compile(r"success", re.I)).first
+        expect(success).to_be_visible(timeout=15_000)
 
         # Wait for redirect
         self.page.wait_for_load_state("networkidle")
@@ -275,13 +313,18 @@ class PaperFormPage:
         """Fill Vehicle Sale Information for paper LT-263:
         TYPE OF SALE (mat-select dropdown) → SALE DATE → Lien Amount → Lien For = LABOR checkbox.
         """
-        # TYPE OF SALE — mat-select dropdown
-        type_of_sale_select = self.page.locator('mat-select[aria-label="TYPE OF SALE"]').first
+        # TYPE OF SALE — mat-select dropdown.
+        # Primary: the labelled control (case-insensitive, tolerant of "Type of Sale").
+        # Fallback must EXCLUDE the paginator's "Page Size" mat-select — a bare
+        # `mat-select` .first grabbed that dropdown when the sale form hadn't
+        # rendered, which is what made this step click the paginator.
+        type_of_sale_select = self.page.locator('mat-select[aria-label="TYPE OF SALE" i]').first
         try:
             type_of_sale_select.wait_for(state="visible", timeout=10_000)
         except Exception:
-            # Fallback: first mat-select on the page
-            type_of_sale_select = self.page.locator('mat-select').first
+            type_of_sale_select = self.page.locator(
+                'mat-select:not([aria-label="Page Size" i])'
+            ).first
             type_of_sale_select.wait_for(state="visible", timeout=10_000)
         type_of_sale_select.click()
         self.page.wait_for_timeout(500)

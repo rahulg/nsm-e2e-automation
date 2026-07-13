@@ -237,18 +237,13 @@ class TestE2E038ClosedCasesReportAttribution:
         try:
             go_to_public_dashboard(page)
             dashboard = PublicDashboardPage(page)
+            dashboard.select_business()
+
+            # The 3-dot menu lives on the listing row — search but do NOT open the application
             dashboard.click_notice_storage_tab()
-
-            # Find and select the application for VIN_B
-            try:
-                dashboard.search_by_vin(VIN_B)
-            except Exception:
-                pass
-            dashboard.select_application(0)
-
-            # Wait for any loading overlay to clear before interacting
-            page.wait_for_selector(".exp-loader-overlay-backdrop", state="hidden", timeout=15_000)
-            page.wait_for_timeout(500)
+            page.wait_for_timeout(1000)
+            dashboard.search_by_vin(VIN_B)
+            page.wait_for_timeout(2000)
 
             reclaim = VehicleReclaimPage(page)
             reclaim.open_vehicle_reclaimed_download()
@@ -283,7 +278,8 @@ class TestE2E038ClosedCasesReportAttribution:
             # Verify "Closed By" = public user name
             closed_by = reports.get_closed_by_value(VIN_B)
             assert "Daniel Scott" in closed_by, (
-                f"Expected 'Daniel Scott' in Closed By, got: '{closed_by}'"
+                f"Expected 'Daniel Scott' in Closed By, got: '{closed_by}' "
+                f"(generated owner/signer for this run was '{PERSON['name']}')"
             )
         finally:
             page.close()

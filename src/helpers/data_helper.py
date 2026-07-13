@@ -46,16 +46,46 @@ def past_date(days_ago: int) -> str:
     return (datetime.now() - timedelta(days=days_ago)).strftime("%Y-%m-%d")
 
 
+FIRST_NAMES = ["John", "Jane", "Robert", "Maria", "James", "Patricia"]
+LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Davis"]
+
+
 def generate_person() -> dict:
-    first_names = ["John", "Jane", "Robert", "Maria", "James", "Patricia"]
-    last_names = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Davis"]
-    first = random.choice(first_names)
-    last = random.choice(last_names)
+    first = random.choice(FIRST_NAMES)
+    last = random.choice(LAST_NAMES)
     return {
         "name": f"{first} {last}",
         "email": f"{first.lower()}.{last.lower()}@test.com",
         "phone": f"919{random.randint(1000000, 9999999)}",
     }
+
+
+def generate_first_name() -> str:
+    return random.choice(FIRST_NAMES)
+
+
+def generate_last_name() -> str:
+    return random.choice(LAST_NAMES)
+
+
+def generate_full_name() -> str:
+    return f"{random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}"
+
+
+def generate_job_title() -> str:
+    titles = ["Manager", "Owner", "Operations Lead", "Office Administrator", "Supervisor", "Coordinator"]
+    return random.choice(titles)
+
+
+def generate_company_name() -> str:
+    prefixes = ["Carolina", "Piedmont", "Tarheel", "Blue Ridge", "Coastal", "Triangle"]
+    suffixes = ["Towing", "Auto Salvage", "Recovery Services", "Garage", "Storage Yard", "Auto Body"]
+    return f"{random.choice(prefixes)} {random.choice(suffixes)}"
+
+
+def generate_location_name() -> str:
+    names = ["Main Lot", "North Yard", "South Facility", "Downtown Branch", "Highway Storage", "East Depot"]
+    return random.choice(names)
 
 
 def generate_reference_hash() -> str:

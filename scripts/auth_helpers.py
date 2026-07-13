@@ -66,6 +66,29 @@ def _login_public_simple(page, username: str, password: str) -> None:
     page.wait_for_timeout(3000)
 
 
+def select_company_if_prompted(page, timeout: int = 15_000) -> None:
+    """After public-portal login, some users land on /select-company (multi-company
+    accounts) instead of the dashboard. Pick the first company and continue.
+
+    No-ops if the account isn't prompted (single-company users skip straight
+    to the dashboard).
+    """
+    try:
+        page.wait_for_url(re.compile(r"select-company", re.I), timeout=timeout)
+    except Exception:
+        return  # not prompted -- already past this step
+
+    page.wait_for_load_state("networkidle")
+    page.locator("mat-select").first.click()
+    page.locator("mat-option").first.wait_for(state="visible", timeout=timeout)
+    page.locator("mat-option").first.click()
+    page.wait_for_timeout(500)
+
+    page.get_by_role("button", name=re.compile(r"^\s*Go To Dashboard\s*$", re.I)).click()
+    page.wait_for_url(re.compile(r"dashboard", re.I), timeout=timeout)
+    page.wait_for_load_state("networkidle")
+
+
 def _save_debug_screenshot(page, filename: str) -> None:
     env_name = os.getenv("NSM_ENV", "qa")
     screenshot_dir = Path(__file__).resolve().parent.parent / "auth" / env_name

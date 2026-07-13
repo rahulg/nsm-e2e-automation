@@ -7,6 +7,7 @@ Flow:
 """
 
 import re
+import time
 from playwright.sync_api import Page, expect
 
 
@@ -418,3 +419,243 @@ class Lt261Page:
         expect(
             self.page.get_by_text(re.compile(r"LT-265", re.I)).first
         ).to_be_visible(timeout=10_000)
+
+    # ========================================================================
+    # DWI paper form + Stolen listing + owner details  (E2E-004 four-phase)
+    #
+    # Verified against the live QA app rather than inferred:
+    #   * "Add Paper DWI" sits beside "Add Paper E-Stop" on the LT-261 listing and
+    #     opens the SAME modal (single "Enter VIN" input + Next, no radio). The form
+    #     type is carried in the URL: ?paperFormType=DWI vs ?paperFormType=E-Stop.
+    #   * The LT-261 listing has a "Stolen" tab (To Process, Processed, Rejected,
+    #     Stolen, Draft Paper Forms, Closed, All), rendered at the same /LT-261/list
+    #     URL with the same "Show Filters" + VIN column, so search_by_vin() works there.
+    #   * There are TWO "USE SAME ADDRESS AS PLACE STORED" checkboxes (location panel
+    #     and agency section). Both default checked on DWI, both unchecked on E-Stop.
+    #   * Owner details: a top-level `owner_name` input is always present; the
+    #     "Owner(s) Check" section's "+ Add Owner" appends `owner_<field>__id-N` inputs.
+    # ========================================================================
+
+    USE_SAME_ADDRESS_LABEL = "USE SAME ADDRESS AS PLACE STORED"
+
+    _USE_SAME_ADDRESS_STATES_JS = """() => Array.from(document.querySelectorAll('mat-checkbox'))
+        .filter(cb => /USE SAME ADDRESS AS PLACE STORED/i.test(cb.innerText || ''))
+        .map(cb => { const i = cb.querySelector('input'); return i ? i.checked : null; })"""
+
+    def _wait_dialog_visible(self, timeout: int = 15_000):
+        self.page.locator("mat-dialog-container").first.wait_for(state="visible", timeout=timeout)
+
+    def _wait_listing_settled(self, timeout: int = 15_000):
+        """Listing has painted: rows rendered, or the app's explicit empty state."""
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=timeout)
+        except Exception:
+            pass
+        try:
+            self.page.wait_for_function(
+                """() => {
+                    const rows = document.querySelectorAll(
+                        'table.mat-table tr.mat-row, table tbody tr'
+                    ).length;
+                    return rows > 0 || /no records found/i.test(document.body.innerText || '');
+                }""",
+                timeout=timeout,
+            )
+        except Exception:
+            pass
+
+    # ----- Entry points -----
+
+    def click_add_from_dwi(self):
+        """Click 'Add Paper DWI' button on the LT-261 listing page."""
+        btn = self.page.locator('//span[contains(text(),"Add Paper DWI")]')
+        btn.wait_for(state="visible", timeout=10_000)
+        btn.click()
+        self._wait_dialog_visible()
+
+    def open_paper_form(self, form_type: str, vin: str):
+        """Open the LT-261 paper form of `form_type` ('E-Stop' or 'DWI') for `vin`."""
+        if form_type == "DWI":
+            self.click_add_from_dwi()
+        elif form_type == "E-Stop":
+            self.click_add_from_estop()
+        else:
+            raise ValueError(f"form_type must be 'E-Stop' or 'DWI', got {form_type!r}")
+        self.fill_modal_vin_next(vin)
+
+    def expect_form_type(self, form_type: str):
+        """Assert the loaded paper form is the requested type (URL carries paperFormType).
+
+        Without this, a broken 'Add Paper DWI' button would silently open an E-Stop
+        form and the DWI phase would pass as a duplicate of the E-Stop phase.
+        """
+        url = self.page.url
+        assert f"paperFormType={form_type}" in url, (
+            f"EXPECTED: LT-261 paper form of type {form_type} | "
+            f"ACTUAL: URL does not carry paperFormType={form_type} -> {url}"
+        )
+
+    # ----- "USE SAME ADDRESS AS PLACE STORED" defaults -----
+
+    def use_same_address_states(self) -> list:
+        """Checked-state of every 'USE SAME ADDRESS AS PLACE STORED' checkbox, in DOM order."""
+        return self.page.evaluate(self._USE_SAME_ADDRESS_STATES_JS)
+
+    def expect_use_same_address_default(self, form_type: str):
+        """Assert the DEFAULT checked-state of both 'use same address' checkboxes.
+
+        DWI    -> auto-checked by default
+        E-Stop -> NOT auto-checked by default
+
+        Must be called immediately after the form loads, before any checkbox is touched.
+        """
+        should_be_checked = form_type == "DWI"
+        self.page.locator(
+            f'mat-checkbox:has-text("{self.USE_SAME_ADDRESS_LABEL}")'
+        ).first.wait_for(state="visible", timeout=15_000)
+        states = self.use_same_address_states()
+
+        assert states, (
+            f"EXPECTED: at least one '{self.USE_SAME_ADDRESS_LABEL}' checkbox on the "
+            f"{form_type} form | ACTUAL: none found"
+        )
+        assert all(s is should_be_checked for s in states), (
+            f"EXPECTED: '{self.USE_SAME_ADDRESS_LABEL}' default checked={should_be_checked} "
+            f"on a {form_type} form (DWI auto-checks, E-Stop does not) | "
+            f"ACTUAL: checkbox states={states}"
+        )
+
+    # ----- Owner details -----
+
+    def fill_owner_seized_from(self, name: str):
+        """Fill the top-level 'NAME OF OWNER FROM WHOM THE VEHICLE WAS SEIZED' field."""
+        owner = self.page.locator('input[name="owner_name"]').first
+        owner.wait_for(state="visible", timeout=10_000)
+        owner.scroll_into_view_if_needed()
+        owner.fill(name)
+
+    def add_owner_details(
+        self,
+        name: str,
+        address: str = "100 Main St",
+        address2: str = "Suite 100",
+        zip_code: str = "27601",
+        city: str = "Raleigh",
+    ):
+        """Click '+ Add Owner' in the Owner(s) Check section and fill the new owner row."""
+        add_btn = self.page.locator('//span[contains(text(),"+ Add Owner")]').first
+        add_btn.wait_for(state="visible", timeout=10_000)
+        add_btn.scroll_into_view_if_needed()
+        add_btn.click()
+
+        # The appended owner row is ready once its name input renders.
+        self.page.locator('input[name^="owner_name__"]').last.wait_for(
+            state="visible", timeout=15_000
+        )
+
+        def _fill(selector: str, value: str, required: bool = True):
+            field = self.page.locator(selector).last
+            try:
+                field.wait_for(state="visible", timeout=5_000)
+            except Exception:
+                if required:
+                    raise
+                return
+            field.scroll_into_view_if_needed()
+            field.fill(value)
+
+        _fill('input[name^="owner_name__"]', name)
+        _fill('input[name^="owner_address__"]', address)
+        _fill('input[name^="owner_address2__"]', address2, required=False)
+        _fill('input[name^="owner_zip__"]', zip_code)
+
+        # City may auto-populate from ZIP (async lookup) — only fill if still empty.
+        city_field = self.page.locator('input[name^="owner_city__"]').last
+        try:
+            city_field.wait_for(state="visible", timeout=5_000)
+            try:
+                self.page.wait_for_function(
+                    """() => {
+                        const els = document.querySelectorAll('input[name^="owner_city__"]');
+                        const el = els[els.length - 1];
+                        return el && el.value.trim().length > 0;
+                    }""",
+                    timeout=3_000,
+                )
+            except Exception:
+                pass
+            if not (city_field.input_value() or "").strip():
+                city_field.fill(city)
+        except Exception:
+            pass
+
+    # ----- Stolen listing -----
+
+    @property
+    def stolen_tab(self):
+        return self.page.locator('[role="tab"]:has-text("Stolen")').first
+
+    def click_stolen_tab(self):
+        """Switch the LT-261 listing to the Stolen tab."""
+        self._dismiss_cdk_overlay()
+        self.stolen_tab.wait_for(state="visible", timeout=15_000)
+        self.stolen_tab.click()
+        self._wait_listing_settled()
+
+    def expect_vin_in_stolen_listing(self, vin: str) -> float:
+        """Assert `vin` appears in the LT-261 Stolen listing. Returns seconds waited."""
+        self.click_stolen_tab()
+        waited = wait_for_vin_in_listing(self.page, self.search_by_vin, vin, "LT-261 Stolen")
+        expect(
+            self.page.get_by_text(re.compile(re.escape(vin), re.I)).first
+        ).to_be_visible(timeout=10_000)
+        return waited
+
+
+# ============================================================================
+# Listing-appearance polling
+# ============================================================================
+
+_VIN_IN_TABLE_JS = """(vin) => Array.from(document.querySelectorAll(
+    'table.mat-table tr.mat-row, table tbody tr'
+)).some(r => (r.innerText || '').toUpperCase().includes(vin.toUpperCase()))"""
+
+
+def vin_row_present(page: Page, vin: str) -> bool:
+    """True when a table row on the current listing contains `vin`."""
+    return bool(page.evaluate(_VIN_IN_TABLE_JS, vin))
+
+
+def wait_for_vin_in_listing(
+    page: Page,
+    search_fn,
+    vin: str,
+    listing: str,
+    timeout_s: int = 90,
+    poll_ms: int = 2_000,
+) -> float:
+    """Poll `listing` (re-running `search_fn(vin)`) until `vin` appears. Returns seconds waited.
+
+    A freshly submitted LT-261 is NOT immediately queryable — measured against QA, the
+    record takes ~7-8s to reach the LT-261 Processed/Stolen listings and ~4-5s to reach
+    Sold. That is backend lag, not a rendering delay, so no per-action wait covers it:
+    the search itself must be retried until the record materialises.
+
+    Bounded by `timeout_s` so a record that never appears fails loudly rather than
+    hanging. `poll_ms` is a retry interval between backend queries, not a blind sleep.
+    """
+    started = time.monotonic()
+    deadline = started + timeout_s
+    attempts = 0
+    while True:
+        attempts += 1
+        search_fn(vin)
+        if vin_row_present(page, vin):
+            return time.monotonic() - started
+        if time.monotonic() >= deadline:
+            raise AssertionError(
+                f"EXPECTED: VIN {vin} to appear in the {listing} listing within {timeout_s}s | "
+                f"ACTUAL: not found after {attempts} searches over "
+                f"{time.monotonic() - started:.1f}s"
+            )
+        page.wait_for_timeout(poll_ms)
