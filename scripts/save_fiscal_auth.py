@@ -26,8 +26,16 @@ def main():
         page.wait_for_load_state("networkidle")
         page.wait_for_timeout(2000)
 
-        # Click the "Log in with verifi" button to open the inline Verifi credentials form
-        page.locator("//span[contains(text(),'Log in with')]").click()
+        # Click the "Log in with verifi" button to open the inline Verifi credentials form.
+        # The button shows a loading spinner while its SSO logo/config loads asynchronously;
+        # clicking before that spinner clears is a no-op (handler isn't wired up yet).
+        sso_span = page.locator("//span[contains(text(),'Log in with')]")
+        sso_span.wait_for(state="visible", timeout=15_000)
+        try:
+            page.locator("button .loader").first.wait_for(state="detached", timeout=15_000)
+        except Exception:
+            pass
+        sso_span.click()
 
         try:
             page.locator("input#loginId").wait_for(state="visible", timeout=40_000)

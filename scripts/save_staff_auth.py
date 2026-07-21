@@ -26,8 +26,16 @@ def main():
         page.wait_for_load_state("networkidle")
         page.wait_for_timeout(2000)
 
-        # Click the "Log in with verifi" button to open the inline Verifi credentials form
-        page.locator("//span[contains(text(),'Log in with')]").click()
+        # Click the "Log in with verifi" button to open the inline Verifi credentials form.
+        # The button shows a loading spinner while its SSO logo/config loads asynchronously;
+        # clicking before that spinner clears is a no-op (handler isn't wired up yet).
+        sso_span = page.locator("//span[contains(text(),'Log in with')]")
+        sso_span.wait_for(state="visible", timeout=15_000)
+        try:
+            page.locator("button .loader").first.wait_for(state="detached", timeout=15_000)
+        except Exception:
+            pass
+        sso_span.click()
 
         # Wait for the inline verifi form to actually appear (not a fixed sleep)
         try:
@@ -51,8 +59,27 @@ def main():
             'button:has-text("Log In"), button:has-text("Sign on"), '
             'exp-button button'
         ).first.click()
+
+        # Wait for the post-login redirect to actually land before saving. The prior
+        # fixed 3s sleep could race the redirect and persist an UNauthenticated
+        # session (still on /login), producing a dead auth file that only fails later.
+        try:
+            page.wait_for_url("**/pages/ncdot-notice-and-storage/**", timeout=45_000)
+        except Exception:
+            screenshot_path = AUTH_DIR / "debug_staff_login.png"
+            page.screenshot(path=str(screenshot_path))
+            print(f"  DEBUG screenshot saved to: {screenshot_path}")
+            raise RuntimeError(
+                f"Login did not complete — still at {page.url}. Auth state NOT saved."
+            )
         page.wait_for_load_state("networkidle")
-        page.wait_for_timeout(3000)
+        page.wait_for_timeout(2000)
+
+        # Guard: never persist a session that is still sitting on the login page.
+        if "/login" in page.url:
+            raise RuntimeError(
+                f"Unexpected login-page URL after redirect ({page.url}). Auth state NOT saved."
+            )
 
         print(f"Post-login URL: {page.url}")
         context.storage_state(path=str(AUTH_PATH))

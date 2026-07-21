@@ -4,6 +4,13 @@ Staff Portal LT-261 Page — Sheriff/Inspector Standalone workflow.
 LT-261 is a staff-only form for vehicles reported by law enforcement.
 Flow:
   Listing → Add from Paper → Modal (VIN + E-Stop) → Form → Submit → Confirm → Listing
+
+Waiting policy: this page object waits on observable conditions (overlay opened /
+closed, dialog opened / closed, option list rendered, network settled, checkbox
+actually checked) rather than fixed sleeps. Helpers prefixed `_wait_` encapsulate
+those conditions; they swallow timeouts where the condition is a settle-hint
+rather than a precondition required for correctness, so a missing spinner or an
+already-closed overlay never fails a test on its own.
 """
 
 import re
@@ -12,6 +19,11 @@ from playwright.sync_api import Page, expect
 
 
 class Lt261Page:
+    # Overlay-hosted option list (mat-autocomplete / mat-select panels)
+    _OVERLAY_OPTION = ".cdk-overlay-pane mat-option"
+    _DIALOG = "mat-dialog-container"
+    _BUSY = "mat-spinner, mat-progress-bar, .mat-progress-spinner, .mat-progress-bar"
+
     def __init__(self, page: Page):
         self.page = page
 
@@ -27,6 +39,56 @@ class Lt261Page:
             'input[placeholder*="Search using VIN"], input[placeholder*="Search" i], input[placeholder*="VIN" i]'
         ).first
 
+    # ===== Wait helpers =====
+
+    def _wait_options_visible(self, timeout: int = 15_000):
+        """Wait for an autocomplete/select option panel to render."""
+        self.page.locator(self._OVERLAY_OPTION).first.wait_for(state="visible", timeout=timeout)
+
+    def _wait_options_closed(self, timeout: int = 8_000):
+        """Wait for the option panel to close after a selection (settle-hint)."""
+        try:
+            self.page.locator(self._OVERLAY_OPTION).first.wait_for(state="hidden", timeout=timeout)
+        except Exception:
+            pass
+
+    def _wait_dialog_visible(self, timeout: int = 15_000):
+        self.page.locator(self._DIALOG).first.wait_for(state="visible", timeout=timeout)
+
+    def _wait_dialog_closed(self, timeout: int = 15_000):
+        """Wait for a dialog to dismiss (settle-hint — a dialog that legitimately
+        stays open, e.g. an unexpected LT-265 popup, must be asserted by the caller)."""
+        try:
+            self.page.locator(self._DIALOG).first.wait_for(state="hidden", timeout=timeout)
+        except Exception:
+            pass
+
+    def _wait_network_settled(self, timeout: int = 30_000):
+        """Network quiet + no visible busy indicator."""
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=timeout)
+        except Exception:
+            pass
+        try:
+            self.page.wait_for_function(
+                f"() => !document.querySelector('{self._BUSY}')", timeout=8_000
+            )
+        except Exception:
+            pass
+
+    def _wait_form_loaded(self, timeout: int = 30_000):
+        """The paper form is rendered once its Year input exists."""
+        self.page.locator("//input[@name='year']").wait_for(state="visible", timeout=timeout)
+
+    def _wait_no_backdrop(self, timeout: int = 5_000):
+        try:
+            self.page.wait_for_function(
+                "() => document.querySelectorAll('.cdk-overlay-backdrop-showing').length === 0",
+                timeout=timeout,
+            )
+        except Exception:
+            pass
+
     # ===== Listing actions =====
 
     def _dismiss_cdk_overlay(self):
@@ -36,35 +98,33 @@ class Lt261Page:
                     '.cdk-overlay-backdrop-showing, .cdk-overlay-backdrop'
                 ).forEach(b => { b.click(); b.remove(); });
             }""")
-            self.page.wait_for_timeout(300)
         except Exception:
             pass
         try:
             self.page.keyboard.press("Escape")
-            self.page.wait_for_timeout(300)
         except Exception:
             pass
+        self._wait_no_backdrop()
 
     def click_add_from_paper(self):
         """Click 'Add from Paper' button on the LT-261 listing page."""
         btn = self.page.locator('button:has-text("Add from Paper"), button:has-text("Add Paper")').first
         btn.wait_for(state="visible", timeout=10_000)
         btn.click()
-        self.page.wait_for_timeout(1000)
+        self._wait_dialog_visible()
 
     def click_add_from_estop(self):
         """Click 'Add Paper E-Stop' button on the LT-261 listing page."""
         btn = self.page.locator('//span[contains(text(),"Add Paper E-Stop")]')
         btn.wait_for(state="visible", timeout=10_000)
         btn.click()
-        self.page.wait_for_timeout(1000)
+        self._wait_dialog_visible()
 
     def fill_modal_vin_and_estop(self, vin: str):
         """In the Add from Paper modal: enter VIN, select E-Stop radio, click Next."""
         vin_input = self.page.locator('mat-dialog-container input[placeholder*="VIN" i], mat-dialog-container input[name*="vin" i]').first
         vin_input.wait_for(state="visible", timeout=10_000)
         vin_input.fill(vin)
-        self.page.wait_for_timeout(500)
 
         estop_radio = self.page.locator(
             'mat-dialog-container mat-radio-button:has-text("E-Stop"), '
@@ -72,24 +132,32 @@ class Lt261Page:
         ).first
         estop_radio.wait_for(state="visible", timeout=10_000)
         estop_radio.click()
-        self.page.wait_for_timeout(500)
 
         next_btn = self.page.locator('mat-dialog-container button:has-text("Next")').first
         next_btn.wait_for(state="visible", timeout=10_000)
         next_btn.click()
+
+        # Modal closes, then the paper form renders. Waiting only for the modal to
+        # close returns while the form is still blank, so callers that immediately
+        # look for a form control (e.g. click_cancel_button) time out.
+        self._wait_dialog_closed()
+        self._wait_form_loaded()
+        self._wait_network_settled()
 
     def fill_modal_vin_next(self, vin: str):
         """In the Add from E-Stop modal: enter VIN and click Next (no radio selection)."""
         vin_input = self.page.locator('mat-dialog-container input[placeholder*="VIN" i], mat-dialog-container input[name*="vin" i]').first
         vin_input.wait_for(state="visible", timeout=10_000)
         vin_input.fill(vin)
-        self.page.wait_for_timeout(500)
 
         next_btn = self.page.locator('mat-dialog-container button:has-text("Next")').first
         next_btn.wait_for(state="visible", timeout=10_000)
         next_btn.click()
-        self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(3000)
+
+        # Modal closes, then the paper form renders — wait for both, not a fixed 3s.
+        self._wait_dialog_closed()
+        self._wait_form_loaded()
+        self._wait_network_settled()
 
     def fill_make(self, make_text: str = "TOY"):
         """Type in the Make autocomplete field and select the first suggestion."""
@@ -97,20 +165,18 @@ class Lt261Page:
         make_input.wait_for(state="visible", timeout=15_000)
         make_input.click()
         make_input.fill(make_text)
-        self.page.wait_for_timeout(1000)
 
-        # Select first option from the autocomplete dropdown
-        option = self.page.locator('.cdk-overlay-pane mat-option').first
-        option.wait_for(state="visible", timeout=10_000)
+        # Wait for the suggestion list instead of guessing how long lookup takes.
+        self._wait_options_visible()
+        option = self.page.locator(self._OVERLAY_OPTION).first
         option.click()
-        self.page.wait_for_timeout(500)
+        self._wait_options_closed()
 
     def fill_year(self, year: str):
         """Fill the Year field."""
         year_input = self.page.locator("//input[@name='year']")
         year_input.wait_for(state="visible", timeout=10_000)
         year_input.fill(year)
-        self.page.wait_for_timeout(300)
 
     def fill_search_location(self, search_text: str = "pen"):
         """Type in SEARCH LOCATION field and pick the first suggestion."""
@@ -118,25 +184,35 @@ class Lt261Page:
         location_input.wait_for(state="visible", timeout=10_000)
         location_input.click()
         location_input.fill(search_text)
-        self.page.wait_for_timeout(2000)
 
-        # Select first mat-option from the overlay panel (not mat-chip with role=option)
-        suggestion = self.page.locator('.cdk-overlay-pane mat-option, mat-autocomplete mat-option').first
-        suggestion.wait_for(state="visible", timeout=10_000)
+        # Typeahead hits the network — wait for the option panel, not a fixed 2s.
+        suggestion = self.page.locator(
+            '.cdk-overlay-pane mat-option, mat-autocomplete mat-option'
+        ).first
+        suggestion.wait_for(state="visible", timeout=20_000)
         suggestion.click()
-        self.page.wait_for_timeout(500)
+        self._wait_options_closed()
+
+    def _use_same_address_checkboxes(self):
+        return self.page.locator('mat-checkbox:has-text("USE SAME ADDRESS AS PLACE STORED")')
+
+    def _check_use_same_address(self, index: int):
+        """Check the nth 'USE SAME ADDRESS AS PLACE STORED' checkbox if not already checked.
+
+        No-op when the form auto-checks it (DWI). Waits for the input to actually
+        report checked rather than sleeping after the click.
+        """
+        cbs = self._use_same_address_checkboxes()
+        cbs.first.wait_for(state="visible", timeout=10_000)
+        cb = cbs.nth(index) if cbs.count() > index else cbs.first
+        inner = cb.locator("input")
+        if not inner.is_checked():
+            cb.click()
+            expect(inner).to_be_checked(timeout=5_000)
 
     def check_use_same_address_storage(self):
         """Check 'USE SAME ADDRESS AS PLACE STORED' checkbox in the right panel (location section)."""
-        # There may be two such checkboxes — pick the first one (location/right panel)
-        cb = self.page.locator(
-            'mat-checkbox:has-text("USE SAME ADDRESS AS PLACE STORED"), '
-            'label:has-text("USE SAME ADDRESS AS PLACE STORED")'
-        ).first
-        cb.wait_for(state="visible", timeout=10_000)
-        if "mat-checkbox-checked" not in (cb.get_attribute("class") or ""):
-            cb.click()
-            self.page.wait_for_timeout(500)
+        self._check_use_same_address(0)
 
     def fill_sale_date(self, date_str: str):
         """Fill the Sale Date field (MM/DD/YYYY)."""
@@ -147,7 +223,6 @@ class Lt261Page:
         date_input.wait_for(state="visible", timeout=10_000)
         date_input.fill(date_str)
         self.page.keyboard.press("Tab")
-        self.page.wait_for_timeout(300)
 
     def select_notice_of_sale_reason(self):
         """Select the first option from 'Notice of Sale for Other Reasons' dropdown."""
@@ -157,24 +232,14 @@ class Lt261Page:
         ).first
         dropdown.wait_for(state="visible", timeout=10_000)
         dropdown.click()
-        self.page.wait_for_timeout(500)
 
-        option = self.page.locator('mat-option').first
-        option.wait_for(state="visible", timeout=10_000)
-        option.click()
-        self.page.wait_for_timeout(500)
+        self._wait_options_visible()
+        self.page.locator("mat-option").first.click()
+        self._wait_options_closed()
 
     def check_agency_use_same_address(self):
         """Check 'USE SAME ADDRESS AS PLACE STORED' under Agency/Department section."""
-        # Second occurrence (agency section)
-        cbs = self.page.locator(
-            'mat-checkbox:has-text("USE SAME ADDRESS AS PLACE STORED")'
-        )
-        cb = cbs.nth(1) if cbs.count() > 1 else cbs.first
-        cb.wait_for(state="visible", timeout=10_000)
-        if "mat-checkbox-checked" not in (cb.get_attribute("class") or ""):
-            cb.click()
-            self.page.wait_for_timeout(500)
+        self._check_use_same_address(1)
 
     def fill_agency_name(self, name: str):
         """Fill the NAME field under 'Name and Address of Agency or Department Selling Vehicle'."""
@@ -184,21 +249,88 @@ class Lt261Page:
         ).first
         name_input.wait_for(state="visible", timeout=10_000)
         name_input.fill(name)
-        self.page.wait_for_timeout(300)
 
-    def select_stolen_no(self):
-        """Select 'No' from the Stolen dropdown."""
+    def _select_stolen(self, value: str):
         stolen_dropdown = self.page.locator(
             'mat-select[aria-label*="Stolen" i], mat-select[name*="stolen" i]'
         ).first
         stolen_dropdown.wait_for(state="visible", timeout=10_000)
         stolen_dropdown.click()
-        self.page.wait_for_timeout(500)
 
-        no_option = self.page.locator('mat-option:has-text("No")').first
-        no_option.wait_for(state="visible", timeout=10_000)
-        no_option.dispatch_event("click")
-        self.page.wait_for_timeout(500)
+        self._wait_options_visible()
+        option = self.page.locator(f'mat-option:has-text("{value}")').first
+        option.wait_for(state="visible", timeout=10_000)
+        # dispatch_event bypasses the overlay intercepting the click (pre-existing behaviour)
+        option.dispatch_event("click")
+        self._wait_options_closed()
+
+    def select_stolen_no(self):
+        """Select 'No' from the Stolen dropdown."""
+        self._select_stolen("No")
+
+    def select_stolen_yes(self):
+        """Select 'Yes' from the Stolen dropdown (NCNSS-27067375)."""
+        self._select_stolen("Yes")
+
+    def submit_stolen_form(self):
+        """Submit a Stolen=Yes paper form: click Submit → confirm Yes.
+
+        Unlike submit_with_confirmation(), this does NOT expect an LT-265
+        issuance/success banner — for a stolen record the fix must SUPPRESS
+        auto-processing, so we only drive the submit + confirmation and let the
+        caller assert the resulting state. Returns nothing.
+        """
+        self._dismiss_cdk_overlay()
+        submit_btn = self.page.locator('button:has-text("Submit")').first
+        submit_btn.wait_for(state="visible", timeout=15_000)
+        submit_btn.scroll_into_view_if_needed()
+        submit_btn.click()
+
+        # Confirmation modal → Yes (if one appears)
+        try:
+            yes_btn = self.page.locator('mat-dialog-container button:has-text("Yes")').first
+            yes_btn.wait_for(state="visible", timeout=8_000)
+            yes_btn.click()
+        except Exception:
+            pass
+
+        # NOTE: _wait_dialog_closed() is a settle-hint and deliberately swallows a
+        # timeout — if a defect leaves an LT-265 popup open, expect_no_lt265_issue_popup()
+        # must be the thing that reports it, not an incidental wait failure here.
+        self._wait_dialog_closed()
+        self._wait_network_settled()
+
+    def expect_no_lt265_issue_popup(self):
+        """Assert that NO LT-265/LT-265A issuance popup/modal is shown.
+
+        For a Stolen=Yes LT-261 the fix must NOT auto-issue LT-265/265A, so the
+        'Issue LT-265' confirmation popup must not appear (TC-05, BR-122).
+        """
+        popup = self.page.locator(
+            'mat-dialog-container:has-text("LT-265"), [role="dialog"]:has-text("LT-265"), '
+            'mat-dialog-container:has-text("265A"), [role="dialog"]:has-text("265A")'
+        )
+        count = popup.count()
+        assert count == 0, (
+            "EXPECTED: no LT-265/265A issuance popup for a Stolen=Yes LT-261 (auto-process "
+            f"suppressed, BR-122) | ACTUAL: {count} LT-265 popup(s) visible — record was auto-issued"
+        )
+
+    def expect_vin_in_listing(self, vin: str):
+        """Assert a VIN IS present in the current listing (record was saved, not lost).
+
+        A just-submitted LT-261 is not immediately queryable (~5s of backend lag on
+        QA), so the search is retried against a deadline rather than run once. Without
+        this, a fast test outruns the backend and mis-reports the lag as the
+        NCNSS-27067375 "record vanished" defect.
+        """
+        try:
+            wait_for_vin_in_listing(self.page, self.search_by_vin, vin, "LT-261")
+        except AssertionError:
+            raise AssertionError(
+                f"EXPECTED: VIN {vin} present in the LT-261 listing (record saved, not lost) | "
+                f"ACTUAL: 0 rows — the record vanished from the listing (the NCNSS-27067375 defect)"
+            ) from None
 
     def select_stolen_yes(self):
         """Select 'Yes' from the Stolen dropdown (NCNSS-27067375)."""
@@ -274,13 +406,12 @@ class Lt261Page:
         submit_btn.wait_for(state="visible", timeout=15_000)
         submit_btn.scroll_into_view_if_needed()
         submit_btn.click()
-        self.page.wait_for_timeout(1000)
 
         # Confirmation modal → Yes
         yes_btn = self.page.locator('mat-dialog-container button:has-text("Yes")').first
-        yes_btn.wait_for(state="visible", timeout=10_000)
+        yes_btn.wait_for(state="visible", timeout=15_000)
         yes_btn.click()
-        self.page.wait_for_timeout(2000)
+        self._wait_dialog_closed()
 
         # Verify green success banner (may auto-dismiss quickly — soft check)
         try:
@@ -289,21 +420,39 @@ class Lt261Page:
         except Exception:
             pass  # Banner may have already dismissed before check
 
-        # Wait for redirect back to listing
-        self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(1000)
+        # Wait for redirect back to the listing
+        self._wait_network_settled()
+        try:
+            self.to_process_tab.wait_for(state="visible", timeout=15_000)
+        except Exception:
+            pass
 
     # ===== Listing navigation =====
 
+    def _wait_listing_settled(self):
+        self._wait_network_settled()
+        # Either rows rendered or an explicit empty state — whichever the app shows.
+        try:
+            self.page.wait_for_function(
+                """() => {
+                    const rows = document.querySelectorAll(
+                        'table.mat-table tr.mat-row, table tbody tr'
+                    ).length;
+                    const empty = /no .*(record|result|data)/i.test(document.body.innerText || '');
+                    return rows > 0 || empty;
+                }""",
+                timeout=15_000,
+            )
+        except Exception:
+            pass
+
     def click_to_process_tab(self):
         self.to_process_tab.click()
-        self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(1000)
+        self._wait_listing_settled()
 
     def click_processed_tab(self):
         self.processed_tab.click()
-        self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(1000)
+        self._wait_listing_settled()
 
     def search_by_vin(self, vin: str):
         self._dismiss_cdk_overlay()
@@ -313,7 +462,6 @@ class Lt261Page:
         try:
             show_filters_btn.wait_for(state="visible", timeout=5_000)
             show_filters_btn.click()
-            self.page.wait_for_timeout(1000)
         except Exception:
             pass
 
@@ -326,13 +474,37 @@ class Lt261Page:
             self.search_input.fill(vin)
             self.search_input.press("Enter")
 
-        self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(2000)
+        # Wait for the filtered result set. networkidle fires ~0.8s BEFORE the table
+        # re-renders, and the table passes through a transient 0-row state while it
+        # repaints — so an empty table is NOT a valid "settled" signal. Wait instead
+        # for a positive outcome either way: a row containing the VIN, or the app's
+        # explicit "No Records Found" empty state. Callers assert both directions.
+        self._wait_network_settled()
+        try:
+            self.page.wait_for_function(
+                """(vin) => {
+                    if (/no records found/i.test(document.body.innerText || '')) return true;
+                    const rows = Array.from(document.querySelectorAll(
+                        'table.mat-table tr.mat-row, table tbody tr'
+                    ));
+                    return rows.some(r => (r.innerText || '').toUpperCase().includes(vin.toUpperCase()));
+                }""",
+                arg=vin,
+                timeout=20_000,
+            )
+        except Exception:
+            pass
 
     def select_application(self, index: int = 0):
         self.vin_links.nth(index).click()
-        self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(2000)
+        self._wait_network_settled()
+        # Detail page is up once the correspondence link or an action bar renders.
+        try:
+            self.page.locator(
+                "//span[contains(text(),'View Correspondence/Documents')] | //button[contains(.,'Cancel')]"
+            ).first.wait_for(state="visible", timeout=15_000)
+        except Exception:
+            pass
 
     def expect_applications_visible(self):
         expect(self.application_rows.first).to_be_visible(timeout=15_000)
@@ -351,7 +523,10 @@ class Lt261Page:
         cancel_btn.wait_for(state="visible", timeout=15_000)
         cancel_btn.scroll_into_view_if_needed()
         cancel_btn.click()
-        self.page.wait_for_timeout(800)
+        try:
+            self._wait_dialog_visible(timeout=10_000)
+        except Exception:
+            pass
 
     def expect_cancel_modal_visible(self):
         """Assert the cancel-confirmation modal is visible with Yes and No options."""
@@ -368,8 +543,8 @@ class Lt261Page:
         ).first
         yes_btn.wait_for(state="visible", timeout=10_000)
         yes_btn.click()
-        self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(2000)
+        self._wait_dialog_closed()
+        self._wait_network_settled()
 
     def click_cancel_modal_no(self):
         """Click No (or dismiss) in the cancel-confirmation modal — stays on form."""
@@ -381,7 +556,7 @@ class Lt261Page:
             no_btn.click()
         except Exception:
             self.page.keyboard.press("Escape")
-        self.page.wait_for_timeout(800)
+        self._wait_dialog_closed(timeout=8_000)
 
     def expect_on_listing_page(self):
         """Assert we are back on the LT-261 listing (To Process / Draft / Processed tabs visible)."""
@@ -406,7 +581,7 @@ class Lt261Page:
         link = self.page.locator("//span[contains(text(),'View Correspondence/Documents')]")
         link.wait_for(state="visible", timeout=10_000)
         link.click()
-        self.page.wait_for_timeout(1000)
+        self._wait_dialog_visible()
 
     def expect_lt265_in_correspondence(self):
         """Verify 'Correspondence History' modal is shown and contains an LT-265 entry."""
@@ -441,9 +616,6 @@ class Lt261Page:
     _USE_SAME_ADDRESS_STATES_JS = """() => Array.from(document.querySelectorAll('mat-checkbox'))
         .filter(cb => /USE SAME ADDRESS AS PLACE STORED/i.test(cb.innerText || ''))
         .map(cb => { const i = cb.querySelector('input'); return i ? i.checked : null; })"""
-
-    def _wait_dialog_visible(self, timeout: int = 15_000):
-        self.page.locator("mat-dialog-container").first.wait_for(state="visible", timeout=timeout)
 
     def _wait_listing_settled(self, timeout: int = 15_000):
         """Listing has painted: rows rendered, or the app's explicit empty state."""
