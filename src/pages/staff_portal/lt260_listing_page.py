@@ -1,6 +1,8 @@
 import re
 from playwright.sync_api import Page, expect
 
+from src.helpers.listing_helper import wait_for_vin_filter_applied, wait_for_vin_row
+
 
 class Lt260ListingPage:
     def __init__(self, page: Page):
@@ -62,6 +64,10 @@ class Lt260ListingPage:
 
     def select_application(self, index: int = 0):
         self._dismiss_cdk_overlay()
+        # A just-submitted record may not be queryable yet — re-search until its row shows
+        # (soft; see src/helpers/listing_helper.py).
+        if index == 0 and getattr(self, "_last_vin", None):
+            wait_for_vin_row(self.page, self.search_by_vin, self._last_vin)
         try:
             self.vin_links.nth(index).click(timeout=10_000)
         except Exception:
@@ -146,6 +152,8 @@ class Lt260ListingPage:
 
         self.page.wait_for_load_state("networkidle")
         self.page.wait_for_timeout(2000)
+        self._last_vin = vin
+        wait_for_vin_filter_applied(self.page, vin)
 
     def verify_owners_check_visible(self):
         """Verify owner check section is visible. Soft-fail for random VINs."""

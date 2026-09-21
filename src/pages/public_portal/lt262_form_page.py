@@ -93,6 +93,18 @@ class Lt262FormPage:
         # Tab B: LOCATION OF VEHICLE
         self._click_next()  # B → C
 
+    def skip_prefilled_form_detail_tabs(self):
+        """Step through inner tabs A → B → C → D and land on E (NAME AND ADDRESS).
+
+        Used by flows where the lien description (C), date of storage (D) and
+        name/address (E) all carry over pre-populated from the originating LT-260 /
+        a prior LT-262 and only need to be stepped past with Next — the caller then
+        advances off E via fill_additional_details(), which issues the E → Additional
+        Details Next itself.
+        """
+        for _ in range(4):  # A→B, B→C, C→D, D→E
+            self._click_next()
+
     # ===== Tab C: DESCRIPTION OF LIEN =====
 
     def fill_lien_charges(self, charges: dict):

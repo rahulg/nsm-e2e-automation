@@ -28,8 +28,13 @@ class FormProcessingPage:
         expect(self.owners_check_section).to_be_visible(timeout=10_000)
 
     def click_edit(self):
-        """Click Edit button on the detail page."""
-        self.edit_button.wait_for(state="visible", timeout=10_000)
+        """Click Edit button on the detail page.
+
+        The action bar (Close File / Reject / Edit) renders after the detail body: on
+        2026-09-14 E2E-001 phase 2 saw 'Vehicle Details' but no Edit within 10s, while the
+        same To Process record showed Edit when opened minutes later.
+        """
+        self.edit_button.wait_for(state="visible", timeout=45_000)
         self.edit_button.click()
         self.page.wait_for_load_state("networkidle")
         self.page.wait_for_timeout(2000)
@@ -107,12 +112,25 @@ class FormProcessingPage:
 
     def issue_160b_and_260a(self):
         """Click 'Issue 160B and 260A' button, then click Issue in the modal."""
+        # On slow QA the app's loading spinner (exp-loader-overlay-backdrop) can sit over the
+        # Issue button and intercept the click for 30s — wait for it to clear first.
+        try:
+            expect(
+                self.page.locator(".exp-loader-overlay-backdrop")
+            ).to_have_count(0, timeout=30_000)
+        except Exception:
+            pass
         issue_btn = self.page.locator(
             'button:has-text("Issue 160B and 260A"), '
             'button:has-text("Issue 160B"), '
             'button:has-text("160B")'
         ).first
-        issue_btn.scroll_into_view_if_needed(timeout=5_000)
+        # On slow QA the Issue button can still be rendering after the spinner clears — wait
+        # for it to actually be present/visible before scrolling, and give the scroll the same
+        # headroom (the bare 5s cap here was the single hard failure at E2E-059 phase 3d on a
+        # slow window: the button was not yet attached when the scroll timed out).
+        issue_btn.wait_for(state="visible", timeout=30_000)
+        issue_btn.scroll_into_view_if_needed(timeout=15_000)
         issue_btn.click()
         self.page.wait_for_timeout(2000)
 
@@ -125,11 +143,25 @@ class FormProcessingPage:
         self.page.wait_for_timeout(3000)
 
     def expect_issued_success_toast(self):
-        """Verify green toast: 'The form has been issued successfully.'"""
+        """Verify green toast: 'The form has been issued successfully.'
+
+        Issuance runs under the app's loading overlay and on QA can exceed 30s (seen
+        2026-09-14: E2E-003 phase 2 still "To Process" under the spinner ~3s after the
+        modal Issue click, failing 2 of 3 runs). Wait for the overlay to clear first, then
+        accept the toast OR the Processed status — the toast is transient and can be gone
+        by the time a long overlay lifts.
+        """
+        try:
+            expect(
+                self.page.locator(".exp-loader-overlay-backdrop")
+            ).to_have_count(0, timeout=120_000)
+        except Exception:
+            pass
         toast = self.page.locator(
             'text="The form has been issued successfully."'
         )
-        expect(toast).to_be_visible(timeout=30_000)
+        processed = self.page.get_by_text(re.compile(r"\bProcessed\b", re.I))
+        expect(toast.or_(processed).filter(visible=True).first).to_be_visible(timeout=60_000)
 
     def expect_status_processed(self):
         """Verify the page shows 'Processed' status."""

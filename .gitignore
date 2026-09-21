@@ -3,6 +3,8 @@ __pycache__/
 .env
 .env.qa
 .env.stage
+.env.*
+!.env.example
 auth/
 test-results/
 playwright-report/
@@ -15,6 +17,8 @@ report.html
 node_modules/
 .DS_Store
 *.png
+.github
+.claude
 !fixtures/*.png
 LT-264.pdf
 
@@ -23,3 +27,7 @@ results/
 
 # Debug / scratch folder (notes, old runs, reference docs)
 Debug/
+screenshots/
+
+# Local Claude Code state (agent memory, settings)
+.claude/

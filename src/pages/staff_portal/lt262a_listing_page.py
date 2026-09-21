@@ -95,11 +95,22 @@ class Lt262aListingPage:
     # ===== Assertions =====
 
     def expect_success_banner(self):
-        """Verify green success banner after issuing."""
-        banner = self.page.locator(
-            '[class*="success" i], [class*="toast" i], [class*="snack" i]'
-        ).first
-        expect(banner).to_be_visible(timeout=15_000)
+        """Verify green success banner after issuing.
+
+        Issuance runs under the app's loading overlay and can outlast a short wait, and the
+        banner is transient (E2E-003 phase 4 failed here 2026-09-14 although phase 5 then
+        found the vehicle Sold with LT-265A). Wait for the overlay, then accept a visible
+        success message OR the Processed status.
+        """
+        try:
+            expect(
+                self.page.locator(".exp-loader-overlay-backdrop")
+            ).to_have_count(0, timeout=120_000)
+        except Exception:
+            pass
+        banner = self.page.get_by_text(re.compile(r"issued successfully|success", re.I))
+        processed = self.page.get_by_text(re.compile(r"\bProcessed\b", re.I))
+        expect(banner.or_(processed).filter(visible=True).first).to_be_visible(timeout=60_000)
 
     def expect_status_processed(self):
         """Verify status on the detail page is Processed."""

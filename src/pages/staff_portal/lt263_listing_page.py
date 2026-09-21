@@ -72,6 +72,9 @@ class Lt263ListingPage:
     def click_all_tab(self):
         self._click_tab(self.all_tab, "All")
 
+    def click_rejected_tab(self):
+        self._click_tab(self.rejected_tab, "Rejected")
+
     # ===== Application selection =====
 
     def select_application(self, index: int = 0):

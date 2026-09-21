@@ -52,16 +52,23 @@ class PublicDashboardPage:
 
     # ===== E2E-001 ENHANCED METHODS =====
 
-    def select_business(self, name: str = "G-Car Garages New"):
+    def select_business(self, name: str | None = None):
         """Select business/garage from the header dropdown near cart/profile.
-        Defaults to 'G-Car Garages New' for all public portal flows.
+
+        Defaults to the env's business (ENV.PUBLIC_BUSINESS_NAME) rather than a
+        hardcoded QA garage — the header trigger is matched on the name's own first
+        word, so this works on any env.
         """
+        name = name or ENV.PUBLIC_BUSINESS_NAME
+        # Match the header on the business's first word ("G-Car", "Piedmont") — the
+        # full name is often truncated/decorated in the toolbar.
+        trigger_text = name.split()[0]
         # Try clicking the business name text in the header (most direct trigger)
         try:
             biz_trigger = self.page.locator(
-                'app-header span:has-text("G-Car"), '
-                'mat-toolbar span:has-text("G-Car"), '
-                'header span:has-text("G-Car")'
+                f'app-header span:has-text("{trigger_text}"), '
+                f'mat-toolbar span:has-text("{trigger_text}"), '
+                f'header span:has-text("{trigger_text}")'
             ).first
             biz_trigger.wait_for(state="visible", timeout=5_000)
             biz_trigger.click()

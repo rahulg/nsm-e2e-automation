@@ -1,8 +1,26 @@
+import os
 import re
 from playwright.sync_api import Page, expect
 from src.config.env import ENV
 
 BASE_PATH = "/pages/ncdot-notice-and-storage"
+
+
+def _sidebar_timeout_ms() -> int:
+    """How long to allow for the staff dashboard sidebar to render.
+
+    The Angular bundle boots far slower on STAGE than on QA: measured 2026-07-23 with a
+    valid stored session, the sidebar first renders between 50s and 60s after navigation
+    on STAGE versus ~2s on QA. The previous flat 20s budget meant every STAGE report suite
+    died in _wait_for_sidebar() before reaching its own assertions, reporting a locator
+    error that looked like a missing feature.
+
+    Read at call time (not import time) so it can't race conftest's NSM_ENV setup.
+    to_be_visible() returns as soon as the link appears, so the larger budget costs a
+    healthy QA run nothing — it only extends how long a genuinely broken page takes to
+    fail. It also absorbs the transient slowdown seen when two suites share a machine.
+    """
+    return 90_000 if os.getenv("NSM_ENV", "qa").lower() == "stage" else 45_000
 
 
 class StaffDashboardPage:
@@ -60,7 +78,7 @@ class StaffDashboardPage:
 
     def _wait_for_sidebar(self):
         self._dismiss_cdk_overlay()
-        expect(self.lt260_nav_link).to_be_visible(timeout=20_000)
+        expect(self.lt260_nav_link).to_be_visible(timeout=_sidebar_timeout_ms())
 
     def _click_nav_link(self, link_locator, href_pattern: str = None):
         """Click a sidebar nav link with CDK overlay fallback."""

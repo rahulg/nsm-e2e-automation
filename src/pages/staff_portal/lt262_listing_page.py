@@ -1,6 +1,8 @@
 import re
 from playwright.sync_api import Page, expect
 
+from src.helpers.listing_helper import wait_for_vin_filter_applied, wait_for_vin_row
+
 
 class Lt262ListingPage:
     """Staff Portal LT-262 listing and detail page.
@@ -85,6 +87,10 @@ class Lt262ListingPage:
 
     def select_application(self, index: int = 0):
         self._dismiss_cdk_overlay()
+        # A just-submitted/just-moved record may not be queryable yet — re-search until its
+        # row shows (soft; see src/helpers/listing_helper.py).
+        if index == 0 and getattr(self, "_last_vin", None):
+            wait_for_vin_row(self.page, self.search_by_vin, self._last_vin)
         try:
             self.vin_links.nth(index).click(timeout=10_000)
         except Exception:
@@ -168,6 +174,9 @@ class Lt262ListingPage:
 
         self.page.wait_for_load_state("networkidle")
         self.page.wait_for_timeout(2000)
+        self._last_vin = vin
+        # Soft: E2E-001 phase 5 legitimately expects zero rows on Aging and branches on it.
+        wait_for_vin_filter_applied(self.page, vin)
 
     # ===== Detail page tab navigation =====
 
@@ -272,7 +281,7 @@ class Lt262ListingPage:
             except Exception:
                 self._dismiss_cdk_overlay()
                 btn.click(force=True)
-            self.page.wait_for_timeout(2000)
+            self.page.wait_for_timeout(1000)  # was 2000; modal wait below is 10s
 
             # Confirm in the modal — click "Issue" button
             modal_issue = self.page.locator('mat-dialog-container button:has-text("Issue")').first
@@ -282,7 +291,7 @@ class Lt262ListingPage:
             except Exception:
                 pass
             self.page.wait_for_load_state("networkidle")
-            self.page.wait_for_timeout(3000)
+            self.page.wait_for_timeout(1200)  # was 3000; caller then waits ≤30s for the success toast
         except Exception:
             # LT-264 button not found — check alternatives
 
@@ -322,6 +331,33 @@ class Lt262ListingPage:
                 pass
             # Continue regardless — downstream phases may still work
             return
+
+    def wait_for_loader_gone(self, timeout: int = 120_000):
+        """Wait for the app's loading overlay to clear. Soft.
+
+        Letter-generating saves (Issue LT-264, TRACK LT-264 Save → LT-264B) run under this
+        overlay and on a loaded QA can take well over 30s — three suites run in parallel on
+        2026-09-14 all timed out waiting for REVIEW COURT HEARINGS after the TRACK Save,
+        while the same phase passed when run alone.
+        """
+        try:
+            expect(
+                self.page.locator(".exp-loader-overlay-backdrop")
+            ).to_have_count(0, timeout=timeout)
+        except Exception:
+            pass
+
+    def expect_lt264_issued(self, timeout: int = 60_000):
+        """Assert LT-264 issuance completed: success banner OR auto-switch to TRACK LT-264.
+
+        Issuance runs under the app's loading overlay and can outlast a 15s wait, and the
+        banner is transient (E2E-005 phase 4 failed on the bare 15s banner check,
+        2026-09-14). Wait for the overlay to clear, then accept either signal.
+        """
+        self.wait_for_loader_gone()
+        banner = self.page.get_by_text("The form has been issued successfully.")
+        on_track_tab = self.page.locator('[role="tab"][aria-selected="true"]:has-text("TRACK LT-264")')
+        expect(banner.or_(on_track_tab).filter(visible=True).first).to_be_visible(timeout=timeout)
 
     # ===== TRACK LT-264 tab =====
 
@@ -415,3 +451,54 @@ class Lt262ListingPage:
 
     def click_all_tab(self):
         self._click_tab(self.all_tab, "All")
+
+    def click_rejected_tab(self):
+        self._click_tab(self.rejected_tab, "Rejected")
+
+    # ===== CHECK DCI AND NMVTIS tab — reject =====
+
+    def reject_lt262(self):
+        """Reject the LT-262 currently open. Per nss-sme-coach.md's recon, the Reject
+        control for LT-262 (unlike LT-260/LT-263, which reject from their own detail
+        page) lives on the CHECK DCI AND NMVTIS tab — the same tab issue_lt264() uses.
+        No specific reason text is confirmed live for LT-262 (no prior recon exists,
+        unlike LT-263's LT263_REJECT_REASON_TEXT), so this checks the FIRST available
+        reason checkbox in the modal rather than a named one — generic, not tied to
+        wording that might not match what LT-262's modal actually offers.
+        Returns True if a Reject button was found and clicked, False if not present
+        (e.g. the case has moved past the stage where rejecting is offered)."""
+        self.click_check_dci_tab()
+        self.page.wait_for_timeout(1000)
+        self._dismiss_cdk_overlay()
+
+        reject_btn = self.page.locator('button:has-text("Reject")').first
+        try:
+            reject_btn.wait_for(state="visible", timeout=8_000)
+        except Exception:
+            return False
+        try:
+            reject_btn.click(timeout=10_000)
+        except Exception:
+            self._dismiss_cdk_overlay()
+            reject_btn.click(force=True)
+        self.page.wait_for_timeout(1500)
+
+        reason_checkbox = self.page.locator("mat-dialog-container mat-checkbox").first
+        try:
+            reason_checkbox.wait_for(state="visible", timeout=10_000)
+            if "mat-checkbox-checked" not in (reason_checkbox.get_attribute("class") or ""):
+                reason_checkbox.locator("label").click()
+                self.page.wait_for_timeout(500)
+        except Exception:
+            pass  # some reject modals may need no reason selected to enable Confirm
+
+        confirm_btn = self.page.locator(
+            'mat-dialog-container button:has-text("Reject"), '
+            'mat-dialog-container button:has-text("Confirm"), '
+            'mat-dialog-container button:has-text("Submit")'
+        ).last
+        expect(confirm_btn).to_be_enabled(timeout=10_000)
+        confirm_btn.click()
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(2000)
+        return True

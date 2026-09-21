@@ -78,10 +78,10 @@ def parse_args() -> argparse.Namespace:
     # --- Environment ---
     parser.add_argument(
         "--env",
-        choices=["qa", "stage"],
+        choices=["qa", "stage", "uat"],
         default="qa",
         metavar="ENV",
-        help="Target environment: qa | stage  (default: qa)",
+        help="Target environment: qa | stage | uat  (default: qa)",
     )
 
     # --- Test selection ---

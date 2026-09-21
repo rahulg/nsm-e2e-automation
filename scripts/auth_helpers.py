@@ -66,6 +66,58 @@ def _login_public_simple(page, username: str, password: str) -> None:
     page.wait_for_timeout(3000)
 
 
+def select_company_if_prompted(page, timeout: int = 15_000, company: str = "") -> None:
+    """After public-portal login, some users land on /select-company (multi-company
+    accounts) instead of the dashboard. Pick a company and continue.
+
+    ``company``: select this business by name instead of the first option. The QA
+    public account belongs to four businesses (G-Car Garages New, Piedmont Recovery
+    Services, Piedmont Towing, Triangle Garage) whose data differs a lot, so "the
+    first option" is not a stable target for a test that cares which one it edits.
+    Falls back to the first option, with a warning, when the named business isn't
+    offered — environments don't share the same business list.
+
+    No-ops if the account isn't prompted (single-company users skip straight
+    to the dashboard).
+    """
+    try:
+        page.wait_for_url(re.compile(r"select-company", re.I), timeout=timeout)
+    except Exception:
+        return  # not prompted -- already past this step
+
+    page.wait_for_load_state("networkidle")
+    page.locator("mat-select").first.click()
+    page.locator("mat-option").first.wait_for(state="visible", timeout=timeout)
+
+    named = (
+        page.get_by_role("option", name=re.compile(rf"^\s*{re.escape(company)}\s*$", re.I))
+        if company
+        else None
+    )
+    if named is not None and named.count():
+        named.first.click()
+    else:
+        if company:
+            offered = [
+                page.locator("mat-option").nth(i).inner_text().strip()
+                for i in range(page.locator("mat-option").count())
+            ]
+            print(f"  WARN: company {company!r} not offered (saw {offered}) — using the first")
+        page.locator("mat-option").first.click()
+    page.wait_for_timeout(500)
+
+    page.get_by_role("button", name=re.compile(r"^\s*Go To Dashboard\s*$", re.I)).click()
+    page.wait_for_url(re.compile(r"dashboard", re.I), timeout=timeout)
+    try:
+        # Post-company-switch dashboards keep background polling alive indefinitely
+        # for some accounts, so networkidle never fires within the default 30s.
+        # We've already confirmed the dashboard URL above; callers that need a
+        # stronger readiness signal (e.g. an auth token) check for it themselves.
+        page.wait_for_load_state("networkidle", timeout=timeout)
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def _save_debug_screenshot(page, filename: str) -> None:
     env_name = os.getenv("NSM_ENV", "qa")
     screenshot_dir = Path(__file__).resolve().parent.parent / "auth" / env_name

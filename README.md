@@ -393,7 +393,7 @@ python run_tests.py [options]
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--env qa\|stage` | `qa` | Target environment |
+| `--env qa\|stage\|uat` | `qa` | Target environment (`uat` needs `.env.uat`; currently used by E2E-060 registration) |
 | `--tags EXPR` / `-m EXPR` | *(all)* | Pytest marker expression |
 | `--test VALUE` / `-k VALUE` | *(all)* | File path or keyword fragment |
 | `--headed` | headless | Run with visible browser |
@@ -487,7 +487,7 @@ e2eautomation/
 │
 ├── fixtures/               ← Static test files
 │   ├── sample-document.pdf
-│   └── sample-vin-image.png
+│   └── vin-image-sample.png
 │
 └── results/                ← Generated reports (git-ignored)
     ├── report.html

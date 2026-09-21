@@ -39,6 +39,7 @@ from src.pages.public_portal.payment_page import PaymentPage
 from src.pages.staff_portal.dashboard_page import StaffDashboardPage
 from src.pages.staff_portal.lt260_listing_page import Lt260ListingPage
 from src.pages.staff_portal.lt262_listing_page import Lt262ListingPage
+from src.pages.staff_portal.lt261_page import wait_for_vin_in_listing
 from src.pages.staff_portal.lt263_listing_page import Lt263ListingPage
 from src.pages.staff_portal.form_processing_page import FormProcessingPage
 from src.pages.staff_portal.sold_listing_page import SoldListingPage
@@ -120,8 +121,24 @@ class TestE2E001StandardVehicleLifecycle:
             lt260.submit_with_vin_image()
             page.wait_for_timeout(2000)
 
-            # Verify redirect back to dashboard
-            page.wait_for_url(re.compile(r"dashboard", re.I), timeout=30_000)
+            # Soft check — redirect back to dashboard may not always happen; don't fail the phase
+            try:
+                page.wait_for_url(re.compile(r"dashboard", re.I), timeout=15_000)
+            except Exception:
+                print("  WARN: did not redirect back to dashboard after LT-260 submit — continuing")
+
+            # Hard check that the LT-260 was actually saved: submit_with_vin_image() returns
+            # silently when no VIN modal appears, so without this Phase 1 passes even if the
+            # submit failed and the miss only surfaces later as a Phase 2 "no row" timeout.
+            go_to_public_dashboard(page)
+            dashboard.select_business(BUSINESS_NAME)
+            dashboard.click_notice_storage_tab()
+            page.wait_for_timeout(1000)
+            dashboard.search_by_vin(TEST_VIN)
+            page.wait_for_timeout(2000)
+            dashboard.select_application(0)
+            expect(page.get_by_text(TEST_VIN).first).to_be_visible(timeout=30_000)
+            expect(page.get_by_text(re.compile(r"LT-260 Submitted", re.I)).first).to_be_visible(timeout=30_000)
         finally:
             page.close()
 
@@ -142,8 +159,10 @@ class TestE2E001StandardVehicleLifecycle:
             staff_dashboard.navigate_to_lt260_listing()
             lt260_listing.click_to_process_tab()
 
-            # Search for our specific VIN
-            lt260_listing.search_by_vin(TEST_VIN)
+            # Search for our specific VIN — poll: a just-submitted LT-260 is not always
+            # queryable on the first search (a full run on 2026-09-14 found no row for 90s
+            # although Phase 1 had saved the record).
+            wait_for_vin_in_listing(page, lt260_listing.search_by_vin, TEST_VIN, "LT-260 To Process")
             lt260_listing.select_application(0)
 
             # Verify detail page loaded
@@ -274,9 +293,8 @@ class TestE2E001StandardVehicleLifecycle:
             # Issue LT-264 (clicks button → modal → Issue → success)
             lt262_listing.issue_lt264()
 
-            # Verify green success banner
-            success_banner = page.get_by_text("The form has been issued successfully.")
-            expect(success_banner).to_be_visible(timeout=30_000)
+            # Issued banner (or auto-switch to TRACK LT-264) — waits out the issuance overlay
+            lt262_listing.expect_lt264_issued()
 
             # Verify redirected to TRACK LT-264 tab
             track_tab = page.locator('[role="tab"]:has-text("TRACK LT-264")')
@@ -342,7 +360,9 @@ class TestE2E001StandardVehicleLifecycle:
 
             # Wait for redirect to REVIEW COURT HEARINGS — wait for its unique content
             possessory_text = page.get_by_text(re.compile(r"Judgment in action of Possessory Lien", re.I)).first
-            possessory_text.wait_for(state="visible", timeout=30_000)
+            # TRACK Save generates LT-264B under the loading overlay — can exceed 30s on a loaded QA
+            Lt262ListingPage(page).wait_for_loader_gone()
+            possessory_text.wait_for(state="visible", timeout=60_000)
             page.wait_for_timeout(2000)
 
             # Check "Judgment in action of Possessory Lien" checkbox

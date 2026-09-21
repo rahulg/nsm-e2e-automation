@@ -5,7 +5,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--env",
         default="qa",
-        choices=["qa", "stage"],
+        choices=["qa", "stage", "uat"],
         help="Target environment to run tests against (default: qa)",
     )
 
