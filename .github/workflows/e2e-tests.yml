@@ -2,10 +2,8 @@ name: NSM E2E Tests
 
 on:
   schedule:
-    # Daily (Mon-Fri): Smoke tests at 5:00 AM UTC
-    - cron: '0 5 * * 1-5'
-    # Tuesday-Friday: Core & critical tests at 6:30 AM UTC
-    - cron: '30 6 * * 2-5'
+    # Tue-Fri: Smoke tests at 5:00 AM UTC
+    - cron: '0 5 * * 2-5'
     # Monday: Full suite at 4:00 AM UTC
     - cron: '0 4 * * 1'
   workflow_dispatch:
